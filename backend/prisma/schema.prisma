@@ -75,6 +75,7 @@ model Territory {
   communeCode    String?
 
   territoryVintage TerritoryVintage @relation(fields: [vintage], references: [year])
+  observations     Observation[]
 
   // Le même code désigne une région et un département (84 : Auvergne-Rhône-
   // Alpes et Vaucluse) : un code ne se lit qu'avec son niveau.
@@ -182,6 +183,7 @@ model IndicatorDefinition {
   createdAt           DateTime      @default(now())
   dataset             SourceDataset @relation(fields: [datasetId], references: [id])
   createdBy           User          @relation(fields: [createdById], references: [id])
+  observations        Observation[]
 
   @@map("indicator_definitions")
 }
@@ -205,25 +207,44 @@ enum SourceFormat {
 
 enum ImportState {
   uploaded // lu, en attente de description des colonnes
+  described // colonnes décrites, pas encore contrôlé
+  needs_correction // contrôlé, au moins une anomalie bloquante
+  validated // contrôlé sans anomalie bloquante, observations prêtes
+}
+
+/**
+ * Ce qu'une case dit d'une valeur. Une absence n'est jamais un zéro.
+ */
+enum ObservationStatus {
+  documented // une valeur publiée
+  not_documented // case vide, « nd », « - » : le producteur ne donne rien
+  confidential // « s » : secret statistique
+  not_applicable // « so », « sans objet »
+}
+
+enum AnomalySeverity {
+  blocking // empêche la validation
+  info // se lit, ne bloque pas
 }
 
 model DatasetVersion {
-  id          String        @id @default(uuid())
-  datasetId   String
+  id           String        @id @default(uuid())
+  datasetId    String
   // Le millésime annoncé par le producteur : « 2024 », « rentrée 2025 ».
-  vintage     String
+  vintage      String
   // L'adresse exacte du fichier chez le producteur.
-  fileUrl     String
-  collectedAt DateTime
-  fileName    String
-  fileHash    String
-  fileSize    Int
-  state       VersionState  @default(draft)
-  createdById String
-  createdAt   DateTime      @default(now())
-  dataset     SourceDataset @relation(fields: [datasetId], references: [id])
-  createdBy   User          @relation(fields: [createdById], references: [id])
-  importJob   ImportJob?
+  fileUrl      String
+  collectedAt  DateTime
+  fileName     String
+  fileHash     String
+  fileSize     Int
+  state        VersionState  @default(draft)
+  createdById  String
+  createdAt    DateTime      @default(now())
+  dataset      SourceDataset @relation(fields: [datasetId], references: [id])
+  createdBy    User          @relation(fields: [createdById], references: [id])
+  importJob    ImportJob?
+  observations Observation[]
 
   // Le même fichier ne se dépose pas deux fois pour le même jeu.
   @@unique([datasetId, fileHash])
@@ -231,19 +252,23 @@ model DatasetVersion {
 }
 
 model ImportJob {
-  id         String         @id @default(uuid())
-  versionId  String         @unique
-  format     SourceFormat
+  id          String          @id @default(uuid())
+  versionId   String          @unique
+  format      SourceFormat
   // Les onglets d'un classeur, et celui qui a été lu.
-  sheetNames String[]
-  sheet      String?
+  sheetNames  String[]
+  sheet       String?
   // La ligne qui porte les en-têtes, comptée à partir de 1.
-  headerRow  Int            @default(1)
-  rowCount   Int
-  state      ImportState    @default(uploaded)
-  createdAt  DateTime       @default(now())
-  version    DatasetVersion @relation(fields: [versionId], references: [id])
-  rows       RawRow[]
+  headerRow   Int             @default(1)
+  // La description des colonnes : territoire, période, valeurs (voir domain/import-description.ts).
+  description Json?
+  validatedAt DateTime?
+  rowCount    Int
+  state       ImportState     @default(uploaded)
+  createdAt   DateTime        @default(now())
+  version     DatasetVersion  @relation(fields: [versionId], references: [id])
+  rows        RawRow[]
+  anomalies   ImportAnomaly[]
 
   @@map("import_jobs")
 }
@@ -259,4 +284,43 @@ model RawRow {
 
   @@id([jobId, rowNumber])
   @@map("raw_rows")
+}
+
+model ImportAnomaly {
+  id        String          @id @default(uuid())
+  jobId     String
+  // La ligne du fichier, comptée à partir de 1 ; vide pour une anomalie qui résume une colonne.
+  rowNumber Int?
+  column    String?
+  kind      String
+  severity  AnomalySeverity
+  message   String
+  job       ImportJob       @relation(fields: [jobId], references: [id])
+
+  @@index([jobId])
+  @@map("import_anomalies")
+}
+
+// ── Les observations ────────────────────────────────────────────────────────
+// Une valeur n'existe qu'attachée à un indicateur, un territoire, une période
+// et une version. Une absence garde son statut et n'a pas de valeur.
+
+model Observation {
+  id          String              @id @default(uuid())
+  indicatorId String
+  territoryId String
+  // « 2024 », « 2024-T3 », « 2024-03 », « 2025-2026 » (année scolaire).
+  period      String
+  value       Decimal?            @db.Decimal(20, 6)
+  status      ObservationStatus
+  versionId   String
+  // La ligne du fichier d'où vient la valeur.
+  rowNumber   Int
+  indicator   IndicatorDefinition @relation(fields: [indicatorId], references: [id])
+  territory   Territory           @relation(fields: [territoryId], references: [id])
+  version     DatasetVersion      @relation(fields: [versionId], references: [id])
+
+  @@unique([indicatorId, territoryId, period, versionId])
+  @@index([indicatorId, versionId])
+  @@map("observations")
 }

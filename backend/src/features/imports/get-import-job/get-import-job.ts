@@ -27,6 +27,7 @@ export class GetImportJobController {
     const job = await this.prisma.importJob.findUnique({
       where: { id },
       include: {
+        anomalies: { orderBy: [{ severity: 'asc' }, { rowNumber: 'asc' }] },
         version: {
           include: {
             dataset: { select: { id: true, title: true } },
@@ -51,6 +52,17 @@ export class GetImportJobController {
       sheet: job.sheet,
       headerRow: job.headerRow,
       rowCount: job.rowCount,
+      description: job.description,
+      validatedAt: job.validatedAt,
+      anomalies: job.anomalies.map(
+        ({ rowNumber, column, kind, severity, message }) => ({
+          rowNumber,
+          column,
+          kind,
+          severity,
+          message,
+        }),
+      ),
       version: {
         id: job.version.id,
         vintage: job.version.vintage,
