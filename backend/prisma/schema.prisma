@@ -135,6 +135,15 @@ enum IndicatorKind {
   category
 }
 
+/// L'échelle où les valeurs se comparent. Le zonage des médecins se décide
+/// région par région, dans des plafonds régionaux : une ZIP de Bretagne et une
+/// ZIP d'Occitanie ne sortent pas du même classement, la carte se lit donc
+/// une région à la fois.
+enum ComparisonScale {
+  national
+  regional
+}
+
 /**
  * Une agrégation qu'un indicateur permet. Aucune = aucune somme ni moyenne.
  */
@@ -188,6 +197,7 @@ model IndicatorDefinition {
   // L'unité telle que le producteur l'écrit.
   unit                String
   kind                IndicatorKind     @default(number)
+  comparisonScale     ComparisonScale   @default(national)
   // Pour une catégorie : la liste fermée [{ code, label }], dans l'ordre de l'arrêté.
   categories          Json?
   pillar              Pillar

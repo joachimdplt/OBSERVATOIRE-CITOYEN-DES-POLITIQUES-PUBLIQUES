@@ -6,7 +6,7 @@ import { getIndicatorMap } from '../services/public-api'
  * Les valeurs d'une période pour la carte, lues dans le navigateur : une
  * réponse d'un mégaoctet n'a rien à faire dans la page rendue par le serveur.
  */
-export function useIndicatorMap(code: string, period: string) {
+export function useIndicatorMap(code: string, period: string, region?: string) {
   const [values, setValues] = useState<MapValue[] | null>(null)
   const [failed, setFailed] = useState(false)
 
@@ -14,12 +14,12 @@ export function useIndicatorMap(code: string, period: string) {
     let cancelled = false
     setValues(null)
     setFailed(false)
-    getIndicatorMap({ data: { code, period } })
+    getIndicatorMap({ data: { code, period, region } })
       .then((map) => !cancelled && setValues(map?.values ?? []))
       .catch(() => !cancelled && setFailed(true))
     return () => {
       cancelled = true
     }
-  }, [code, period])
+  }, [code, period, region])
   return { values, failed }
 }

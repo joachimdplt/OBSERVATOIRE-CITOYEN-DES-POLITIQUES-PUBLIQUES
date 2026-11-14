@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
 import { LayerPicker } from '../components/organisms/map/LayerPicker'
 import { MapPanel } from '../components/organisms/map/MapPanel'
+import { RegionPicker } from '../components/organisms/map/RegionPicker'
 import { TerritoryLayersCard } from '../components/organisms/territory/TerritoryLayersCard'
 import {
   getIndicator,
@@ -13,6 +14,7 @@ import { seo } from '../utils/seo'
 const search = z.object({
   layer: z.string().optional(),
   period: z.string().optional(),
+  region: z.string().optional(),
   territory: z.string().optional(),
   level: z.string().optional(),
   name: z.string().optional(),
@@ -64,6 +66,11 @@ function MapPage() {
     filters.period && sheet.periods.includes(filters.period)
       ? filters.period
       : sheet.periods.at(-1)!
+  const regional = sheet.comparisonScale === 'regional'
+  const region =
+    regional && sheet.regions.some((r) => r.code === filters.region)
+      ? filters.region
+      : undefined
 
   return (
     <main className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[260px_1fr]">
@@ -74,7 +81,11 @@ function MapPage() {
           active={sheet.code}
           onPick={(layer) =>
             navigate({
-              search: (s) => ({ ...s, layer, period: undefined }),
+              search: (s) => ({
+                ...s,
+                layer,
+                period: undefined,
+              }),
               ...keep,
             })
           }
@@ -93,55 +104,72 @@ function MapPage() {
               .join(', ')}
           </p>
         </header>
-        <MapPanel
-          code={sheet.code}
-          unit={sheet.unit}
-          categories={sheet.kind === 'category' ? sheet.categories : null}
-          scale={
-            sheet.scaleLow && sheet.scaleHigh
-              ? { low: sheet.scaleLow, high: sheet.scaleHigh }
-              : null
-          }
-          periods={sheet.periods}
-          period={period}
-          onPeriod={(p) =>
-            navigate({ search: (s) => ({ ...s, period: p }), ...keep })
-          }
-          onSelect={(t) =>
-            navigate({
-              search: (s) => ({
-                ...s,
-                territory: t.code,
-                level: t.level,
-                name: t.name,
-              }),
-              ...keep,
-            })
-          }
-          side={
-            filters.territory ? (
-              <TerritoryLayersCard
-                data={territory}
-                name={filters.name ?? filters.territory}
-                onClose={() =>
-                  navigate({
-                    search: (s) => ({
-                      ...s,
-                      territory: undefined,
-                      level: undefined,
-                      name: undefined,
-                    }),
-                    ...keep,
-                  })
-                }
-              />
-            ) : (
-              <p className="surface p-5 text-sm text-slate-600">
-                Cliquez sur une commune pour lire toutes ses données.
-              </p>
-            )
-          }
-        />
+        {regional && (
+          <div className="space-y-2">
+            <p className="text-sm text-slate-600">
+              Cette donnée se décide région par région : choisissez une région.
+            </p>
+            <RegionPicker
+              regions={sheet.regions}
+              active={region}
+              onPick={(r) =>
+                navigate({ search: (s) => ({ ...s, region: r }), ...keep })
+              }
+            />
+          </div>
+        )}
+        {(!regional || region) && (
+          <MapPanel
+            code={sheet.code}
+            unit={sheet.unit}
+            categories={sheet.kind === 'category' ? sheet.categories : null}
+            scale={
+              sheet.scaleLow && sheet.scaleHigh
+                ? { low: sheet.scaleLow, high: sheet.scaleHigh }
+                : null
+            }
+            periods={sheet.periods}
+            period={period}
+            region={region}
+            onPeriod={(p) =>
+              navigate({ search: (s) => ({ ...s, period: p }), ...keep })
+            }
+            onSelect={(t) =>
+              navigate({
+                search: (s) => ({
+                  ...s,
+                  territory: t.code,
+                  level: t.level,
+                  name: t.name,
+                }),
+                ...keep,
+              })
+            }
+            side={
+              filters.territory ? (
+                <TerritoryLayersCard
+                  data={territory}
+                  name={filters.name ?? filters.territory}
+                  onClose={() =>
+                    navigate({
+                      search: (s) => ({
+                        ...s,
+                        territory: undefined,
+                        level: undefined,
+                        name: undefined,
+                      }),
+                      ...keep,
+                    })
+                  }
+                />
+              ) : (
+                <p className="surface p-5 text-sm text-slate-600">
+                  Cliquez sur une commune pour lire toutes ses données.
+                </p>
+              )
+            }
+          />
+        )}
       </div>
     </main>
   )

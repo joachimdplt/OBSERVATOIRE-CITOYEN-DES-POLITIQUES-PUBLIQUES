@@ -512,4 +512,30 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
       zonage?.indicator.categories.find((c) => c.code === 'ZAR')?.label,
     ).toBe('Zone d’appui régional');
   });
+
+  it('un indicateur qui se compare dans sa région se lit région par région', async () => {
+    await founder
+      .patch('/api/admin/indicators/zonage-medecins-generalistes/reading')
+      .send({ comparisonScale: 'regional' })
+      .expect(200);
+    const sheet = (
+      await request(http(app))
+        .get('/api/public/indicators/zonage-medecins-generalistes')
+        .expect(200)
+    ).body as {
+      comparisonScale: string;
+      regions: { code: string; name: string }[];
+    };
+    expect(sheet.comparisonScale).toBe('regional');
+    expect(sheet.regions.map((r) => r.code)).toEqual(['84', '93']);
+
+    const map = (
+      await request(http(app))
+        .get(
+          '/api/public/indicators/zonage-medecins-generalistes/map?period=2025&region=93',
+        )
+        .expect(200)
+    ).body as MapAnswer;
+    expect(map.values.map((v) => v[0]).sort()).toEqual(['13201', '84007']);
+  });
 });

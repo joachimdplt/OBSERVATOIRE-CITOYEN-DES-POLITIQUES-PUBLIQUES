@@ -15,7 +15,16 @@ export type Pillar =
 export type PublicStatus = 'preprint' | 'published'
 
 /** Une catégorie d'une liste fermée, avec le libellé de son texte officiel. */
-export type Category = { code: string; label: string; explanation?: string }
+export type Category = {
+  code: string
+  label: string
+  explanation?: string
+  /** Le libellé ou l'explication propre à une région, par code de région. */
+  regions?: Record<string, { label?: string; explanation?: string }>
+}
+
+/** L'échelle où les valeurs se comparent : la France, ou une région à la fois. */
+export type ComparisonScale = 'national' | 'regional'
 
 export type IndicatorKind = 'number' | 'category'
 
@@ -74,6 +83,9 @@ export type IndicatorSheet = {
   allowedAggregations: ('sum' | 'mean')[]
   kind: IndicatorKind
   categories: Category[] | null
+  comparisonScale: ComparisonScale
+  /** Les régions où l'indicateur a des valeurs. */
+  regions: { code: string; name: string }[]
   question: string | null
   readingTemplate: string | null
   scaleLow: string | null

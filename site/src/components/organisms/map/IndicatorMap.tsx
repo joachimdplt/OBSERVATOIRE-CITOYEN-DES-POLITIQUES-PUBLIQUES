@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react'
 import type { MapLayerMouseEvent, Map as MapLibreMap } from 'maplibre-gl'
+import { FRANCE_BOUNDS } from '../../../data/regions'
 import { fillExpression } from './palette'
 
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 const TILES = 'https://data.geopf.fr/tms/1.0.0/ADMIN_EXPRESS/{z}/{x}/{y}.pbf'
-const FRANCE: [number, number, number, number] = [-5.3, 41.2, 9.7, 51.2]
 const LAYERS = ['commune', 'arrondissement_municipal'] as const
 
 type Props = {
@@ -13,6 +13,8 @@ type Props = {
   classes: Map<string, number>
   /** La teinte de chaque classe, dans l'ordre. */
   colors: readonly string[]
+  /** Le cadre affiché : la France, ou une région. */
+  bounds?: [number, number, number, number]
   onSelect: (territory: {
     code: string
     name: string
@@ -24,7 +26,12 @@ type Props = {
  * La carte de France, commune par commune, sur le fond officiel de l'IGN
  * (ADMIN EXPRESS). Elle ne se dessine que dans le navigateur.
  */
-export function IndicatorMap({ classes, colors, onSelect }: Props) {
+export function IndicatorMap({
+  classes,
+  colors,
+  bounds = FRANCE_BOUNDS,
+  onSelect,
+}: Props) {
   const container = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
   const select = useRef(onSelect)
@@ -36,7 +43,7 @@ export function IndicatorMap({ classes, colors, onSelect }: Props) {
       if (cancelled || !container.current) return
       const instance = new maplibregl.Map({
         container: container.current,
-        bounds: FRANCE,
+        bounds,
         attributionControl: { compact: true },
         style: {
           version: 8,
@@ -116,7 +123,12 @@ export function IndicatorMap({ classes, colors, onSelect }: Props) {
       map.current?.remove()
       map.current = null
     }
+    // La carte se crée une fois ; le cadre suit ensuite la région choisie.
   }, [])
+
+  useEffect(() => {
+    map.current?.fitBounds(bounds, { padding: 16, duration: 600 })
+  }, [bounds])
 
   useEffect(() => {
     const paint = () => {

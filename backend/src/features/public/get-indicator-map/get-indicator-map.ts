@@ -28,6 +28,8 @@ export class GetIndicatorMapController {
     @Query('period') period?: string,
     @Query('level', new ParseEnumPipe(TerritoryLevel, { optional: true }))
     level?: TerritoryLevel,
+    // Pour un indicateur qui se compare dans sa région : la région affichée.
+    @Query('region') region?: string,
   ) {
     if (!period)
       throw new BadRequestException('Indiquez la période : ?period=2024');
@@ -43,7 +45,10 @@ export class GetIndicatorMapController {
         indicatorId: loaded.indicator.id,
         versionId: { in: loaded.versions.map((v) => v.id) },
         period,
-        territory: { level: { in: levels } },
+        territory: {
+          level: { in: levels },
+          ...(region ? { regionCode: region } : {}),
+        },
       },
       select: {
         value: true,
@@ -62,6 +67,7 @@ export class GetIndicatorMapController {
       },
       period,
       levels,
+      region: region ?? null,
       vintages: [...new Set(observations.map((o) => o.version.vintage))],
       values: observations.map((o) => [
         o.territory.code,

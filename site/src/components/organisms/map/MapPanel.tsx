@@ -6,6 +6,8 @@ import type { Category } from '../../../types/public'
 import { frenchNumber } from '../../../utils/number'
 import { MapLegend } from './MapLegend'
 import { CLASS_COLORS, categoryColors } from './palette'
+import { REGION_BOUNDS } from '../../../data/regions'
+import { categoryIn } from '../../../utils/category'
 
 // La carte ne se dessine que dans le navigateur.
 const IndicatorMap = lazy(() =>
@@ -20,6 +22,8 @@ type Props = {
   scale: { low: string; high: string } | null
   periods: string[]
   period: string
+  /** Pour un indicateur qui se compare dans sa région : la région affichée. */
+  region?: string
   onPeriod: (period: string) => void
   onSelect: (territory: {
     code: string
@@ -38,11 +42,13 @@ export function MapPanel({
   scale,
   periods,
   period,
+  region,
   onPeriod,
   onSelect,
   side,
 }: Props) {
-  const { values, failed } = useIndicatorMap(code, period)
+  const { values, failed } = useIndicatorMap(code, period, region)
+  const bounds = region ? REGION_BOUNDS[region] : undefined
   const classes = useMemo(
     () =>
       values
@@ -60,11 +66,13 @@ export function MapPanel({
     [categories],
   )
   const entries = categories
-    ? categories.map((c, i) => ({
-        color: colors[i],
-        label: c.label,
-        detail: c.explanation,
-      }))
+    ? categories
+        .map((c) => categoryIn(c, region))
+        .map((c, i) => ({
+          color: colors[i],
+          label: c.label,
+          detail: c.explanation,
+        }))
     : (classes?.lower ?? []).map((value, k) => ({
         color: colors[k],
         label:
@@ -107,6 +115,7 @@ export function MapPanel({
               <IndicatorMap
                 classes={classes.byCode}
                 colors={colors}
+                bounds={bounds}
                 onSelect={onSelect}
               />
             </Suspense>

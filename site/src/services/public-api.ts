@@ -41,10 +41,18 @@ export const getIndicator = createServerFn({ method: 'GET' })
 
 /** Toutes les valeurs d'une période, pour la carte : une ligne [code, valeur, statut] par territoire. */
 export const getIndicatorMap = createServerFn({ method: 'GET' })
-  .validator(z.object({ code: z.string(), period: z.string() }))
+  .validator(
+    z.object({
+      code: z.string(),
+      period: z.string(),
+      region: z.string().optional(),
+    }),
+  )
   .handler(({ data }) =>
     get<{ period: string; values: MapValue[] }>(
-      `/indicators/${encodeURIComponent(data.code)}/map?period=${encodeURIComponent(data.period)}`,
+      `/indicators/${encodeURIComponent(data.code)}/map?period=${encodeURIComponent(data.period)}${
+        data.region ? `&region=${encodeURIComponent(data.region)}` : ''
+      }`,
     ),
   )
 

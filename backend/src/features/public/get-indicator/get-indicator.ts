@@ -57,6 +57,9 @@ export class GetIndicatorController {
       allowedAggregations: indicator.allowedAggregations,
       // Un nombre, ou une catégorie d'une liste fermée avec ses libellés officiels.
       kind: indicator.kind,
+      // L'échelle où les valeurs se comparent : la France, ou une région à la fois.
+      comparisonScale: indicator.comparisonScale,
+      regions: await regionsOf(this.prisma, where),
       // La lecture en mots simples.
       question: indicator.question,
       readingTemplate: indicator.readingTemplate,
@@ -77,4 +80,29 @@ export class GetIndicatorController {
       })),
     };
   }
+}
+
+/** Les régions où l'indicateur a des valeurs, avec leur nom officiel. */
+async function regionsOf(
+  prisma: PrismaService,
+  where: { indicatorId: string; versionId: { in: string[] } },
+) {
+  const codes = (
+    await prisma.territory.findMany({
+      where: { observations: { some: where }, regionCode: { not: null } },
+      distinct: ['regionCode'],
+      select: { regionCode: true },
+    })
+  ).map((t) => t.regionCode!);
+  const names = await prisma.territory.findMany({
+    where: { level: 'region', code: { in: codes } },
+    orderBy: { vintage: 'desc' },
+    select: { code: true, name: true },
+  });
+  return codes
+    .map((code) => ({
+      code,
+      name: names.find((n) => n.code === code)?.name ?? code,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
 }

@@ -7,10 +7,11 @@ import {
   Patch,
   UseGuards,
 } from '@nestjs/common';
-import { IsObject, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsObject, IsOptional, IsString } from 'class-validator';
 import { Requires, SessionGuard } from '../../../auth/session.guard';
 import type { Category } from '../../../domain/category';
 import { checkReadingTemplate } from '../../../domain/reading';
+import { ComparisonScale } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 export class UpdateIndicatorReadingDto {
@@ -20,6 +21,8 @@ export class UpdateIndicatorReadingDto {
   @IsOptional() @IsString() scaleHigh?: string;
   /** Pour une catégorie : son explication en mots simples, par code. */
   @IsOptional() @IsObject() categoryExplanations?: Record<string, string>;
+  /** Se compare en France, ou dans sa région seulement. */
+  @IsOptional() @IsEnum(ComparisonScale) comparisonScale?: ComparisonScale;
 }
 
 /**
@@ -72,6 +75,7 @@ export class UpdateIndicatorReadingController {
         readingTemplate: text(dto.readingTemplate),
         scaleLow: text(dto.scaleLow),
         scaleHigh: text(dto.scaleHigh),
+        comparisonScale: dto.comparisonScale,
         ...(dto.categoryExplanations && categories
           ? {
               categories: categories.map((c) => ({
