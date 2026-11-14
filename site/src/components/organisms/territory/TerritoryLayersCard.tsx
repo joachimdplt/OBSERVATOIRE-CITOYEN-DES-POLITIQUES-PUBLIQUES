@@ -1,13 +1,24 @@
 import { Link } from '@tanstack/react-router'
 import { X } from 'lucide-react'
-import type { TerritoryLayer, TerritoryValues } from '../../../types/public'
+import type {
+  LiveValues,
+  TerritoryLayer,
+  TerritoryValues,
+} from '../../../types/public'
+import { LiveSources } from './LiveSources'
 import { frenchDate } from '../../../utils/date'
 import { approximately, frenchNumber } from '../../../utils/number'
 import { readingOf } from '../../../utils/reading'
 import { ValueCell } from '../indicators/ValueCell'
 import { LayerGroupSection } from './LayerGroupSection'
 
-type Props = { data: TerritoryValues | null; name: string; onClose: () => void }
+type Props = {
+  data: TerritoryValues | null
+  /** Les sources lues à la demande pour la commune. */
+  live?: LiveValues | null
+  name: string
+  onClose: () => void
+}
 
 /** La phrase de lecture de la valeur la plus récente, si elle est documentée. */
 function sentenceOf({ indicator, values }: TerritoryLayer, territory: string) {
@@ -52,7 +63,12 @@ function groupsOf(layers: TerritoryLayer[]): TerritoryLayer[][] {
  * producteur, puis les valeurs par année côte à côte. Aucun écart n'est
  * calculé ; le lecteur compare.
  */
-export function TerritoryLayersCard({ data, name, onClose }: Props) {
+export function TerritoryLayersCard({
+  data,
+  live = null,
+  name,
+  onClose,
+}: Props) {
   const territory = data?.territory.name ?? name
   return (
     <div className="surface space-y-5 p-5">
@@ -166,6 +182,7 @@ export function TerritoryLayersCard({ data, name, onClose }: Props) {
           )
         })
       )}
+      <LiveSources data={live} />
     </div>
   )
 }

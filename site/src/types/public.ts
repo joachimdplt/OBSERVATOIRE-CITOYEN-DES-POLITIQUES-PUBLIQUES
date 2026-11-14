@@ -219,3 +219,30 @@ export type CollectedText = {
   authorGroupSource: string | null
   articles: { article: string; quote: string }[]
 }
+
+/** Les sources lues à la demande pour une commune, telles que reçues. */
+export type LiveValues = {
+  territory: string
+  sources: {
+    source: {
+      slug: string
+      title: string
+      producer: string
+      pillar: Pillar
+      datasetUrl: string
+      license: string
+      rowsUrl: string
+    }
+    fetchedAt: string
+    resourceModifiedAt: string | null
+    values: {
+      label: string
+      counted: string | null
+      period: string
+      unit: string
+      value: string | null
+      status: ObservationStatus
+      row: string | number | null
+    }[]
+  }[]
+}

@@ -42,6 +42,7 @@ model User {
   publicationSubmitted PublicationVersion[]  @relation("PublicationVersionSubmittedBy")
   publicationReviewed  PublicationVersion[]  @relation("PublicationVersionReviewedBy")
   politicalDocuments   PoliticalDocument[]
+  candidates           Candidate[]
   measures             Measure[]
 
   @@map("users")
@@ -572,6 +573,9 @@ model PoliticalDocument {
   /// La référence du texte chez son producteur (« PIONANR5L17B0966 ») : un texte ne se collecte qu'une fois.
   sourceRef         String?         @unique
   matches           DocumentMatch[]
+  /// Le candidat dont c'est le programme, pour un programme électoral.
+  candidateId       String?
+  candidate         Candidate?      @relation(fields: [candidateId], references: [id])
   createdById       String
   createdAt         DateTime        @default(now())
   createdBy         User            @relation(fields: [createdById], references: [id])
@@ -593,6 +597,8 @@ model Measure {
   /// n'affiche que son article et sa citation, jusqu'à sa relecture.
   label       String?
   origin      Origin            @default(team)
+  /// Le pilier de la proposition, pour la ranger et la comparer.
+  pillar      Pillar?
   createdById String
   createdAt   DateTime          @default(now())
   document    PoliticalDocument @relation(fields: [documentId], references: [id])
@@ -629,4 +635,84 @@ model DocumentMatch {
 
   @@id([publicationId, documentId])
   @@map("document_matches")
+}
+
+// ── Les élections et les candidats ──────────────────────────────────────────
+// L'application vulgarise les programmes des candidats : chaque proposition se
+// lit en une phrase simple, suivie de sa citation exacte et de sa source.
+
+/// Une élection suivie, avec le critère d'entrée publié, le même pour tous.
+model Election {
+  id         String      @id @default(uuid())
+  slug       String      @unique
+  name       String
+  /// Le premier tour, s'il est fixé.
+  date       DateTime?   @db.Date
+  /// « Toute personne qui a déclaré publiquement sa candidature. »
+  criterion  String
+  candidates Candidate[]
+
+  @@map("elections")
+}
+
+/// Un candidat déclaré, et la source de sa déclaration.
+model Candidate {
+  id                String              @id @default(uuid())
+  electionId        String
+  slug              String
+  name              String
+  /// Le parti ou le mouvement qui le soutient, tel qu'il le nomme.
+  party             String
+  declaredAt        DateTime            @db.Date
+  declarationSource String
+  /// L'adresse de son programme, s'il est publié.
+  programmeUrl      String?
+  createdById       String
+  createdAt         DateTime            @default(now())
+  election          Election            @relation(fields: [electionId], references: [id])
+  createdBy         User                @relation(fields: [createdById], references: [id])
+  documents         PoliticalDocument[]
+
+  @@unique([electionId, slug])
+  @@map("candidates")
+}
+
+// ── Les sources lues à la demande ──────────────────────────────────────────
+// Comme un jeu qui charge le décor autour du joueur : quand une commune
+// s'ouvre, l'outil lit ses lignes chez le producteur, sans télécharger le
+// fichier entier, et garde la lecture telle qu'il l'a reçue.
+
+/// Une source servie ligne par ligne par son producteur, et la façon de la lire.
+model LiveSource {
+  id         String        @id @default(uuid())
+  slug       String        @unique
+  title      String
+  producer   String
+  pillar     Pillar
+  /// La page du jeu chez le producteur, pour le lecteur.
+  datasetUrl String
+  /// La ressource interrogée ligne par ligne (identifiant data.gouv.fr).
+  resourceId String
+  license    String
+  /// La façon de lire une ligne (voir domain/live-reading.ts).
+  layout     Json
+  createdAt  DateTime      @default(now())
+  readings   LiveReading[]
+
+  @@map("live_sources")
+}
+
+/// Une lecture : les lignes d'un territoire, telles que reçues, et leur date.
+model LiveReading {
+  id                 String     @id @default(uuid())
+  sourceId           String
+  territoryCode      String
+  fetchedAt          DateTime   @default(now())
+  /// La date de dernière modification du fichier chez le producteur, à la lecture.
+  resourceModifiedAt DateTime?
+  rows               Json
+  source             LiveSource @relation(fields: [sourceId], references: [id])
+
+  @@index([sourceId, territoryCode, fetchedAt])
+  @@map("live_readings")
 }

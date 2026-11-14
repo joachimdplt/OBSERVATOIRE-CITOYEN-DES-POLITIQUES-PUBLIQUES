@@ -9,6 +9,7 @@ import { TerritoryLayersCard } from '../components/organisms/territory/Territory
 import {
   getIndicator,
   getPublication,
+  getLiveValues,
   getTerritoryValues,
   listIndicators,
   listPublications,
@@ -53,13 +54,19 @@ export const Route = createFileRoute('/carte')({
       sheets.find((p) =>
         p?.sections.some((s) => s.indicators.some((i) => i.code === code)),
       ) ?? null
-    const territory =
+    const [territory, live] =
       deps.territory && deps.level
-        ? await getTerritoryValues({
-            data: { level: deps.level, code: deps.territory },
-          })
-        : null
-    return { layers, sheet, territory, publication }
+        ? await Promise.all([
+            getTerritoryValues({
+              data: { level: deps.level, code: deps.territory },
+            }),
+            // Lu à la demande chez le producteur ; une panne ne bloque pas la fiche.
+            getLiveValues({
+              data: { level: deps.level, code: deps.territory },
+            }).catch(() => null),
+          ])
+        : [null, null]
+    return { layers, sheet, territory, live, publication }
   },
   head: () => ({
     meta: seo({
@@ -72,7 +79,7 @@ export const Route = createFileRoute('/carte')({
 })
 
 function MapPage() {
-  const { layers, sheet, territory, publication } = Route.useLoaderData()
+  const { layers, sheet, territory, live, publication } = Route.useLoaderData()
   const filters = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
   const keep = { replace: true, resetScroll: false } as const
@@ -205,6 +212,7 @@ function MapPage() {
               filters.territory ? (
                 <TerritoryLayersCard
                   data={territory}
+                  live={live}
                   name={filters.name ?? filters.territory}
                   onClose={() =>
                     navigate({

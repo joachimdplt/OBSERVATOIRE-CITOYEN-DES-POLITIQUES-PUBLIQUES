@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import type { MapValue } from '../domain/classes'
 import type {
+  LiveValues,
   PublicationLine,
   PublicationSheet,
   TerritoryValues,
@@ -93,4 +94,13 @@ export const getPublication = createServerFn({ method: 'GET' })
   .validator(z.object({ slug: z.string() }))
   .handler(({ data }) =>
     get<PublicationSheet>(`/publications/${encodeURIComponent(data.slug)}`),
+  )
+
+/** Les sources lues à la demande pour une commune, chez leur producteur. */
+export const getLiveValues = createServerFn({ method: 'GET' })
+  .validator(z.object({ level: z.string(), code: z.string() }))
+  .handler(({ data }) =>
+    get<LiveValues>(
+      `/territories/${encodeURIComponent(data.level)}/${encodeURIComponent(data.code)}/live`,
+    ),
   )
