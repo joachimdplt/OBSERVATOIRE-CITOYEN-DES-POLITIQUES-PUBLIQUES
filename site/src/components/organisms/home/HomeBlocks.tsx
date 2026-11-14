@@ -121,9 +121,9 @@ export function HomeHero() {
   const { hero } = HOME
   return (
     <Screen first className="bg-white">
-      <div className="mx-auto flex max-w-[940px] flex-col items-center text-center">
+      <div className="mx-auto flex max-w-[1080px] flex-col items-center text-center">
         <h1
-          className={`${DISPLAY} text-[clamp(2.4rem,6vw,4.8rem)] leading-[1.08] text-balance`}
+          className={`${DISPLAY} text-[clamp(2.4rem,5.6vw,4.4rem)] leading-[1.08] whitespace-pre-line`}
         >
           <Highlight text={hero.title} />
         </h1>

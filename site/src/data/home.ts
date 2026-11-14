@@ -8,14 +8,14 @@ import { SOURCE_CODE, newIssue } from './project'
  */
 export const HOME = {
   hero: {
-    title: 'Un médecin près de chez vous, [[facile ou pas ?]]',
-    lead: 'Tapez votre commune. Vous lisez les chiffres officiels, en mots simples, avec leur source.',
+    title: 'Votre commune en chiffres.\n[[Les partis en citations.]]',
+    lead: 'Santé, école, logement, emploi : tapez votre commune, lisez les statistiques publiques en mots simples, avec leur source. Premier sujet en ligne : l’accès aux médecins.',
     cta: 'Chercher ma commune',
   },
 
   constat: {
     title: 'Les chiffres existent. [[Personne ne les lit.]]',
-    lead: 'Ils dorment dans des tableurs, chez la DREES, l’INSEE et les agences régionales de santé.',
+    lead: 'Ils dorment dans des tableurs, chez l’INSEE, la DREES, les ministères et les agences de l’État.',
     accroche: 'Un seul fichier de la DREES',
     valeur: '313 340',
     legende: 'lignes sur\nles médecins\nde France',
@@ -37,11 +37,11 @@ export const HOME = {
     items: [
       {
         title: 'Une question',
-        text: 'Est-ce facile de voir un médecin ? Quel âge ont-ils dans votre département ?',
+        text: 'Chaque chiffre répond à une question simple : « Est-ce facile de voir un médecin près de chez moi ? »',
       },
       {
         title: 'La phrase du producteur',
-        text: 'La DREES écrit comment lire son chiffre. Vous lisez sa phrase, mot pour mot.',
+        text: 'L’INSEE ou la DREES écrit comment lire son chiffre. Vous lisez sa phrase, mot pour mot.',
       },
       {
         title: 'La ligne d’origine',
