@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as AdminIndexRouteImport } from './routes/_admin/index'
+import { Route as AdminDatasetsDatasetIdRouteImport } from './routes/_admin/datasets.$datasetId'
 import { Route as AdminDatasetsNewRouteImport } from './routes/_admin/datasets.new'
+import { Route as AdminImportsJobIdRouteImport } from './routes/_admin/imports.$jobId'
 import { Route as AdminIndicatorsNewRouteImport } from './routes/_admin/indicators.new'
 import { Route as AdminProvidersNewRouteImport } from './routes/_admin/providers.new'
 
@@ -30,9 +32,19 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDatasetsDatasetIdRoute = AdminDatasetsDatasetIdRouteImport.update({
+  id: '/datasets/$datasetId',
+  path: '/datasets/$datasetId',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminDatasetsNewRoute = AdminDatasetsNewRouteImport.update({
   id: '/datasets/new',
   path: '/datasets/new',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminImportsJobIdRoute = AdminImportsJobIdRouteImport.update({
+  id: '/imports/$jobId',
+  path: '/imports/$jobId',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminIndicatorsNewRoute = AdminIndicatorsNewRouteImport.update({
@@ -49,14 +61,18 @@ const AdminProvidersNewRoute = AdminProvidersNewRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AdminIndexRoute
   '/signin': typeof SigninRoute
+  '/datasets/$datasetId': typeof AdminDatasetsDatasetIdRoute
   '/datasets/new': typeof AdminDatasetsNewRoute
+  '/imports/$jobId': typeof AdminImportsJobIdRoute
   '/indicators/new': typeof AdminIndicatorsNewRoute
   '/providers/new': typeof AdminProvidersNewRoute
 }
 export interface FileRoutesByTo {
   '/signin': typeof SigninRoute
   '/': typeof AdminIndexRoute
+  '/datasets/$datasetId': typeof AdminDatasetsDatasetIdRoute
   '/datasets/new': typeof AdminDatasetsNewRoute
+  '/imports/$jobId': typeof AdminImportsJobIdRoute
   '/indicators/new': typeof AdminIndicatorsNewRoute
   '/providers/new': typeof AdminProvidersNewRoute
 }
@@ -65,22 +81,39 @@ export interface FileRoutesById {
   '/_admin': typeof AdminRouteWithChildren
   '/signin': typeof SigninRoute
   '/_admin/': typeof AdminIndexRoute
+  '/_admin/datasets/$datasetId': typeof AdminDatasetsDatasetIdRoute
   '/_admin/datasets/new': typeof AdminDatasetsNewRoute
+  '/_admin/imports/$jobId': typeof AdminImportsJobIdRoute
   '/_admin/indicators/new': typeof AdminIndicatorsNewRoute
   '/_admin/providers/new': typeof AdminProvidersNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/signin' | '/datasets/new' | '/indicators/new' | '/providers/new'
+    | '/'
+    | '/signin'
+    | '/datasets/$datasetId'
+    | '/datasets/new'
+    | '/imports/$jobId'
+    | '/indicators/new'
+    | '/providers/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/signin' | '/' | '/datasets/new' | '/indicators/new' | '/providers/new'
+  to:
+    | '/signin'
+    | '/'
+    | '/datasets/$datasetId'
+    | '/datasets/new'
+    | '/imports/$jobId'
+    | '/indicators/new'
+    | '/providers/new'
   id:
     | '__root__'
     | '/_admin'
     | '/signin'
     | '/_admin/'
+    | '/_admin/datasets/$datasetId'
     | '/_admin/datasets/new'
+    | '/_admin/imports/$jobId'
     | '/_admin/indicators/new'
     | '/_admin/providers/new'
   fileRoutesById: FileRoutesById
@@ -113,11 +146,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/datasets/$datasetId': {
+      id: '/_admin/datasets/$datasetId'
+      path: '/datasets/$datasetId'
+      fullPath: '/datasets/$datasetId'
+      preLoaderRoute: typeof AdminDatasetsDatasetIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_admin/datasets/new': {
       id: '/_admin/datasets/new'
       path: '/datasets/new'
       fullPath: '/datasets/new'
       preLoaderRoute: typeof AdminDatasetsNewRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/imports/$jobId': {
+      id: '/_admin/imports/$jobId'
+      path: '/imports/$jobId'
+      fullPath: '/imports/$jobId'
+      preLoaderRoute: typeof AdminImportsJobIdRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_admin/indicators/new': {
@@ -139,14 +186,18 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminDatasetsDatasetIdRoute: typeof AdminDatasetsDatasetIdRoute
   AdminDatasetsNewRoute: typeof AdminDatasetsNewRoute
+  AdminImportsJobIdRoute: typeof AdminImportsJobIdRoute
   AdminIndicatorsNewRoute: typeof AdminIndicatorsNewRoute
   AdminProvidersNewRoute: typeof AdminProvidersNewRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
+  AdminDatasetsDatasetIdRoute: AdminDatasetsDatasetIdRoute,
   AdminDatasetsNewRoute: AdminDatasetsNewRoute,
+  AdminImportsJobIdRoute: AdminImportsJobIdRoute,
   AdminIndicatorsNewRoute: AdminIndicatorsNewRoute,
   AdminProvidersNewRoute: AdminProvidersNewRoute,
 }

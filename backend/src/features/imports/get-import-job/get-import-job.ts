@@ -3,7 +3,9 @@ import {
   Get,
   NotFoundException,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { Requires, SessionGuard } from '../../../auth/session.guard';
@@ -15,6 +17,9 @@ const SAMPLE_SIZE = 20;
  * L'équipe ouvre la lecture d'un fichier déposé : les onglets, la ligne
  * d'en-têtes, les colonnes, et les vingt premières lignes telles que lues.
  * C'est l'écran sur lequel on décrira les colonnes.
+ *
+ * `?headerRow=` montre les colonnes lues à une autre ligne, avant de
+ * l'enregistrer : un tableur commence souvent par un titre et des notes.
  */
 @Controller('admin/import-jobs')
 @UseGuards(SessionGuard)
@@ -23,7 +28,11 @@ export class GetImportJobController {
   constructor(private prisma: PrismaService) {}
 
   @Get(':id')
-  async get(@Param('id', ParseUUIDPipe) id: string) {
+  async get(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('headerRow', new ParseIntPipe({ optional: true }))
+    headerRow?: number,
+  ) {
     const job = await this.prisma.importJob.findUnique({
       where: { id },
       include: {
@@ -39,18 +48,27 @@ export class GetImportJobController {
     if (!job) throw new NotFoundException('Import inconnu');
 
     const [header, ...sample] = await this.prisma.rawRow.findMany({
-      where: { jobId: id, rowNumber: { gte: job.headerRow } },
+      where: { jobId: id, rowNumber: { gte: headerRow ?? job.headerRow } },
       orderBy: { rowNumber: 'asc' },
       take: SAMPLE_SIZE + 1,
     });
 
+    const counts = await this.prisma.observation.groupBy({
+      by: ['status'],
+      where: { versionId: job.versionId },
+      _count: { _all: true },
+    });
+
     return {
       id: job.id,
+      observations: Object.fromEntries(
+        counts.map((c) => [c.status, c._count._all]),
+      ),
       state: job.state,
       format: job.format,
       sheetNames: job.sheetNames,
       sheet: job.sheet,
-      headerRow: job.headerRow,
+      headerRow: headerRow ?? job.headerRow,
       rowCount: job.rowCount,
       description: job.description,
       validatedAt: job.validatedAt,

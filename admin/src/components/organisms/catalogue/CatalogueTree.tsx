@@ -45,7 +45,13 @@ export function CatalogueTree({ providers }: { providers: Provider[] }) {
                 <li key={d.id} className="space-y-3 px-5 py-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium">{d.title}</p>
+                      <Link
+                        to="/datasets/$datasetId"
+                        params={{ datasetId: d.id }}
+                        className="text-sm font-medium hover:underline"
+                      >
+                        {d.title}
+                      </Link>
                       <p className="text-xs text-slate-500">
                         {d.license} · {FREQUENCY_LABELS[d.frequency]} ·{' '}
                         {d.producerRef}
