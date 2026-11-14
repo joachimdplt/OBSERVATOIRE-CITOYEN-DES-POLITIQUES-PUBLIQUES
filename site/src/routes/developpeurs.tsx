@@ -54,7 +54,8 @@ function Title({ text, lead }: { text: string; lead?: string }) {
  * lire ses données par l'API publique.
  */
 function Developers() {
-  const { hero, architecture, chemin, api, regles, licences } = DEVELOPERS
+  const { hero, architecture, chemin, alimentation, api, regles, licences } =
+    DEVELOPERS
   return (
     <>
       <section className="bg-white px-6 pt-24 pb-16 md:px-10">
@@ -137,6 +138,27 @@ function Developers() {
       </Block>
 
       <Block soft>
+        <Title text={alimentation.title} lead={alimentation.lead} />
+        <div className="mt-10 grid gap-5 md:grid-cols-2">
+          {alimentation.ways.map((w) => (
+            <div
+              key={w.title}
+              className="rounded-[24px] bg-white p-6 shadow-[0_0_0_1px_rgba(11,26,42,0.1)]"
+            >
+              <p className={`${DISPLAY} text-[1.2rem]`}>{w.title}</p>
+              <p className={`mt-2 text-[0.95rem] leading-relaxed ${MUTED}`}>
+                {w.text}
+              </p>
+              <p className="mt-4 inline-flex rounded-full px-3 py-1 text-[0.78rem] font-bold text-[#0B1A2A] ring-1 ring-[#0B1A2A]/15">
+                {w.label}
+              </p>
+            </div>
+          ))}
+        </div>
+        <p className={`mt-6 text-sm ${MUTED}`}>{alimentation.doc}</p>
+      </Block>
+
+      <Block>
         <Title text={api.title} lead={api.lead} />
         <ul className="mt-10 divide-y divide-[#0B1A2A]/10 rounded-[24px] bg-white shadow-[0_0_0_1px_rgba(11,26,42,0.1)]">
           {api.routes.map((r) => (

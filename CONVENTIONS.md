@@ -235,8 +235,13 @@ draft ──► in_review ──► published ──► superseded
 - **Prépublication** (`preprint`), comme arXiv : publiée par son seul
   auteur, visible du public avec l'étiquette « Prépublication : vérifiée par
   son seul auteur, en attente de relecture ». Pendant le lancement, seule
-  l'administration prépublie (capacité `preprint`), et seulement des
-  statistiques. **Une mesure politique ne se prépublie jamais.**
+  l'administration prépublie (capacité `preprint`).
+- **Textes politiques collectés automatiquement** (décidé le 14 novembre
+  2026) : un texte déposé au Parlement, collecté sur les données ouvertes,
+  s'affiche aussitôt avec l'étiquette « collecté automatiquement, non relu ».
+  La machine n'écrit aucun libellé : l'article et sa citation mot pour mot,
+  le premier signataire et son groupe au jour du dépôt avec la source. Une
+  mesure relue, avec son libellé neutre, passe par un article relu.
 - **Relecture ouverte** : les décisions et, à venir, les rapports de
   relecture sont publics, signés.
 - **À venir** : un éditeur par pilier qui désigne les relecteurs ; quatre
@@ -266,6 +271,26 @@ draft ──► in_review ──► published ──► superseded
   parti.
 - **Code : AGPL-3.0.**
 
+### 1.11 Les données sont un matériau, les articles se publient
+
+Décidé le 14 novembre 2026.
+
+- **Un fichier de données n'est pas une publication.** Il est importé,
+  contrôlé contre le fichier du producteur, puis « vérifié par son auteur »,
+  puis « vérifié par deux personnes ». Ses étiquettes ne disent jamais
+  « publiée ».
+- **Un article (`Publication`) est ce que l'observatoire publie** : un enjeu
+  nommé, découpé en parties, chaque indicateur choisi avec sa justification,
+  les mesures politiques rattachées avec la leur. Il suit le circuit de la
+  section 1.10.
+- **On nomme, on ne questionne pas.** Un titre d'article ou de partie ne
+  pose pas de question (le domaine refuse un titre en « ? ») ; un indicateur
+  s'affiche sous son nom officiel. Une question suggère déjà une réponse.
+- **Lecture à la demande** : une valeur lue chez le producteur au moment où
+  une commune s'ouvre s'affiche « lue automatiquement à la source le … »,
+  avec l'adresse des lignes d'origine. La lecture est gardée telle que
+  reçue et ne se réécrit pas. Détail : `docs/05-alimentation.md`.
+
 ---
 
 ## 2. Le dépôt : trois applications, aucun fichier commun
@@ -274,8 +299,8 @@ Décidé le 14 novembre 2026 : la frontière passe entre le public et l'équipe,
 pas entre la page d'accueil et le reste.
 
 ```
-site/      public, rendu côté serveur (TanStack Start)   accueil, piliers, fiches, valeurs, historique
-admin/     équipe, rendue dans le navigateur (TanStack Router)  catalogue, import, contrôle, relecture
+site/      public, rendu côté serveur (TanStack Start)   articles, carte, fiches de commune, comparateur, développeurs
+admin/     équipe, rendue dans le navigateur (TanStack Router)  catalogue, import, contrôle, relecture, articles
 backend/   API NestJS                                    /api/public/* et /api/admin/*
 ```
 
@@ -502,25 +527,22 @@ dans l'ordre alphabétique de leur nom.
 
 ```
 backend/src/
-  domain/                   règles pures : unités, agrégations, absence, statuts
-  ports/                    les interfaces dont la variation est écrite
-  adapters/                 csv/ · xlsx/ · api/ · pdf/
+  domain/                   règles pures : cellules, codes, catégories, veille, articles, lectures
+  ports/                    source-dataset-importer · observation-normalizer · parliament-source · tabular-source
+  adapters/                 csv/ · xlsx/ · column-mapping/ · cog/ · assemblee/ · data-gouv/
   generated/prisma/         client généré, jamais modifié, jamais commité
   features/
-    datasets/
-      import-dataset-version/
-      validate-import-job/
-      publish-dataset-version/
-    measures/
-      create-measure/
-      link-measure-to-indicator/
-    reviews/
-      approve-review/
-    public/
-      list-indicators/
-      get-indicator-observations/
-      get-comparison/
-  prisma/ · auth/ · common/   infrastructure
+    session/                sign-in · sign-out · get-session
+    territories/            load-cog-vintage
+    catalogue/              create-provider · create-dataset · create-indicator · add/retire-indicator-source …
+    imports/                upload-dataset-version · describe-import-job · validate-import-job …
+    reviews/                submit · preprint · approve · reject · list-review-queue · get-version-history
+    publications/           create-publication · write-publication-draft · preprint · approve · open-draft · set-watch-terms
+    politics/               create-political-document · add-measure · collect-parliament-texts
+    live/                   create-live-source · read-live-values
+    public/                 indicateurs, carte, territoires, recherche, articles
+  scripts/                  import-territories · create-user · collect-parliament
+  prisma/ · auth/ · storage/   infrastructure
 ```
 
 **Une slice, c'est un geste.** `features/<ressource>/<verbe-objet>/` : un
@@ -543,14 +565,14 @@ tri :
 
 | Port | Variation écrite | Décision |
 |---|---|---|
-| `SourceDatasetImporter` | CSV, XLSX, API, PDF | **port**, un adapter par format |
-| `PoliticalDocumentImporter` | PDF, page web | **port** |
-| `MeasureExtractor` | saisie humaine aujourd'hui, IA demain | **port** |
-| `ObservationNormalizer` | une règle par jeu (codes producteur, unités) | **port**, un normaliseur par jeu |
+| `SourceDatasetImporter` | CSV, XLSX (lu en flux), API, PDF | **port**, un adapter par format |
+| `ObservationNormalizer` | une règle par forme de fichier | **port**, `ColumnMappingNormalizer` aujourd'hui |
+| `ParliamentSource` | Assemblée nationale, Sénat | **port**, `AssembleeOpenData` aujourd'hui, le Sénat à venir |
+| `TabularSource` | data.gouv.fr, miroir local | **port**, `DataGouvTabular` aujourd'hui, le miroir à venir |
+| `MeasureExtractor` | saisie humaine aujourd'hui, IA demain | **port**, à venir |
 | `TerritoryResolver` | millésimes du COG INSEE | fonction de `domain/`, table en base |
 | `IndicatorRepository`, `MeasureRepository` | aucune | **pas de port** : Prisma en est déjà un |
 | `ReviewWorkflow` | aucune | slices `submit`, `approve`, `reject` |
-| `PublicIndicatorQuery`, `PoliticalComparisonQuery` | aucune | slices de `features/public/` |
 
 Ports nommés par leur rôle, sans préfixe `I`, injectés par jeton `Symbol`.
 

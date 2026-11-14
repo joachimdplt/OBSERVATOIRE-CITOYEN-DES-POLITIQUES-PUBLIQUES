@@ -73,6 +73,34 @@ export const DEVELOPERS = {
     },
   },
 
+  alimentation: {
+    title: 'Comment l’application [[se nourrit]]',
+    lead: 'L’outil va chercher lui-même les sources officielles, les garde telles qu’il les a reçues, et dit comment il les a obtenues.',
+    ways: [
+      {
+        title: 'Le fichier déposé',
+        text: 'Pour les fichiers qu’il faut lire en entier (colorer la carte de France) : dépôt avec empreinte, description des colonnes, contrôle ligne à ligne, vérification par une puis deux personnes. Les classeurs se lisent en flux.',
+        label: 'Vérifiée par son auteur, puis par deux personnes',
+      },
+      {
+        title: 'La collecte du Parlement',
+        text: 'Chaque jour, les données ouvertes de l’Assemblée nationale : les textes déposés dont le titre porte un terme surveillé par un article, leur premier signataire, son groupe au jour du dépôt, et chaque article cité mot pour mot.',
+        label: 'Collecté automatiquement, non relu',
+      },
+      {
+        title: 'La lecture à la demande',
+        text: 'Quand une commune s’ouvre, ses lignes sont lues chez le producteur par l’API tabulaire de data.gouv.fr, sans télécharger le fichier. La lecture est gardée un jour, puis relue seulement si le fichier a changé.',
+        label: 'Lu automatiquement à la source',
+      },
+      {
+        title: 'Le miroir (à venir)',
+        text: 'Pour les producteurs qui ne publient que de gros fichiers (bases du recensement de l’INSEE) : le fichier est rangé par commune dans une base à côté, relu par la lecture à la demande, et rechargé quand il change chez le producteur.',
+        label: 'Lu automatiquement à la source',
+      },
+    ],
+    doc: 'Le détail est dans docs/05-alimentation.md, dans le dépôt.',
+  },
+
   api: {
     title: 'L’API [[publique]]',
     lead: 'Lecture seule, en JSON, ouverte à toute origine. L’adresse de production sera donnée au lancement ; en local : http://localhost:3001.',
@@ -96,6 +124,21 @@ export const DEVELOPERS = {
         path: '/api/public/indicators/{code}/map',
         query: 'period, level, region',
         text: 'Toutes les valeurs d’une période en lignes compactes [code, valeur, statut, catégorie, région].',
+      },
+      {
+        path: '/api/public/publications',
+        query: '',
+        text: 'Les articles lisibles : titre, chapô, pilier, version, état de relecture.',
+      },
+      {
+        path: '/api/public/publications/{slug}',
+        query: '',
+        text: 'Un article : ses rubriques, les indicateurs choisis et leur justification, les mesures citées mot pour mot, les textes collectés, sa signature et ses versions.',
+      },
+      {
+        path: '/api/public/territories/{niveau}/{code}/live',
+        query: '',
+        text: 'Les valeurs lues à la demande chez le producteur pour une commune, avec la date de la lecture et l’adresse des lignes d’origine.',
       },
       {
         path: '/api/public/territories',

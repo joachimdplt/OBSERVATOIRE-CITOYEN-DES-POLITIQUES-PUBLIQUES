@@ -1,0 +1,111 @@
+# 05 · Comment l'observatoire se nourrit
+
+État au 14 novembre 2026. Ce document décrit le fonctionnement réel du code ;
+les documents 01 à 04 restent le cahier des charges de référence.
+
+> Principe : l'outil va chercher lui-même les sources officielles, les garde
+> telles qu'il les a reçues, et dit toujours comment il les a obtenues. Un
+> humain relit ce qui se publie ; ce qui n'est pas relu le dit.
+
+## Deux natures d'objets
+
+- **Les données sont un matériau.** Un fichier de la DREES, de l'INSEE, d'une
+  ARS est importé, contrôlé contre le fichier du producteur, puis
+  « vérifié par son auteur », puis « vérifié par deux personnes ». Il n'est
+  pas présenté comme une publication de l'observatoire.
+- **Les publications (articles) sont ce que l'observatoire publie.** Un
+  article nomme un enjeu (« Accès aux médecins généralistes »), le découpe en
+  parties, choisit pour chacune des indicateurs avec la raison du choix, et y
+  rattache les textes politiques. Il est signé, versionné, prépublié puis
+  relu par une autre personne que son auteur, comme un article de revue.
+
+## Quatre façons d'entrer dans la base
+
+### 1. Le fichier déposé (données lourdes, cartes)
+
+Pour un fichier qu'il faut lire en entier, par exemple pour colorer la carte
+de France commune par commune.
+
+1. **Dépôt** : le fichier est gardé tel quel, avec son adresse, sa date de
+   collecte et son empreinte SHA-256 ; chaque ligne brute est conservée avec
+   son numéro.
+2. **Description** : où lire le territoire, la période, chaque indicateur ;
+   le séparateur décimal ; les marques du producteur (« ND » secret,
+   « . » zéro, « NC » sans objet) ; les filtres de lignes pour un fichier qui
+   croise plusieurs dimensions ; un code écrit avec son libellé
+   (« 045 -Loiret »).
+3. **Contrôle** : chaque ligne est lue ; un code inconnu du découpage officiel
+   (COG) déclaré, une valeur illisible, un doublon bloquent.
+4. **Vérification** : par son auteur, puis par une seconde personne.
+
+Les classeurs se lisent en flux, onglet par onglet (le fichier des médecins
+de la DREES, 73 Mo et 313 000 lignes, se lit en 7 secondes).
+
+### 2. La collecte des textes déposés au Parlement
+
+Pour les textes politiques. `npm run collect:parliament`, ou le bouton de
+l'administration ; prévu pour tourner chaque jour.
+
+- **Source** : les données ouvertes de l'Assemblée nationale (dossiers
+  législatifs, historique des groupes des députés, texte intégral de chaque
+  dépôt).
+- **Veille** : chaque article de l'observatoire porte ses termes surveillés
+  (« déserts médicaux », « médecin traitant »…). Un texte dont le titre en
+  porte un est retenu ; un terme retiré retire ses rattachements.
+- **Ce qui entre** : le texte, son premier signataire, le groupe de celui-ci
+  au jour du dépôt avec la source de l'information, et chaque article cité
+  mot pour mot.
+- **Ce qui s'affiche** : aussitôt, étiqueté « collecté automatiquement, non
+  relu ». La machine n'écrit aucun libellé : l'article et sa citation, rien
+  d'autre. Une personne en tire ensuite des mesures relues, avec un libellé
+  neutre.
+- **Un texte ne se collecte qu'une fois.** Une proposition venue du Sénat est
+  laissée à la collecte du Sénat (à venir), pour garder son vrai auteur.
+
+### 3. La lecture à la demande (autour de ce qu'on regarde)
+
+Comme un jeu qui charge le décor autour du joueur. Quand une commune
+s'ouvre, l'outil lit ses lignes chez le producteur, sans télécharger le
+fichier entier.
+
+- **Source** : l'API tabulaire de data.gouv.fr (par exemple la base
+  communale de la délinquance enregistrée du ministère de l'Intérieur : 150
+  lignes pour une commune, en une requête).
+- **La façon de lire** une source s'écrit une fois (colonnes du territoire,
+  de la période, du libellé, des valeurs ; marque du secret statistique) et
+  se rejoue à chaque lecture.
+- **La lecture est gardée telle que reçue**, avec sa date et la date de
+  modification du fichier chez le producteur. Elle se réutilise un jour ;
+  ensuite, l'outil demande au producteur si le fichier a changé, et relit
+  seulement dans ce cas. Une lecture ne se réécrit ni ne s'efface.
+- **Ce qui s'affiche** : chaque valeur telle que publiée, « lue
+  automatiquement à la source le … », avec l'adresse des lignes d'origine.
+
+### 4. Le miroir (à venir)
+
+Pour les producteurs qui ne publient que de gros fichiers (les bases du
+recensement de l'INSEE, en zip de 100 à 150 Mo). L'outil télécharge le
+fichier une fois, en tâche de fond, et range ses lignes par commune dans une
+base à côté ; la lecture à la demande lit ce miroir comme elle lit
+data.gouv.fr. Un déclencheur vérifie la date de modification et l'empreinte
+du fichier chez le producteur, et recharge le miroir quand il change.
+
+## Les étiquettes, du moins au plus relu
+
+| Étiquette | Sens |
+|---|---|
+| Lu automatiquement à la source | lecture à la demande, telle que reçue |
+| Collecté automatiquement, non relu | texte politique collecté, article cité mot pour mot |
+| Vérifiée par son auteur | données contrôlées et vérifiées par une personne |
+| Vérifiée par deux personnes | données relues par une seconde personne |
+| Prépublication | article publié par son auteur, en attente de relecture |
+| Publiée | article relu par une autre personne que son auteur |
+
+## Ce que la base garantit
+
+- Une ligne brute, une lecture, une citation ne se réécrivent jamais.
+- Une version (de données ou d'article) ne s'efface pas ; hors brouillon,
+  elle ne change plus.
+- Rien ne passe à « publiée » sans une seconde personne.
+- Une valeur est un nombre ou une catégorie, jamais les deux ; une absence
+  n'a ni l'un ni l'autre.
