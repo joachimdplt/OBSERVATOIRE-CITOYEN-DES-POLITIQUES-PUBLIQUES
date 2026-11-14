@@ -21,14 +21,24 @@ export type ImportDescription = {
   headerRow: number
   firstRow?: number
   lastRow?: number
-  territory: { column: string; level: TerritoryLevel; vintage: number }
+  territory: {
+    column: string
+    level: TerritoryLevel
+    vintage: number
+    /** « 045 -Loiret » : le code suivi de son libellé dans la même case. */
+    codeWithLabel?: boolean
+  }
   period: { column?: string; value?: string }
   decimalSeparator: ',' | '.'
   /** La colonne qui donne, ligne par ligne, la date du texte d'où vient la valeur. */
   referenceDateColumn?: string | null
   /** Les marques du fichier qui veulent dire « sans objet » (« NC », par exemple). */
   notApplicableMarkers?: string[]
-  values: { column: string; indicatorCode: string }[]
+  confidentialMarkers?: string[]
+  zeroMarkers?: string[]
+  /** Les lignes à garder : « colonne = valeur » ou « colonne ≠ valeur ». */
+  rowFilters?: RowCondition[]
+  values: { column: string; indicatorCode: string; when?: RowCondition[] }[]
 }
 
 export type Anomaly = {
@@ -77,4 +87,11 @@ export type Deposit = {
   fileUrl: string
   collectedAt: string
   sheet?: string
+}
+
+/** Une condition sur une case : égale à une valeur, ou différente. */
+export type RowCondition = {
+  column: string
+  equals?: string
+  notEquals?: string
 }

@@ -45,6 +45,34 @@ export function readTerritoryCode(
   };
 }
 
+/**
+ * Lire un code suivi de son libellé, comme la DREES l'écrit : « 045 -Loiret »,
+ * « 02A -Corse-du-Sud », « 971 -Guadeloupe ». Le code est ce qui précède le
+ * tiret ; pour un département, le zéro de tête d'un code sur trois caractères
+ * tombe (045 → 45). Le reste suit la lecture ordinaire.
+ */
+export function readLabelledTerritoryCode(
+  level: TerritoryLevel,
+  raw: string,
+): CodeReading {
+  const match = /^\s*([0-9A-Za-z]+)\s*-/.exec(raw);
+  if (!match)
+    return {
+      valid: false,
+      reason: `« ${raw} » ne commence pas par un code suivi d'un tiret`,
+    };
+  let code = match[1].toUpperCase();
+  // « 000-Ensemble » : un total, pas un territoire.
+  if (/^0+$/.test(code))
+    return {
+      valid: false,
+      reason: `« ${raw} » est un total, pas un territoire`,
+    };
+  if (level === TerritoryLevel.department && /^0(\d{2}|2[AB])$/.test(code))
+    code = code.slice(1);
+  return readTerritoryCode(level, code);
+}
+
 export const LEVEL_NAMES: Record<TerritoryLevel, string> = {
   [TerritoryLevel.country]: 'de pays',
   [TerritoryLevel.region]: 'de région',

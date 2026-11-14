@@ -1,5 +1,5 @@
 import { TerritoryLevel } from '../generated/prisma/enums';
-import { readTerritoryCode } from './territory-code';
+import { readLabelledTerritoryCode, readTerritoryCode } from './territory-code';
 
 describe('les codes INSEE', () => {
   it('accepte les codes de la Corse et des départements d’outre-mer', () => {
@@ -39,5 +39,28 @@ describe('les codes INSEE', () => {
     expect(readTerritoryCode(TerritoryLevel.region, '840')).toMatchObject({
       valid: false,
     });
+  });
+});
+
+describe('un code suivi de son libellé, à la manière de la DREES', () => {
+  it('lit le code avant le tiret, et le département sans son zéro de tête', () => {
+    expect(
+      readLabelledTerritoryCode(TerritoryLevel.department, '045 -Loiret'),
+    ).toMatchObject({ valid: true, code: '45' });
+    expect(
+      readLabelledTerritoryCode(TerritoryLevel.department, '02A -Corse-du-Sud'),
+    ).toMatchObject({ valid: true, code: '2A' });
+    expect(
+      readLabelledTerritoryCode(TerritoryLevel.department, '971 -Guadeloupe'),
+    ).toMatchObject({ valid: true, code: '971' });
+  });
+
+  it('refuse un agrégat qui n’est pas un département', () => {
+    expect(
+      readLabelledTerritoryCode(TerritoryLevel.department, '000-Ensemble'),
+    ).toMatchObject({ valid: false });
+    expect(
+      readLabelledTerritoryCode(TerritoryLevel.department, 'Loiret'),
+    ).toMatchObject({ valid: false });
   });
 });

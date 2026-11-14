@@ -11,6 +11,7 @@ import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
+  IsBoolean,
   IsIn,
   IsEnum,
   IsInt,
@@ -34,6 +35,14 @@ class TerritoryColumnDto {
   @IsString() @IsNotEmpty() column!: string;
   @IsEnum(TerritoryLevel) level!: TerritoryLevel;
   @IsInt() vintage!: number;
+  /** « 045 -Loiret » : le code suivi de son libellé dans la même case. */
+  @IsOptional() @IsBoolean() codeWithLabel?: boolean;
+}
+
+class RowConditionDto {
+  @IsString() @IsNotEmpty() column!: string;
+  @IsOptional() @IsString() equals?: string;
+  @IsOptional() @IsString() notEquals?: string;
 }
 
 class PeriodDto {
@@ -50,6 +59,11 @@ class PeriodDto {
 class ValueColumnDto {
   @IsString() @IsNotEmpty() column!: string;
   @IsString() @IsNotEmpty() indicatorCode!: string;
+  /** Les lignes qui portent cet indicateur : une tranche d'âge, par exemple. */
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => RowConditionDto)
+  when?: RowConditionDto[];
 }
 
 export class DescribeImportJobDto {
@@ -66,6 +80,15 @@ export class DescribeImportJobDto {
   @IsArray()
   @IsString({ each: true })
   notApplicableMarkers?: string[];
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  confidentialMarkers?: string[];
+  @IsOptional() @IsArray() @IsString({ each: true }) zeroMarkers?: string[];
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => RowConditionDto)
+  rowFilters?: RowConditionDto[];
   @ValidateNested({ each: true })
   @Type(() => ValueColumnDto)
   @ArrayMinSize(1)
@@ -106,6 +129,9 @@ export class DescribeImportJobController {
       decimalSeparator: dto.decimalSeparator,
       referenceDateColumn: dto.referenceDateColumn ?? null,
       notApplicableMarkers: dto.notApplicableMarkers ?? [],
+      confidentialMarkers: dto.confidentialMarkers ?? [],
+      zeroMarkers: dto.zeroMarkers ?? [],
+      rowFilters: dto.rowFilters ?? [],
       values: dto.values,
     };
 

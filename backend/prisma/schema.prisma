@@ -285,6 +285,8 @@ model DatasetVersion {
   fileName      String
   fileHash      String
   fileSize      Int
+  /// L'onglet lu, pour un classeur ; vide pour un CSV.
+  sheet         String        @default("")
   state         VersionState  @default(draft)
   submittedById String?
   submittedAt   DateTime?
@@ -300,9 +302,10 @@ model DatasetVersion {
   importJob     ImportJob?
   observations  Observation[]
 
-  // Le même fichier ne se dépose pas deux fois pour le même millésime d'un jeu ; un
-  // classeur à plusieurs onglets peut porter plusieurs millésimes.
-  @@unique([datasetId, fileHash, vintage])
+  // Le même fichier ne se dépose pas deux fois pour le même millésime et le même
+  // onglet d'un jeu ; un classeur porte plusieurs millésimes (l'APL) ou plusieurs
+  // tableaux d'une même année (effectifs et âges moyens des médecins).
+  @@unique([datasetId, fileHash, vintage, sheet])
   @@map("dataset_versions")
 }
 

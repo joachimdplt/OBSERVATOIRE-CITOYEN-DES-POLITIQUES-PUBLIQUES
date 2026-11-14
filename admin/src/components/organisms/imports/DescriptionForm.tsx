@@ -3,8 +3,14 @@ import { Button } from '../../atoms/Button'
 import { Field } from '../../atoms/Field'
 import { Notice } from '../../atoms/Notice'
 import { Select } from '../../atoms/Select'
+import { TextArea } from '../../atoms/TextArea'
 import { TERRITORY_LEVELS } from '../../../data/labels'
 import type { Indicator } from '../../../types/catalogue'
+import {
+  formatConditions,
+  parseConditions,
+  parseMarkers,
+} from '../../../utils/conditions'
 import type { ImportDescription, TerritoryLevel } from '../../../types/imports'
 
 type Values = {
@@ -19,7 +25,12 @@ type Values = {
   decimalSeparator: ',' | '.'
   referenceDateColumn: string
   notApplicableMarkers: string
+  confidentialMarkers: string
+  zeroMarkers: string
+  codeWithLabel: boolean
+  rowFilters: string
   columnsByIndicator: Record<string, string>
+  whenByIndicator: Record<string, string>
 }
 
 type Props = {
@@ -66,6 +77,18 @@ export function DescriptionForm({
         current?.decimalSeparator ?? (format === 'xlsx' ? '.' : ','),
       referenceDateColumn: current?.referenceDateColumn ?? '',
       notApplicableMarkers: (current?.notApplicableMarkers ?? []).join(', '),
+      confidentialMarkers: (current?.confidentialMarkers ?? []).join(', '),
+      zeroMarkers: (current?.zeroMarkers ?? []).join(', '),
+      codeWithLabel: current?.territory.codeWithLabel ?? false,
+      rowFilters: formatConditions(current?.rowFilters),
+      whenByIndicator: Object.fromEntries(
+        indicators.map((i) => [
+          i.code,
+          formatConditions(
+            current?.values.find((v) => v.indicatorCode === i.code)?.when,
+          ),
+        ]),
+      ),
       columnsByIndicator: Object.fromEntries(
         indicators.map((i) => [
           i.code,
@@ -85,6 +108,7 @@ export function DescriptionForm({
         column: v.territoryColumn,
         level: v.level,
         vintage: Number(v.vintage),
+        ...(v.codeWithLabel ? { codeWithLabel: true } : {}),
       },
       period:
         v.periodMode === 'column'
@@ -94,13 +118,18 @@ export function DescriptionForm({
       ...(v.referenceDateColumn
         ? { referenceDateColumn: v.referenceDateColumn }
         : {}),
-      notApplicableMarkers: v.notApplicableMarkers
-        .split(',')
-        .map((m) => m.trim())
-        .filter(Boolean),
+      notApplicableMarkers: parseMarkers(v.notApplicableMarkers),
+      confidentialMarkers: parseMarkers(v.confidentialMarkers),
+      zeroMarkers: parseMarkers(v.zeroMarkers),
+      rowFilters: parseConditions(v.rowFilters),
       values: Object.entries(v.columnsByIndicator)
         .filter(([, column]) => column)
-        .map(([indicatorCode, column]) => ({ indicatorCode, column })),
+        .map(([indicatorCode, column]) => {
+          const when = parseConditions(v.whenByIndicator[indicatorCode] ?? '')
+          return when.length > 0
+            ? { indicatorCode, column, when }
+            : { indicatorCode, column }
+        }),
     })
 
   return (
@@ -162,15 +191,22 @@ export function DescriptionForm({
           </p>
         )}
         {indicators.map((i) => (
-          <Select
-            key={i.code}
-            label={`${i.label} (${i.unit})`}
-            options={[
-              { value: '', label: '(absent de ce fichier)' },
-              ...columnOptions.slice(1),
-            ]}
-            {...register(`columnsByIndicator.${i.code}`)}
-          />
+          <div key={i.code} className="grid gap-3 sm:grid-cols-2">
+            <Select
+              label={`${i.label} (${i.unit})`}
+              options={[
+                { value: '', label: '(absent de ce fichier)' },
+                ...columnOptions.slice(1),
+              ]}
+              {...register(`columnsByIndicator.${i.code}`)}
+            />
+            <TextArea
+              label="Seulement sur les lignes où…"
+              hint="Facultatif : « tranche_age = 08-entre 60 et 64 ans »."
+              rows={1}
+              {...register(`whenByIndicator.${i.code}`)}
+            />
+          </div>
         ))}
       </fieldset>
       <div className="grid gap-5 sm:grid-cols-3">
@@ -211,6 +247,34 @@ export function DescriptionForm({
           {...register('notApplicableMarkers')}
         />
       </div>
+      <fieldset className="space-y-3">
+        <legend className="text-sm font-medium text-slate-700">
+          Un fichier qui croise plusieurs dimensions
+        </legend>
+        <TextArea
+          label="Lignes à garder, une condition par ligne"
+          hint="« specialites = 01-Médecine générale », « departement ≠ 000-Ensemble ». Les autres lignes sont laissées de côté, et leur nombre est dit au contrôle."
+          rows={3}
+          {...register('rowFilters')}
+        />
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          <input type="checkbox" {...register('codeWithLabel')} />
+          Le code du territoire est suivi de son libellé dans la même case («
+          045 -Loiret »)
+        </label>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field
+            label="Marques « secret statistique »"
+            hint="« ND » à la DREES : moins de 10 personnes."
+            {...register('confidentialMarkers')}
+          />
+          <Field
+            label="Marques « zéro » du producteur"
+            hint="« . » à la DREES : aucune personne dénombrée. Seulement quand le producteur l’écrit."
+            {...register('zeroMarkers')}
+          />
+        </div>
+      </fieldset>
       <Notice reasons={reasons} />
       <Button type="submit" disabled={pending}>
         {pending ? 'Enregistrement…' : 'Enregistrer la description'}

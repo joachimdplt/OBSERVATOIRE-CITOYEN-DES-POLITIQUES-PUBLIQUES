@@ -186,4 +186,83 @@ describe('la lecture d’un tableau une ligne par territoire', () => {
       ]),
     );
   });
+
+  it('un tableau de la DREES se lit filtré, code et libellé dans la même case, avec ses marques', () => {
+    const header = [
+      'departement',
+      'specialites',
+      'exercice',
+      'tranche_age',
+      'sexe',
+      'effectif_2026',
+    ];
+    const row = (dep: string, age: string, sexe: string, value: string) => [
+      dep,
+      '01-Médecine générale',
+      '1-Libéral',
+      age,
+      sexe,
+      value,
+    ];
+    const SIXTY = '08-entre 60 et 64 ans';
+    const drees: ImportDescription = {
+      ...DESCRIPTION,
+      territory: {
+        column: 'departement',
+        level: 'department',
+        vintage: 2026,
+        codeWithLabel: true,
+      },
+      period: { value: '2026' },
+      confidentialMarkers: ['ND'],
+      zeroMarkers: ['.'],
+      rowFilters: [
+        { column: 'specialites', equals: '01-Médecine générale' },
+        { column: 'exercice', equals: '1-Libéral' },
+        { column: 'sexe', equals: '0-Ensemble' },
+        { column: 'departement', notEquals: '000-Ensemble' },
+      ],
+      values: [
+        {
+          column: 'effectif_2026',
+          indicatorCode: 'generalistes-60-64',
+          when: [{ column: 'tranche_age', equals: SIXTY }],
+        },
+        {
+          column: 'effectif_2026',
+          indicatorCode: 'generalistes',
+          when: [{ column: 'tranche_age', equals: '00-Ensemble' }],
+        },
+      ],
+    };
+    const { candidates, anomalies } = new ColumnMappingNormalizer().normalize(
+      header,
+      [
+        row('000-Ensemble', SIXTY, '0-Ensemble', '9000'),
+        row('001 -Ain', SIXTY, '0-Ensemble', '42'),
+        row('001 -Ain', SIXTY, '1-Hommes', '30'),
+        row('001 -Ain', '00-Ensemble', '0-Ensemble', '300'),
+        row('02A -Corse-du-Sud', SIXTY, '0-Ensemble', 'ND'),
+        row('084 -Vaucluse', SIXTY, '0-Ensemble', '.'),
+      ].map((cells, i) => ({ rowNumber: i + 2, cells })),
+      drees,
+    );
+    expect(
+      candidates.map((c) => [
+        c.indicatorCode,
+        c.territory.code,
+        c.status,
+        c.value,
+      ]),
+    ).toEqual([
+      ['generalistes-60-64', '01', 'documented', '42'],
+      ['generalistes', '01', 'documented', '300'],
+      ['generalistes-60-64', '2A', 'confidential', null],
+      ['generalistes-60-64', '84', 'documented', '0'],
+    ]);
+    expect(anomalies).toContainEqual(
+      expect.objectContaining({ kind: 'rows_filtered_out', severity: 'info' }),
+    );
+    expect(anomalies.filter((a) => a.severity === 'blocking')).toEqual([]);
+  });
 });

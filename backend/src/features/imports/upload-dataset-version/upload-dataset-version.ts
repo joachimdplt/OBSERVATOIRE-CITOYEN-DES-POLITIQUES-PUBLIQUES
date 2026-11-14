@@ -96,22 +96,6 @@ export class UploadDatasetVersionController {
       );
     }
 
-    const fileHash = this.store.fingerprint(file.buffer);
-    const already = await this.prisma.datasetVersion.findUnique({
-      where: {
-        datasetId_fileHash_vintage: {
-          datasetId,
-          fileHash,
-          vintage: dto.vintage.trim(),
-        },
-      },
-    });
-    if (already) {
-      throw new ConflictException(
-        `Ce fichier est déjà déposé pour le millésime « ${already.vintage} » de ce jeu, le ${already.createdAt.toLocaleDateString('fr-FR')}.`,
-      );
-    }
-
     let table: RawTable;
     try {
       table = await importer.read(file.buffer, dto.sheet);
@@ -123,6 +107,23 @@ export class UploadDatasetVersionController {
     if (table.rows.length === 0) {
       throw new BadRequestException(
         `« ${fileName} » ne contient aucune ligne.`,
+      );
+    }
+
+    const fileHash = this.store.fingerprint(file.buffer);
+    const already = await this.prisma.datasetVersion.findUnique({
+      where: {
+        datasetId_fileHash_vintage_sheet: {
+          datasetId,
+          fileHash,
+          vintage: dto.vintage.trim(),
+          sheet: table.sheet ?? '',
+        },
+      },
+    });
+    if (already) {
+      throw new ConflictException(
+        `Ce fichier est déjà déposé pour le millésime « ${already.vintage} »${already.sheet ? `, onglet « ${already.sheet} »` : ''}, de ce jeu, le ${already.createdAt.toLocaleDateString('fr-FR')}.`,
       );
     }
 
@@ -139,6 +140,7 @@ export class UploadDatasetVersionController {
             fileName,
             fileHash,
             fileSize: file.size,
+            sheet: table.sheet ?? '',
             createdById: user.id,
           },
         });

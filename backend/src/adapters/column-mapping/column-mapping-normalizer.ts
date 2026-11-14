@@ -1,9 +1,15 @@
 import { readCategory } from '../../domain/category';
 import { readCell } from '../../domain/cell';
 import { readDate } from '../../domain/date';
-import type { ImportDescription } from '../../domain/import-description';
+import {
+  type ImportDescription,
+  rowMatches,
+} from '../../domain/import-description';
 import { readPeriod } from '../../domain/period';
-import { readTerritoryCode } from '../../domain/territory-code';
+import {
+  readLabelledTerritoryCode,
+  readTerritoryCode,
+} from '../../domain/territory-code';
 import {
   AnomalySeverity,
   ObservationStatus,
@@ -49,9 +55,14 @@ export class ColumnMappingNormalizer implements ObservationNormalizer {
     const fixedPeriod = 'value' in d.period ? readPeriod(d.period.value) : null;
     const valueColumns = d.values.map((v) => ({ ...v, at: index(v.column) }));
     const dateAt = d.referenceDateColumn ? index(d.referenceDateColumn) : -1;
-    const notApplicable = new Set(
-      (d.notApplicableMarkers ?? []).map((m) => m.trim()),
-    );
+    const markers = (list?: string[]) =>
+      new Set((list ?? []).map((m) => m.trim()));
+    const notApplicable = markers(d.notApplicableMarkers);
+    const confidential = markers(d.confidentialMarkers);
+    const zero = markers(d.zeroMarkers);
+    const readCode = d.territory.codeWithLabel
+      ? readLabelledTerritoryCode
+      : readTerritoryCode;
 
     const candidates: CandidateObservation[] = [];
     const anomalies: Anomaly[] = [];
@@ -71,6 +82,7 @@ export class ColumnMappingNormalizer implements ObservationNormalizer {
 
     let repaired = 0;
     let emptyRows = 0;
+    let filteredOut = 0;
     const absences = new Map<string, number>();
 
     for (const { rowNumber, cells } of rows) {
@@ -79,10 +91,13 @@ export class ColumnMappingNormalizer implements ObservationNormalizer {
         continue;
       }
 
-      const code = readTerritoryCode(
-        d.territory.level,
-        cells[territoryAt] ?? '',
-      );
+      const cellOf = (column: string) => cells[index(column)] ?? '';
+      if (!rowMatches(d.rowFilters, cellOf)) {
+        filteredOut++;
+        continue;
+      }
+
+      const code = readCode(d.territory.level, cells[territoryAt] ?? '');
       if (!code.valid) {
         blocking(
           rowNumber,
@@ -123,16 +138,23 @@ export class ColumnMappingNormalizer implements ObservationNormalizer {
         }
       }
 
-      for (const { column, indicatorCode, at } of valueColumns) {
+      for (const { column, indicatorCode, at, when } of valueColumns) {
+        // Une tranche d'âge ne se lit que sur ses lignes.
+        if (!rowMatches(when, cellOf)) continue;
         const reading = readings.get(indicatorCode) ?? { kind: 'number' };
         const raw = cells[at] ?? '';
+        const marker = raw.trim();
         const cell:
           ReturnType<typeof readCell> | ReturnType<typeof readCategory> =
-          notApplicable.has(raw.trim())
+          notApplicable.has(marker)
             ? { kind: 'absence', status: ObservationStatus.not_applicable }
-            : reading.kind === 'category'
-              ? readCategory(raw, reading.categories)
-              : readCell(raw, d.decimalSeparator);
+            : confidential.has(marker)
+              ? { kind: 'absence', status: ObservationStatus.confidential }
+              : zero.has(marker) && reading.kind !== 'category'
+                ? readCell('0', d.decimalSeparator)
+                : reading.kind === 'category'
+                  ? readCategory(raw, reading.categories)
+                  : readCell(raw, d.decimalSeparator);
         if (cell.kind === 'invalid') {
           blocking(rowNumber, column, 'invalid_value', cell.reason);
           continue;
@@ -169,6 +191,12 @@ export class ColumnMappingNormalizer implements ObservationNormalizer {
         `${repaired} code(s) avaient perdu leur zéro de tête, rendu à la lecture (1001 → 01001).`,
       );
     }
+    if (filteredOut > 0)
+      info(
+        null,
+        'rows_filtered_out',
+        `${filteredOut} ligne(s) laissée(s) de côté par les filtres de la description.`,
+      );
     if (emptyRows > 0)
       info(null, 'empty_rows', `${emptyRows} ligne(s) vide(s) ignorée(s).`);
     for (const [key, count] of absences) {
