@@ -19,15 +19,17 @@ export function SiteFrame({ children }: { children: ReactNode }) {
             <Link to="/carte" className="hover:text-slate-900">
               Carte
             </Link>
-            <Link to="/" hash="indicateurs" className="hover:text-slate-900">
-              Indicateurs
+            <Link to="/" hash="contribuer" className="hover:text-slate-900">
+              Contribuer
             </Link>
           </nav>
         </div>
       </header>
       <div className="flex-1">{children}</div>
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-5xl flex-wrap justify-between gap-3 px-6 py-6 text-xs text-slate-500">
+      {/* Le pied de page navy, comme le dernier écran de l'accueil : une page
+          claire se ferme sur du sombre. */}
+      <footer className="border-t border-white/10 bg-[#0B1A2A]">
+        <div className="mx-auto flex max-w-5xl flex-wrap justify-between gap-3 px-6 py-6 text-xs text-white/60">
           <span>
             Contenu sous{' '}
             <a

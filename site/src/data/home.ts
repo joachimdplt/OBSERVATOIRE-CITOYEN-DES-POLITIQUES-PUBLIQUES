@@ -1,61 +1,94 @@
 import { SOURCE_CODE, newIssue } from './project'
 
-/** Les textes de l'accueil. Aucun chiffre statistique ici : ils viennent de l'API, avec leur source. */
+/**
+ * Les textes de l'accueil, un raisonnement en écrans : la question, le
+ * constat, la réponse, les garanties, la contribution, l'action. Un seul
+ * objectif : chercher sa commune. Les passages entre [[ ]] sont surlignés.
+ * Aucun chiffre statistique ici, sauf un fait vérifié sur le fichier lui-même.
+ */
 export const HOME = {
-  title:
-    'Les chiffres publics de votre commune, et les propositions des partis',
-  lead: 'Tapez le nom de votre commune : l’observatoire montre les statistiques officielles en mots simples, chacune avec sa source. À côté viendront les propositions des partis sur le même sujet, citées mot pour mot.',
-  explore: 'Chercher ma commune',
-  contribute: 'Contribuer',
+  hero: {
+    title: 'Un médecin près de chez vous, [[facile ou pas ?]]',
+    lead: 'Tapez votre commune. Vous lisez les chiffres officiels, en mots simples, avec leur source.',
+    cta: 'Chercher ma commune',
+  },
 
-  steps: {
-    title: 'Comment un chiffre arrive ici',
-    items: [
+  constat: {
+    title: 'Les chiffres existent. [[Personne ne les lit.]]',
+    lead: 'Ils dorment dans des tableurs, chez la DREES, l’INSEE et les agences régionales de santé.',
+    accroche: 'Un seul fichier de la DREES',
+    valeur: '313 340',
+    legende: 'lignes sur\nles médecins\nde France',
+    points: [
       {
-        title: 'Le fichier officiel, tel quel',
-        text: 'Les données viennent des producteurs publics : DREES, INSEE, agences régionales de santé. Le fichier est gardé intact, avec son adresse et son empreinte.',
+        title: 'Des codes, pas des mots',
+        text: '«\u00a0045 -Loiret\u00a0», «\u00a0SM54\u00a0», «\u00a0ND\u00a0» : il faut la notice pour comprendre une ligne.',
       },
       {
-        title: 'Contrôlé, puis relu',
-        text: 'Chaque ligne est vérifiée : code de commune, valeur, absence. Une version est d’abord prépubliée par son auteur, puis relue par une autre personne, comme dans une revue scientifique.',
-      },
-      {
-        title: 'Lisible, commune par commune',
-        text: 'Une question simple, la phrase de lecture du producteur, l’ordre de grandeur et la valeur exacte. Un clic remonte à la ligne du fichier d’origine.',
-      },
-      {
-        title: 'À côté, les propositions',
-        text: 'Les mesures des partis s’afficheront par leur citation exacte et leur document officiel, rangées selon ce sur quoi elles agissent. Sans note ni verdict.',
+        title: 'Des chiffres seuls',
+        text: 'Les propositions des partis sur le même sujet sont ailleurs, dans d’autres documents.',
       },
     ],
   },
 
-  rules: {
-    title: 'Les règles',
+  reponse: {
+    title: 'Votre commune, [[lisible en une minute]]',
+    lead: 'L’observatoire lit le fichier. Vous lisez la réponse.',
     items: [
-      'Une donnée absente s’affiche « non documentée », jamais zéro.',
-      'Aucun chiffre n’est déduit : ni manque, ni besoin, ni écart que la source ne publie pas.',
-      'Aucun score, aucun classement, aucun verdict sur un parti.',
-      'Toute correction crée une version ; l’ancienne reste lisible.',
+      {
+        title: 'Une question',
+        text: 'Est-ce facile de voir un médecin ? Quel âge ont-ils dans votre département ?',
+      },
+      {
+        title: 'La phrase du producteur',
+        text: 'La DREES écrit comment lire son chiffre. Vous lisez sa phrase, mot pour mot.',
+      },
+      {
+        title: 'La ligne d’origine',
+        text: 'Chaque chiffre donne son fichier et sa ligne. Vous vérifiez en un clic.',
+      },
     ],
   },
 
-  contribution: {
-    title: 'Contribuer à l’observatoire',
-    lead: 'L’observatoire fonctionne comme une encyclopédie ouverte : tout le monde peut proposer, rien n’est publié sans relecture, et chaque contribution est signée d’un vrai nom.',
+  regles: {
+    title: 'Aucun chiffre [[inventé]]',
+    lead: 'Bientôt, à côté des chiffres : les propositions des partis, citées mot pour mot. Les mêmes règles pour tous.',
+    items: [
+      {
+        label: 'Une donnée manque',
+        text: '«\u00a0non documentée\u00a0», jamais zéro',
+      },
+      {
+        label: 'Un écart, un manque',
+        text: 'jamais calculé si la source ne le publie pas',
+      },
+      {
+        label: 'Un parti',
+        text: 'aucune note, aucun classement, aucun verdict',
+      },
+      {
+        label: 'Une erreur',
+        text: 'une nouvelle version, l’ancienne reste lisible',
+      },
+    ],
+  },
+
+  contribuer: {
+    title: 'Contribuez, [[sous votre nom]]',
+    lead: 'Comme une encyclopédie : vous proposez, une autre personne relit, tout est signé d’un vrai nom.',
     ways: [
       {
         title: 'Signaler une erreur',
-        text: 'Un chiffre qui ne correspond pas au fichier du producteur, une commune mal placée, un texte trompeur : dites où, et citez la source.',
+        text: 'Un chiffre faux, une commune mal placée : dites où, citez la source.',
         action: 'Signaler',
         href: newIssue(
           'Erreur : [commune ou indicateur]',
-          'Page concernée :\nCe qui est affiché :\nCe que dit la source (lien et ligne du fichier) :\n',
+          'Page concernée :\nCe qui est affiché :\nLa source (lien et ligne du fichier) :\n',
         ),
       },
       {
         title: 'Proposer une source',
-        text: 'Un jeu de données public qui éclaire une politique : son producteur, son adresse, sa licence. L’équipe le dépose, le contrôle et le relit.',
+        text: 'Un fichier public utile : son producteur, son adresse, sa licence.',
         action: 'Proposer',
         href: newIssue(
           'Source : [titre du jeu de données]',
@@ -64,7 +97,7 @@ export const HOME = {
       },
       {
         title: 'Relire',
-        text: 'Les relecteurs vérifient chaque version avant sa publication. Sous leur vrai nom, avec leurs liens politiques déclarés et affichés ; pour une mesure politique, deux relecteurs.',
+        text: 'Vous vérifiez avant publication, sous votre nom, vos liens politiques affichés.',
         action: 'Devenir relecteur',
         href: newIssue(
           'Relecture : [votre nom]',
@@ -72,13 +105,17 @@ export const HOME = {
         ),
       },
       {
-        title: 'Améliorer le code',
-        text: 'Le code est libre (AGPL-3.0) : site, administration, API. Lisez les conventions du dépôt, puis proposez vos changements.',
+        title: 'Écrire le code',
+        text: 'Site, administration, API : tout est libre, sous licence AGPL.',
         action: 'Voir le code',
         href: SOURCE_CODE,
       },
     ],
-    license:
-      'Les contenus de l’observatoire sont sous licence CC BY-SA 4.0 : reprenez-les, en citant la source et en partageant à l’identique.',
+  },
+
+  fin: {
+    title: 'Tapez [[votre commune.]]',
+    lead: 'Les contenus sont libres (CC BY-SA 4.0) : reprenez-les, en citant la source.',
+    cta: 'Chercher ma commune',
   },
 }
