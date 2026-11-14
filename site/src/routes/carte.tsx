@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
 import { LayerPicker } from '../components/organisms/map/LayerPicker'
 import { MapPanel } from '../components/organisms/map/MapPanel'
-import { RegionPicker } from '../components/organisms/map/RegionPicker'
+import { RegionSelect } from '../components/molecules/RegionSelect'
 import { TerritoryLayersCard } from '../components/organisms/territory/TerritoryLayersCard'
 import {
   getIndicator,
@@ -97,84 +97,82 @@ function MapPage() {
         />
       </aside>
       <div className="space-y-4">
-        <header className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance">
+        <header className="space-y-2">
+          <h1 className="text-3xl font-semibold tracking-tight text-balance">
             {sheet.question ?? sheet.label}
           </h1>
-          <p className="text-sm text-slate-500">
-            {sheet.label} ·{' '}
-            {sheet.provenance
-              .map((p) => p.producer.acronym)
-              .filter((a, i, all) => all.indexOf(a) === i)
-              .join(', ')}
+          <p className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+            <span>{sheet.label}</span>
+            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+              {sheet.provenance
+                .map((p) => p.producer.acronym)
+                .filter((a, i, all) => all.indexOf(a) === i)
+                .join(', ')}
+            </span>
           </p>
         </header>
-        {regional && (
-          <div className="space-y-2">
-            <p className="text-sm text-slate-600">
-              Cette donnée se décide région par région : choisissez une région.
-            </p>
-            <RegionPicker
-              regions={sheet.regions}
-              active={region}
-              onPick={(r) =>
-                navigate({ search: (s) => ({ ...s, region: r }), ...keep })
-              }
-            />
-          </div>
-        )}
-        {(!regional || region) && (
-          <MapPanel
-            code={sheet.code}
-            unit={sheet.unit}
-            categories={sheet.kind === 'category' ? sheet.categories : null}
-            scale={
-              sheet.scaleLow && sheet.scaleHigh
-                ? { low: sheet.scaleLow, high: sheet.scaleHigh }
-                : null
-            }
-            periods={sheet.periods}
-            period={period}
-            region={region}
-            onPeriod={(p) =>
-              navigate({ search: (s) => ({ ...s, period: p }), ...keep })
-            }
-            onSelect={(t) =>
-              navigate({
-                search: (s) => ({
-                  ...s,
-                  territory: t.code,
-                  level: t.level,
-                  name: t.name,
-                }),
-                ...keep,
-              })
-            }
-            side={
-              filters.territory ? (
-                <TerritoryLayersCard
-                  data={territory}
-                  name={filters.name ?? filters.territory}
-                  onClose={() =>
-                    navigate({
-                      search: (s) => ({
-                        ...s,
-                        territory: undefined,
-                        level: undefined,
-                        name: undefined,
-                      }),
-                      ...keep,
-                    })
-                  }
-                />
-              ) : (
-                <p className="surface p-5 text-sm text-slate-600">
-                  Cliquez sur une commune pour lire toutes ses données.
-                </p>
-              )
-            }
-          />
-        )}
+        <MapPanel
+          code={sheet.code}
+          unit={sheet.unit}
+          categories={sheet.kind === 'category' ? sheet.categories : null}
+          scale={
+            sheet.scaleLow && sheet.scaleHigh
+              ? { low: sheet.scaleLow, high: sheet.scaleHigh }
+              : null
+          }
+          periods={sheet.periods}
+          period={period}
+          region={region}
+          waiting={regional && !region}
+          toolbar={
+            regional ? (
+              <RegionSelect
+                regions={sheet.regions}
+                active={region}
+                onPick={(r) =>
+                  navigate({ search: (x) => ({ ...x, region: r }), ...keep })
+                }
+              />
+            ) : null
+          }
+          onPeriod={(p) =>
+            navigate({ search: (s) => ({ ...s, period: p }), ...keep })
+          }
+          onSelect={(t) =>
+            navigate({
+              search: (s) => ({
+                ...s,
+                territory: t.code,
+                level: t.level,
+                name: t.name,
+              }),
+              ...keep,
+            })
+          }
+          side={
+            filters.territory ? (
+              <TerritoryLayersCard
+                data={territory}
+                name={filters.name ?? filters.territory}
+                onClose={() =>
+                  navigate({
+                    search: (s) => ({
+                      ...s,
+                      territory: undefined,
+                      level: undefined,
+                      name: undefined,
+                    }),
+                    ...keep,
+                  })
+                }
+              />
+            ) : (
+              <p className="surface p-5 text-sm text-slate-600">
+                Cliquez sur une commune pour lire toutes ses données.
+              </p>
+            )
+          }
+        />
       </div>
     </main>
   )
