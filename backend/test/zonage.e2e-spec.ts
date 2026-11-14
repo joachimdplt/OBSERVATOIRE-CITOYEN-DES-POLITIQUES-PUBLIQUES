@@ -351,4 +351,78 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
       sheet.categories.find((c) => c.code === 'ZAC')?.explanation,
     ).toBeUndefined();
   });
+
+  it('une source se retire sans s’effacer : ses valeurs quittent l’indicateur, le retrait se lit sur la fiche', async () => {
+    const ara = await prisma.sourceDataset.findFirstOrThrow({
+      where: { producerRef: 'zonage-medecins-ara' },
+    });
+    const retire = (reason: string) =>
+      founder
+        .post(
+          `/api/admin/indicators/zonage-medecins-generalistes/sources/${ara.id}/retire`,
+        )
+        .send({ reason });
+    await retire('court').expect(400);
+    await retire(
+      'Remplacé par le fichier national des zonages (Atlasanté).',
+    ).expect(200);
+    await retire('Une seconde fois, pour voir.').expect(404);
+
+    const map = (
+      await request(http(app))
+        .get(
+          '/api/public/indicators/zonage-medecins-generalistes/map?period=2025',
+        )
+        .expect(200)
+    ).body as MapAnswer;
+    expect(map.values.map((v) => v[0]).sort()).toEqual(['13201', '84007']);
+
+    const layers = (
+      (
+        await request(http(app))
+          .get('/api/public/territories/commune/01001/values')
+          .expect(200)
+      ).body as { layers: { indicator: { code: string } }[] }
+    ).layers.map((l) => l.indicator.code);
+    expect(layers).not.toContain('zonage-medecins-generalistes');
+
+    const sheet = (
+      await request(http(app))
+        .get('/api/public/indicators/zonage-medecins-generalistes')
+        .expect(200)
+    ).body as {
+      provenance: { producer: { acronym: string } }[];
+      retiredSources: { producer: string; reason: string; retiredBy: string }[];
+    };
+    expect(sheet.provenance.map((p) => p.producer.acronym)).toEqual([
+      'ARS PACA',
+    ]);
+    expect(sheet.retiredSources).toEqual([
+      expect.objectContaining({
+        producer: 'ARS ARA',
+        reason: 'Remplacé par le fichier national des zonages (Atlasanté).',
+        retiredBy: 'Compte admin',
+      }),
+    ]);
+
+    // La base refuse d'effacer ou de réécrire le lien.
+    await expect(
+      prisma.indicatorSource.deleteMany({ where: { datasetId: ara.id } }),
+    ).rejects.toThrow();
+    await expect(
+      prisma.indicatorSource.updateMany({
+        where: { datasetId: ara.id },
+        data: { retiredReason: 'Autre raison' },
+      }),
+    ).rejects.toThrow();
+
+    // Le jeu peut être relié de nouveau ; l'ancien lien reste dans l'historique.
+    await founder
+      .post('/api/admin/indicators/zonage-medecins-generalistes/sources')
+      .send({ datasetId: ara.id })
+      .expect(201);
+    expect(
+      await prisma.indicatorSource.count({ where: { datasetId: ara.id } }),
+    ).toBe(2);
+  });
 });

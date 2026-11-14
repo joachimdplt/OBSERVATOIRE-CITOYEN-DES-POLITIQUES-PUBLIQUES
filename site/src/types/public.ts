@@ -82,6 +82,14 @@ export type IndicatorSheet = {
   territoryLevels: string[]
   /** Une provenance par millésime visible, le plus récent en premier. */
   provenance: Provenance[]
+  /** Les sources retirées par l'équipe : leurs valeurs ne s'affichent plus. */
+  retiredSources: {
+    producer: string
+    dataset: string
+    retiredAt: string
+    retiredBy: string | null
+    reason: string
+  }[]
 }
 
 export type Observation = {

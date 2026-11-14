@@ -116,7 +116,9 @@ export class DescribeImportJobController {
     const indicators = await this.prisma.indicatorDefinition.findMany({
       where: {
         code: { in: codes },
-        sources: { some: { datasetId: job.version.datasetId } },
+        sources: {
+          some: { datasetId: job.version.datasetId, retiredAt: null },
+        },
       },
       select: { code: true },
     });

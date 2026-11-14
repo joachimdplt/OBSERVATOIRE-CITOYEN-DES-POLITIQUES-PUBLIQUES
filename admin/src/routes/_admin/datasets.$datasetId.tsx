@@ -2,12 +2,14 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Breadcrumb } from '../../components/atoms/Breadcrumb'
 import { Card } from '../../components/atoms/Card'
 import { PageHeader } from '../../components/atoms/PageHeader'
+import { FedIndicatorList } from '../../components/organisms/catalogue/FedIndicatorList'
 import { LinkIndicatorForm } from '../../components/organisms/catalogue/LinkIndicatorForm'
 import { DepositForm } from '../../components/organisms/imports/DepositForm'
 import { VersionList } from '../../components/organisms/imports/VersionList'
 import {
   useCatalogue,
   useLinkIndicator,
+  useRetireSource,
 } from '../../hooks/catalogue/useCatalogue'
 import { useDeposit, useVersions } from '../../hooks/imports/useImports'
 import { reasonsOf } from '../../utils/api-error'
@@ -20,6 +22,7 @@ function DatasetPage() {
   const { datasetId } = Route.useParams()
   const catalogue = useCatalogue().data
   const link = useLinkIndicator()
+  const retire = useRetireSource()
   const dataset = catalogue
     ?.flatMap((p) => p.datasets.map((d) => ({ ...d, provider: p.acronym })))
     .find((d) => d.id === datasetId)
@@ -49,20 +52,14 @@ function DatasetPage() {
       />
       <Card title="Indicateurs alimentés par ce jeu">
         <div className="space-y-4">
-          {dataset && dataset.indicators.length > 0 ? (
-            <ul className="space-y-1 text-sm">
-              {dataset.indicators.map((i) => (
-                <li key={i.code}>
-                  {i.label}{' '}
-                  <code className="text-xs text-slate-500">{i.code}</code>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-slate-500">
-              Aucun indicateur pour l’instant.
-            </p>
-          )}
+          <FedIndicatorList
+            indicators={dataset?.indicators ?? []}
+            pending={retire.isPending}
+            reasons={retire.error ? reasonsOf(retire.error) : []}
+            onRetire={(code, reason) =>
+              retire.mutate({ code, datasetId, reason })
+            }
+          />
           <LinkIndicatorForm
             candidates={allIndicators.filter((i) => !fed.has(i.code))}
             pending={link.isPending}

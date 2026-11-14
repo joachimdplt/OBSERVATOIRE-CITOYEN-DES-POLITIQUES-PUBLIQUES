@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AddIndicatorSourceController } from './add-indicator-source/add-indicator-source';
+import { RetireIndicatorSourceController } from './retire-indicator-source/retire-indicator-source';
 import { CreateDatasetController } from './create-dataset/create-dataset';
 import { UpdateIndicatorReadingController } from './update-indicator-reading/update-indicator-reading';
 import { CreateIndicatorController } from './create-indicator/create-indicator';
@@ -13,6 +14,7 @@ import { ListCatalogueController } from './list-catalogue/list-catalogue';
     CreateDatasetController,
     CreateIndicatorController,
     AddIndicatorSourceController,
+    RetireIndicatorSourceController,
     UpdateIndicatorReadingController,
     ListCatalogueController,
   ],

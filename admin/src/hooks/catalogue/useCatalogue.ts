@@ -5,6 +5,7 @@ import {
   createIndicator,
   createProvider,
   fetchCatalogue,
+  retireIndicatorSource,
 } from '../../api/catalogue.api'
 import { queryKeys } from '../queryKeys'
 
@@ -28,4 +29,17 @@ export const useCreateIndicator = () => useDeclare(createIndicator)
 export const useLinkIndicator = () =>
   useDeclare(({ code, datasetId }: { code: string; datasetId: string }) =>
     addIndicatorSource(code, datasetId),
+  )
+
+export const useRetireSource = () =>
+  useDeclare(
+    ({
+      code,
+      datasetId,
+      reason,
+    }: {
+      code: string
+      datasetId: string
+      reason: string
+    }) => retireIndicatorSource(code, datasetId, reason),
   )

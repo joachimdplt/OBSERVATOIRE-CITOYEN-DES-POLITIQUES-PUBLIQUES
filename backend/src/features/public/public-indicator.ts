@@ -28,7 +28,9 @@ export async function loadPublicIndicator(prisma: PrismaService, code: string) {
   const indicator = await prisma.indicatorDefinition.findUnique({
     where: { code },
     include: {
+      // Seules les sources actives nourrissent l'indicateur.
       sources: {
+        where: { retiredAt: null },
         include: {
           dataset: { include: { provider: true, versions: publicVersions } },
         },

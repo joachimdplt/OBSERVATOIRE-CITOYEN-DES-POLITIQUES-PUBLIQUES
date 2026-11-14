@@ -21,7 +21,7 @@ export class GetIndicatorController {
       indicatorId: indicator.id,
       versionId: { in: versions.map((v) => v.id) },
     };
-    const [periods, levels] = await Promise.all([
+    const [periods, levels, retired] = await Promise.all([
       this.prisma.observation.findMany({
         where,
         distinct: ['period'],
@@ -32,6 +32,16 @@ export class GetIndicatorController {
         where: { observations: { some: where } },
         distinct: ['level'],
         select: { level: true },
+      }),
+      this.prisma.indicatorSource.findMany({
+        where: { indicatorId: indicator.id, retiredAt: { not: null } },
+        orderBy: { retiredAt: 'asc' },
+        include: {
+          dataset: {
+            select: { title: true, provider: { select: { acronym: true } } },
+          },
+          retiredBy: { select: { name: true } },
+        },
       }),
     ]);
 
@@ -56,6 +66,15 @@ export class GetIndicatorController {
       periods: periods.map((p) => p.period),
       territoryLevels: levels.map((l) => l.level),
       provenance: provenancesOf(loaded),
+      // Les sources que l'équipe a retirées : qui, quand, pourquoi. Leurs
+      // valeurs ne s'affichent plus pour cet indicateur.
+      retiredSources: retired.map((s) => ({
+        producer: s.dataset.provider.acronym,
+        dataset: s.dataset.title,
+        retiredAt: s.retiredAt,
+        retiredBy: s.retiredBy?.name ?? null,
+        reason: s.retiredReason,
+      })),
     };
   }
 }

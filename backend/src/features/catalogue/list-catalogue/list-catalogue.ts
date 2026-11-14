@@ -24,6 +24,7 @@ export class ListCatalogueController {
           include: {
             createdBy: declaredBy,
             indicatorSources: {
+              where: { retiredAt: null },
               orderBy: { indicator: { code: 'asc' } },
               include: { indicator: { include: { createdBy: declaredBy } } },
             },

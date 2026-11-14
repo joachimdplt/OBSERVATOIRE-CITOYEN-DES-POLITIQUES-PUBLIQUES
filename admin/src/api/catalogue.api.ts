@@ -42,3 +42,15 @@ export async function addIndicatorSource(code: string, datasetId: string) {
     { datasetId },
   )
 }
+
+/** Retirer un jeu des sources d'un indicateur, avec sa raison. Rien ne s'efface. */
+export async function retireIndicatorSource(
+  code: string,
+  datasetId: string,
+  reason: string,
+) {
+  await apiClient.post(
+    `/admin/indicators/${encodeURIComponent(code)}/sources/${datasetId}/retire`,
+    { reason },
+  )
+}

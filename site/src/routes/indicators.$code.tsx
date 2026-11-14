@@ -5,6 +5,7 @@ import { PublicationBadge } from '../components/molecules/PublicationBadge'
 import { ProvenancePanel } from '../components/organisms/indicators/ProvenancePanel'
 import { pillarLabel } from '../data/pillars'
 import { getIndicator } from '../services/public-api'
+import { frenchDate } from '../utils/date'
 import { seo } from '../utils/seo'
 
 /**
@@ -70,9 +71,26 @@ function IndicatorPage() {
       <section className="space-y-4">
         <h2 className="text-sm font-semibold">D’où viennent ces chiffres</h2>
         {sheet.provenance.map((p) => (
-          <ProvenancePanel key={p.version.vintage} provenance={p} />
+          <ProvenancePanel
+            key={`${p.producer.acronym}-${p.version.vintage}`}
+            provenance={p}
+          />
         ))}
       </section>
+      {sheet.retiredSources.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold">Sources retirées</h2>
+          <ul className="space-y-2 text-sm text-slate-600">
+            {sheet.retiredSources.map((s) => (
+              <li key={`${s.producer}-${s.retiredAt}`}>
+                {s.producer} · « {s.dataset} », retirée le{' '}
+                {frenchDate(s.retiredAt.slice(0, 10))}
+                {s.retiredBy ? ` par ${s.retiredBy}` : ''} : {s.reason}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </main>
   )
 }

@@ -25,11 +25,17 @@ export class ListIndicatorsController {
     const indicators = await this.prisma.indicatorDefinition.findMany({
       where: {
         ...(pillar ? { pillar } : {}),
-        sources: { some: { dataset: { versions: { some: visible } } } },
+        sources: {
+          some: {
+            retiredAt: null,
+            dataset: { versions: { some: visible } },
+          },
+        },
       },
       orderBy: [{ pillar: 'asc' }, { label: 'asc' }],
       include: {
         sources: {
+          where: { retiredAt: null },
           include: {
             dataset: {
               include: {

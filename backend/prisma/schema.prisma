@@ -31,7 +31,8 @@ model User {
   providers        DataProvider[]
   datasets         SourceDataset[]
   indicators       IndicatorDefinition[]
-  indicatorSources IndicatorSource[]
+  indicatorSources IndicatorSource[]     @relation("SourceCreatedBy")
+  retiredSources   IndicatorSource[]     @relation("SourceRetiredBy")
   versions         DatasetVersion[]      @relation("VersionCreatedBy")
   submitted        DatasetVersion[]      @relation("VersionSubmittedBy")
   reviewed         DatasetVersion[]      @relation("VersionReviewedBy")
@@ -400,14 +401,22 @@ model ReviewEvent {
  * provenance, sa licence et ses versions.
  */
 model IndicatorSource {
-  indicatorId String
-  datasetId   String
-  createdById String
-  createdAt   DateTime            @default(now())
-  indicator   IndicatorDefinition @relation(fields: [indicatorId], references: [id])
-  dataset     SourceDataset       @relation(fields: [datasetId], references: [id])
-  createdBy   User                @relation(fields: [createdById], references: [id])
+  id            String              @id @default(uuid())
+  indicatorId   String
+  datasetId     String
+  createdById   String
+  createdAt     DateTime            @default(now())
+  /// Une source retirée ne nourrit plus l'indicateur pour le public ; la ligne
+  /// reste, avec qui l'a retirée, quand et pourquoi. Une seule source active
+  /// par couple indicateur et jeu (index partiel, voir la migration).
+  retiredAt     DateTime?
+  retiredById   String?
+  retiredReason String?
+  indicator     IndicatorDefinition @relation(fields: [indicatorId], references: [id])
+  dataset       SourceDataset       @relation(fields: [datasetId], references: [id])
+  createdBy     User                @relation("SourceCreatedBy", fields: [createdById], references: [id])
+  retiredBy     User?               @relation("SourceRetiredBy", fields: [retiredById], references: [id])
 
-  @@id([indicatorId, datasetId])
+  @@index([indicatorId, datasetId])
   @@map("indicator_sources")
 }

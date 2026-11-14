@@ -47,12 +47,17 @@ export class ListTerritoryValuesController {
           select: {
             state: true,
             vintage: true,
+            datasetId: true,
             dataset: { select: { provider: { select: { acronym: true } } } },
           },
         },
         indicator: {
           select: {
             code: true,
+            sources: {
+              where: { retiredAt: null },
+              select: { datasetId: true },
+            },
             label: true,
             unit: true,
             pillar: true,
@@ -68,6 +73,9 @@ export class ListTerritoryValuesController {
 
     const layers = new Map<string, ReturnType<typeof layerOf>>();
     for (const o of observations) {
+      // Une valeur d'une source retirée ne nourrit plus l'indicateur.
+      if (!o.indicator.sources.some((s) => s.datasetId === o.version.datasetId))
+        continue;
       const layer = layers.get(o.indicator.code) ?? layerOf(o.indicator);
       // La source de la valeur : la DREES, ou l'ARS de la région de la commune.
       layer.indicator.producers.add(o.version.dataset.provider.acronym);
