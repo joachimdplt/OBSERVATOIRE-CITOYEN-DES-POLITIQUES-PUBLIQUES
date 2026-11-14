@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { LayerPicker } from '../components/organisms/map/LayerPicker'
 import { MapPanel } from '../components/organisms/map/MapPanel'
 import { RegionSelect } from '../components/molecules/RegionSelect'
+import { FRANCE } from '../data/regions'
 import { TerritoryLayersCard } from '../components/organisms/territory/TerritoryLayersCard'
 import {
   getIndicator,
@@ -72,8 +73,11 @@ function MapPage() {
       ? filters.period
       : sheet.periods.at(-1)!
   const regional = sheet.comparisonScale === 'regional'
+  // La carte se lit une région à la fois ; un indicateur national peut aussi
+  // se voir sur la France entière.
   const region =
-    regional && sheet.regions.some((r) => r.code === filters.region)
+    sheet.regions.some((r) => r.code === filters.region) ||
+    (!regional && filters.region === FRANCE)
       ? filters.region
       : undefined
 
@@ -123,17 +127,17 @@ function MapPage() {
           periods={sheet.periods}
           period={period}
           region={region}
-          waiting={regional && !region}
+          regional={regional}
+          waiting={!region}
           toolbar={
-            regional ? (
-              <RegionSelect
-                regions={sheet.regions}
-                active={region}
-                onPick={(r) =>
-                  navigate({ search: (x) => ({ ...x, region: r }), ...keep })
-                }
-              />
-            ) : null
+            <RegionSelect
+              regions={sheet.regions}
+              active={region}
+              withFrance={!regional}
+              onPick={(r) =>
+                navigate({ search: (x) => ({ ...x, region: r }), ...keep })
+              }
+            />
           }
           onPeriod={(p) =>
             navigate({ search: (s) => ({ ...s, period: p }), ...keep })

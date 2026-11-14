@@ -13,7 +13,7 @@ import { loadPublicIndicator, provenancesOf } from '../public-indicator';
 /**
  * Un visiteur ouvre la carte d'un indicateur pour une période : toutes les
  * valeurs d'un niveau géographique en une réponse compacte, une ligne
- * `[code, valeur, statut, catégorie]` par territoire, prête à colorer une carte.
+ * `[code, valeur, statut, catégorie, région]` par territoire, prête à colorer une carte.
  *
  * Une absence reste une absence (`valeur` vide, statut qui dit pourquoi) :
  * sur la carte, elle a sa propre teinte, jamais celle d'un zéro.
@@ -54,7 +54,7 @@ export class GetIndicatorMapController {
         value: true,
         category: true,
         status: true,
-        territory: { select: { code: true } },
+        territory: { select: { code: true, regionCode: true } },
         version: { select: { vintage: true } },
       },
     });
@@ -74,6 +74,9 @@ export class GetIndicatorMapController {
         o.value?.toString() ?? null,
         o.status,
         o.category,
+        // La région du territoire : la carte d'un indicateur national se lit
+        // aussi région par région, avec les seuils de la France entière.
+        o.territory.regionCode,
       ]),
       provenance: provenancesOf(loaded),
     };

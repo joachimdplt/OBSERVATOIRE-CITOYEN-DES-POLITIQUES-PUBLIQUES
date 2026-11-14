@@ -1,10 +1,13 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
+import { FRANCE } from '../../data/regions'
 
 type Props = {
   regions: { code: string; name: string }[]
   active?: string
   onPick: (region: string) => void
+  /** Ajoute « France entière » en tête de liste. */
+  withFrance?: boolean
 }
 
 /**
@@ -13,7 +16,15 @@ type Props = {
  * mettrait côte à côte des classements qui ne se comparent pas. La liste
  * s'ouvre sous le bouton ; flèches, Entrée et Échap la parcourent.
  */
-export function RegionSelect({ regions, active, onPick }: Props) {
+export function RegionSelect({
+  regions: available,
+  active,
+  onPick,
+  withFrance = false,
+}: Props) {
+  const regions = withFrance
+    ? [{ code: FRANCE, name: 'France entière' }, ...available]
+    : available
   const [open, setOpen] = useState(false)
   const [cursor, setCursor] = useState(0)
   const root = useRef<HTMLDivElement>(null)

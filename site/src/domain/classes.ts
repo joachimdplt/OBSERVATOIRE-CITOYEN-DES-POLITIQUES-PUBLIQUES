@@ -3,6 +3,7 @@ export type MapValue = [
   value: string | null,
   status: string,
   category: string | null,
+  region: string | null,
 ]
 
 export type Classes = {
@@ -22,7 +23,10 @@ const COUNT = 5
  */
 export function quantileClasses(values: MapValue[]): Classes {
   const documented = values
-    .filter((v): v is [string, string, string, string | null] => v[1] !== null)
+    .filter(
+      (v): v is [string, string, string, string | null, string | null] =>
+        v[1] !== null,
+    )
     .sort((a, b) => Number(a[1]) - Number(b[1]))
   const lower: string[] = []
   const byCode = new Map<string, number>()

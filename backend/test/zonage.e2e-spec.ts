@@ -17,7 +17,9 @@ import { seedApl } from './scenario';
 type Created = { id: string };
 type Uploaded = { job: { id: string }; version: { id: string } };
 type Report = { state: string; observations: Record<string, number> };
-type MapAnswer = { values: [string, string | null, string, string | null][] };
+type MapAnswer = {
+  values: [string, string | null, string, string | null, string | null][];
+};
 type Sheet = { kind: string; categories: { code: string; label: string }[] };
 
 /** L'extrait de l'annexe 1 de l'arrêté de l'ARS PACA : voir test/fixtures/ars-paca-zonage/SOURCE.md. */

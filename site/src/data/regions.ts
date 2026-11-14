@@ -26,3 +26,6 @@ export const REGION_BOUNDS: Record<string, [number, number, number, number]> = {
 export const FRANCE_BOUNDS: [number, number, number, number] = [
   -5.3, 41.2, 9.7, 51.2,
 ]
+
+/** La valeur du choix « France entière ». */
+export const FRANCE = 'france'

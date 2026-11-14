@@ -8,7 +8,7 @@ import { MapPin } from 'lucide-react'
 import { PeriodSwitch } from '../../molecules/PeriodSwitch'
 import { MapLegend } from './MapLegend'
 import { CLASS_COLORS, categoryColors } from './palette'
-import { REGION_BOUNDS } from '../../../data/regions'
+import { FRANCE, REGION_BOUNDS } from '../../../data/regions'
 import { categoryIn } from '../../../utils/category'
 
 // La carte ne se dessine que dans le navigateur.
@@ -24,8 +24,13 @@ type Props = {
   scale: { low: string; high: string } | null
   periods: string[]
   period: string
-  /** Pour un indicateur qui se compare dans sa région : la région affichée. */
+  /**
+   * La région affichée, ou `france`. Un indicateur régional (le zonage) se
+   * classe dans sa région ; un indicateur national (l'APL) garde les seuils
+   * de la France entière, la région n'est qu'un cadrage.
+   */
   region?: string
+  regional?: boolean
   onPeriod: (period: string) => void
   onSelect: (territory: {
     code: string
@@ -49,37 +54,58 @@ export function MapPanel({
   periods,
   period,
   region,
+  regional = false,
   onPeriod,
   onSelect,
   toolbar,
   waiting = false,
   side,
 }: Props) {
-  const { values, failed } = useIndicatorMap(code, period, region, !waiting)
-  const bounds = region ? REGION_BOUNDS[region] : undefined
-  const classes = useMemo(
-    () =>
-      values
-        ? categories
-          ? categoryClasses(
-              values,
-              categories.map((c) => c.code),
-            )
-          : quantileClasses(values)
-        : null,
-    [values, categories],
+  const { values, failed } = useIndicatorMap(
+    code,
+    period,
+    regional ? region : undefined,
+    !waiting,
   )
+  const bounds = region ? REGION_BOUNDS[region] : undefined
+  // Les territoires dessinés : ceux de la région choisie, ou tous.
+  const shown = useMemo(
+    () =>
+      values && region && region !== FRANCE && !regional
+        ? values.filter((v) => v[4] === region)
+        : values,
+    [values, region, regional],
+  )
+  // Les classes se calculent sur toutes les valeurs lues : pour l'APL, les
+  // seuils de la France entière, la même couleur voulant dire la même chose
+  // dans chaque région.
+  const classes = useMemo(() => {
+    if (!values || !shown) return null
+    const all = categories
+      ? categoryClasses(
+          values,
+          categories.map((c) => c.code),
+        )
+      : quantileClasses(values)
+    const drawn = new Set(shown.map((v) => v[0]))
+    return {
+      ...all,
+      byCode: new Map(
+        [...all.byCode].filter(([territory]) => drawn.has(territory)),
+      ),
+    }
+  }, [values, shown, categories])
   const colors = useMemo(
     () => (categories ? categoryColors(categories.length) : [...CLASS_COLORS]),
     [categories],
   )
   // La légende ne nomme que les catégories présentes sur la carte affichée :
   // la ZAR n'existe qu'en Bretagne et en Occitanie.
-  const present = new Set(values?.map((v) => v[3]))
+  const present = new Set(shown?.map((v) => v[3]))
   const entries = categories
     ? categories
         .map((c, i) => ({ ...categoryIn(c, region), color: colors[i] }))
-        .filter((c) => !values || present.has(c.code))
+        .filter((c) => !shown || present.has(c.code))
         .map((c) => ({
           color: c.color,
           label: c.label,
@@ -101,8 +127,8 @@ export function MapPanel({
         <span className="text-xs text-slate-400">
           {waiting
             ? null
-            : values
-              ? `${frenchNumber(String(values.length))} territoires`
+            : shown
+              ? `${frenchNumber(String(shown.length))} territoires`
               : failed
                 ? 'Données indisponibles'
                 : 'Lecture des valeurs…'}
@@ -119,8 +145,9 @@ export function MapPanel({
                 Choisissez une région
               </p>
               <p className="max-w-sm text-sm text-slate-500">
-                Chaque agence régionale de santé classe les communes de sa
-                région : la carte se lit une région à la fois.
+                {regional
+                  ? 'Chaque région classe ses propres communes : la carte se lit une région à la fois.'
+                  : 'Les couleurs gardent les mêmes seuils dans toutes les régions : une teinte veut dire la même chose partout.'}
               </p>
             </div>
           ) : browser && classes ? (
@@ -156,9 +183,9 @@ export function MapPanel({
           )}
           <div className="min-h-0 space-y-4 overflow-y-auto">
             {side}
-            {!region && !waiting && (
+            {region === FRANCE && (
               <p className="px-1 text-xs text-slate-400">
-                Outre-mer : à venir sur la carte.
+                Outre-mer : choisissez sa région dans la liste.
               </p>
             )}
           </div>
