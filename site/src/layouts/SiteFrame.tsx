@@ -1,8 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 
-const SOURCE_CODE =
-  'https://github.com/joachimdplt/OBSERVATOIRE-CITOYEN-DES-POLITIQUES-PUBLIQUES'
+import { SOURCE_CODE } from '../data/project'
 
 /**
  * Le cadre de chaque page publique. Le pied de page donne les licences et
