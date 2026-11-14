@@ -5,9 +5,10 @@ données) prime sur tout le reste.
 
 ## Le dépôt
 
-- `site/` : la landing, seule page rendue côté serveur (TanStack Start).
-- `client/` : l'application, rendue dans le navigateur (React, TanStack
-  Router et Query, Zustand).
+- `site/` : ce que lit le public, rendu côté serveur (TanStack Start), à venir.
+- `admin/` : l'administration de l'équipe, rendue dans le navigateur
+  (React, TanStack Router et Query, react-hook-form, zod) ; atoms,
+  molecules, organisms ; design du suivi de parc, monochrome.
 - `backend/` : l'API NestJS, Prisma, PostgreSQL ; `/api/public/*` et
   `/api/admin/*`.
 - `docs/` : le cahier des charges de référence (01 à 04).
@@ -37,7 +38,7 @@ de traitement, données personnelles) est dans `CONVENTIONS.md`, sections 1.5
 
 - Code en anglais, interface et commentaires en français.
 - Après tout renommage : `node scripts/check-language.mjs`.
-- Ports de développement fixés : API 3001, application 3000, landing 3002.
+- Ports de développement fixés : API 3001, administration 3000, site 3002.
   Ne pas les changer.
 - Commits en anglais, phrase décrivant le changement pour l'utilisateur,
   sans ligne `Co-Authored-By`.

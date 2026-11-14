@@ -1,0 +1,60 @@
+@import 'tailwindcss';
+
+/*
+ * Le langage du suivi de parc : sobre, clair, monochrome. Aucune couleur de
+ * marque : un observatoire qui parle des partis n'en porte aucune qui rappelle
+ * l'un d'eux. Les couleurs ne servent qu'aux statuts.
+ */
+@theme {
+  --font-sans:
+    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* Un cadre blanc posé sur la page : cartes, tableaux. */
+@utility surface {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-slate-200);
+  background-color: var(--color-white);
+  box-shadow:
+    0 1px 3px rgb(15 23 42 / 0.07),
+    0 1px 2px rgb(15 23 42 / 0.04);
+}
+
+/* Une case à remplir : champ, zone de texte, liste. */
+@utility field {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-slate-300);
+  background-color: var(--color-white);
+  padding: 0.5rem 0.75rem;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: var(--color-slate-900);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.05);
+  &::placeholder {
+    color: var(--color-slate-400);
+  }
+  &:focus {
+    outline: none;
+    border-color: var(--color-slate-500);
+    box-shadow: 0 0 0 4px rgb(15 23 42 / 0.05);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-slate-50);
+  color: var(--color-slate-900);
+  font-feature-settings: 'cv11', 'ss01', 'tnum';
+  -webkit-font-smoothing: antialiased;
+}

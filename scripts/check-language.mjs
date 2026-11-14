@@ -40,7 +40,7 @@ const EM_DASH = /\u2014/
 /** Les marques d'une phrase française. */
 const FRENCH = /[àâçéèêëîïôûùüÿœ]|\b(le|la|les|un|une|des|du|de|et|ou|qui|que|pas|sur|dans|pour|avec|par|on|se|ne|il|elle|ce|cette)\b/i
 
-const ROOTS = ["site/src", "client/src", "backend/src", "app/src"]
+const ROOTS = ["site/src", "admin/src", "backend/src"]
 const IGNORED = new Set(["node_modules", "dist", "build", ".git", "generated", ".output"])
 const issues = []
 

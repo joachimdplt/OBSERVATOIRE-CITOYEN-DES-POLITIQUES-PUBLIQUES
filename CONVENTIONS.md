@@ -270,53 +270,50 @@ draft ──► in_review ──► published ──► superseded
 
 ## 2. Le dépôt : trois applications, aucun fichier commun
 
+Décidé le 14 novembre 2026 : la frontière passe entre le public et l'équipe,
+pas entre la page d'accueil et le reste.
+
 ```
-site/      landing SSR (TanStack Start)       une page, lue par les moteurs
-client/    application CSR (TanStack Router)  explorateur, fiches, comparateur, admin
-backend/   API NestJS                          /api/public/* et /api/admin/*
+site/      public, rendu côté serveur (TanStack Start)   accueil, piliers, fiches, valeurs, historique
+admin/     équipe, rendue dans le navigateur (TanStack Router)  catalogue, import, contrôle, relecture
+backend/   API NestJS                                    /api/public/* et /api/admin/*
 ```
 
-**La landing est la seule page rendue côté serveur.** Elle porte le message,
-quelques chiffres publiés et les entrées vers l'application. Elle n'a ni
-compte, ni état client, ni formulaire.
+**Tout ce que lit le public est rendu côté serveur.** Une fiche indicateur
+doit être trouvée par un moteur de recherche et montrer un aperçu quand on
+la partage. Le site n'a ni compte, ni formulaire d'écriture.
 
-**Un chiffre de la landing vient de l'API, jamais de `site/src/data/`.** Écrit
-en dur, il perdrait sa provenance et vieillirait sans le dire. Le `loader` de
-la route le lit sur `/api/public/*` au rendu, avec son millésime et sa
-source ; si l'API ne répond pas, le bloc disparaît plutôt que d'afficher un
-chiffre périmé.
+**L'administration n'est jamais indexée** (`noindex`) et ne sert que des
+fichiers statiques. Elle parle à l'API sur la même origine : en
+développement par le proxy de Vite (`/api` vers le port 3001), en production
+par Caddy.
 
-**Passer une fiche en SSR plus tard** (pour qu'une fiche indicateur soit
-indexée) ne se fait pas en déplaçant l'application : c'est une décision à
-part, à poser ici avant d'écrire le code.
+**Les deux fronts ne partagent aucun fichier.** Un atome utile aux deux est
+recopié.
+
+**Un chiffre du site vient de l'API, jamais de `site/src/data/`.** Écrit en
+dur, il perdrait sa provenance et vieillirait sans le dire.
+
+**Le langage visuel est celui du suivi de parc** : sobre, clair, monochrome
+ardoise, Inter, cadres blancs à ombre légère. Aucune couleur de marque, et
+aucune qui rappelle un parti : la couleur ne sert qu'aux statuts.
 
 ---
 
-## 3. `site/` : la landing
+## 3. `site/` : le public
 
-Même organisation que le site d'AI Robotics.
+À écrire avec le premier écran public. Même organisation que le site
+d'AI Robotics : routes qui composent, `components/`, `data/` pour les textes,
+`services/` pour l'API lue côté serveur, `utils/seo.ts`.
 
-```
-site/src/
-  routes/       __root.tsx · index.tsx            composition seule
-  components/   ui/ (briques) · landing/ (blocs)
-  data/         textes, liens, piliers             aucun chiffre statistique
-  services/     public-api.ts                      fetch côté serveur
-  utils/        seo.ts                             meta, Open Graph, JSON-LD
-  styles/       app.css                            thème, tokens
-```
-
-- **La route compose.** `routes/index.tsx` importe les blocs et le `loader`,
-  rien d'autre.
-- **Chaque bloc occupe un écran plein.** Une landing sombre ne finit jamais
-  sur un bloc clair.
-- **Les textes vivent dans `data/`**, typés, jamais au fil du JSX.
-- **Un composant fait moins de 100 lignes.**
-- **Le lien vers l'application** vient de `VITE_APP_URL`, jamais en dur.
+- **Chaque bloc de l'accueil occupe un écran plein.** Une page sombre ne
+  finit jamais sur un bloc clair.
+- **Chaque valeur porte sa provenance et son étiquette** (prépublication ou
+  publiée), telles que l'API les donne.
 
 ---
 
-## 4. `client/` : l'application, en cinq couches
+## 4. `admin/` : l'administration, en cinq couches
 
 Le principe central : **chaque couche a une seule responsabilité et ne connaît
 que la couche du dessous**. Les données montent
@@ -366,7 +363,12 @@ front enverrait les brouillons dans le navigateur de tout le monde.
 | Nature | Outil | Exemples |
 |---|---|---|
 | State serveur | TanStack Query | indicateurs, observations, mesures, imports |
-| State client | Zustand | session admin, filtres de l'explorateur, préférence d'affichage |
+| State client | Zustand | brouillons, préférences d'affichage |
+
+**La session est une donnée serveur.** Le cookie est illisible par le
+navigateur ; « qui est connecté » se lit sur `GET /api/admin/session` et vit
+dans le cache de TanStack Query (`hooks/session/useSession.ts`). Pas de store
+d'authentification, à la différence du suivi de parc qui garde un jeton.
 
 Jamais de donnée serveur dans Zustand. `queryKey` du général au particulier :
 
@@ -431,23 +433,13 @@ Assemblage seul, moins de 100 lignes, aucun appel HTTP.
 
 ```
 routes/
-  __root.tsx
-  _public.tsx                       layout sans compte
-  _public/
-    index.tsx                       les douze piliers
-    pillars.$pillar.tsx
-    indicators.index.tsx            l'explorateur
-    indicators.$code.tsx            la fiche indicateur
-    territories.$code.tsx
-    resources.$id.tsx
-    measures.$id.tsx
-    parties.$slug.tsx
-    compare.tsx                     le comparateur
-    signin.tsx
-  _admin.tsx                        garde d'authentification
+  __root.tsx                        le contexte du routeur : queryClient
+  signin.tsx                        sans compte
+  _admin.tsx                        garde : sans session, vers /signin
   _admin/
-    imports/                        index · $jobId (prévisualisation, mapping, anomalies)
-    datasets/  indicators/  measures/  links/  reviews/
+    index.tsx                       le catalogue
+    providers.new.tsx  datasets.new.tsx  indicators.new.tsx
+    imports/  reviews/              à venir
 ```
 
 ### 4.6 Guards
@@ -607,22 +599,22 @@ de pilier, qui est une fonction éditoriale.
 
 ```bash
 # Un null transformé en zéro
-grep -rnE "\?\? ?0\b|\|\| ?0\b" client/src backend/src site/src
+grep -rnE "\?\? ?0\b|\|\| ?0\b" admin/src backend/src site/src
 
 # Routes qui importent un store hors beforeLoad
-grep -rn "stores/" client/src/routes --include="*.tsx" | grep -v beforeLoad
+grep -rn "stores/" admin/src/routes --include="*.tsx" | grep -v beforeLoad
 
 # Composants qui importent un store ou l'API
-grep -rEn "from .*(stores|api/)" client/src/components --include="*.tsx"
+grep -rEn "from .*(stores|api/)" admin/src/components --include="*.tsx"
 
 # Appels HTTP hors de api/
-grep -rEn "axios|fetch\(|apiClient" client/src/{routes,components,stores,domain}
+grep -rEn "axios|fetch\(|apiClient" admin/src/{routes,components,stores,domain}
 
 # Domaine pur
-grep -rEn "react|axios|zustand|@nestjs|@prisma/client" client/src/domain backend/src/domain
+grep -rEn "react|axios|zustand|@nestjs|@prisma/client" admin/src/domain backend/src/domain
 
 # Couleurs en dur
-grep -rn "#[0-9A-Fa-f]\{6\}" client/src site/src --include="*.tsx"
+grep -rn "#[0-9A-Fa-f]\{6\}" admin/src site/src --include="*.tsx"
 
 # Fichier brut d'un document politique exposé publiquement
 grep -rn "rawFile" backend/src/features/public

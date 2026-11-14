@@ -15,38 +15,28 @@ Le lancement se fait jeu de données vérifié par jeu de données vérifié.
 ## Le dépôt
 
 ```
-site/      la landing publique, rendue côté serveur
-           TanStack Start (SSR, Nitro) · Tailwind v4
-client/    l'application, rendue dans le navigateur
-           React 19 · TanStack Router · TanStack Query · Zustand · Tailwind v4
+site/      ce que lit le public, rendu côté serveur (à venir)
+           TanStack Start · Tailwind v4
+admin/     l'administration de l'équipe, rendue dans le navigateur
+           React 19 · TanStack Router · TanStack Query · react-hook-form · zod · Tailwind v4
 backend/   l'API publique et l'API d'administration
            NestJS 11 · Prisma 7 · PostgreSQL 17
-deploy/    Docker Compose, Caddy, déploiement par surveillance de branche
 docs/      le cahier des charges, l'architecture, l'inventaire, la feuille de route
 scripts/   contrôles transverses (langue)
 ```
 
-### Une landing SSR, une application CSR
-
-La landing est la seule page qui doit être lue par un moteur de recherche et
-partagée sur un réseau social : elle est rendue côté serveur. Tout le reste
-(explorateur, fiches, comparateur, administration) vit dans `client/`, une
-application React servie en fichiers statiques et rendue dans le navigateur.
-Ses boutons renvoient vers l'application.
+La frontière passe entre le public et l'équipe. Tout ce que lit le public
+(accueil, piliers, fiches, valeurs, historique) est rendu côté serveur, pour
+être trouvé et partagé. L'administration ne sert qu'à l'équipe connectée, et
+partage l'origine de l'API : pas de CORS, cookie de session réservé à
+`/api/admin`.
 
 ```
-observatoire.<domaine>          site/     SSR, Node
-app.observatoire.<domaine>      client/   fichiers statiques
-app.observatoire.<domaine>/api  backend/  même origine que l'application
+observatoire.<domaine>              site/     SSR (Node)
+observatoire.<domaine>/api/public   backend/
+admin.observatoire.<domaine>        admin/    fichiers statiques
+admin.observatoire.<domaine>/api    backend/
 ```
-
-L'application et l'API partagent une origine : pas de CORS, cookies de session
-en `SameSite=Strict`. La landing appelle l'API par le réseau interne de Docker
-quand elle affiche un chiffre publié.
-
-Les deux fronts ne partagent aucun fichier. Un composant utile aux deux est
-recopié, et les copies divergent sans dommage : la landing vend une idée,
-l'application sert une consultation.
 
 ## Démarrer
 
@@ -64,8 +54,14 @@ npm test                          # domaine et architecture
 npm run test:e2e                  # de bout en bout, sur observatoire_test
 ```
 
-Les fronts ne sont pas encore générés : `client/` sur le port 3000, `site/`
-sur le port 3002.
+L'administration, une fois l'API lancée :
+
+```bash
+cd admin && npm install
+npm run dev                       # http://localhost:3000, /api relayé vers le port 3001
+```
+
+Le site public (`site/`, port 3002) n'est pas encore généré.
 
 ## Documentation
 
