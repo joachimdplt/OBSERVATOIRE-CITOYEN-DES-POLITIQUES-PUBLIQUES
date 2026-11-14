@@ -1,5 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
+import type { MapValue } from '../domain/classes'
 import type {
   IndicatorLine,
   IndicatorSheet,
@@ -58,3 +59,12 @@ export const listObservations = createServerFn({ method: 'GET' })
       `/indicators/${encodeURIComponent(data.code)}/observations?${query}`,
     )
   })
+
+/** Toutes les valeurs d'une période, pour la carte : une ligne [code, valeur, statut] par territoire. */
+export const getIndicatorMap = createServerFn({ method: 'GET' })
+  .validator(z.object({ code: z.string(), period: z.string() }))
+  .handler(({ data }) =>
+    get<{ period: string; values: MapValue[] }>(
+      `/indicators/${encodeURIComponent(data.code)}/map?period=${encodeURIComponent(data.period)}`,
+    ),
+  )

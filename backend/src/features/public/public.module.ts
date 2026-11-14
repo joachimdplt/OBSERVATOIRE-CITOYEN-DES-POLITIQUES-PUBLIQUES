@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { GetIndicatorController } from './get-indicator/get-indicator';
+import { GetIndicatorMapController } from './get-indicator-map/get-indicator-map';
 import { GetTerritoryController } from './get-territory/get-territory';
 import { ListIndicatorObservationsController } from './list-indicator-observations/list-indicator-observations';
 import { ListIndicatorsController } from './list-indicators/list-indicators';
@@ -13,6 +14,7 @@ import { ListIndicatorsController } from './list-indicators/list-indicators';
     GetTerritoryController,
     ListIndicatorsController,
     GetIndicatorController,
+    GetIndicatorMapController,
     ListIndicatorObservationsController,
   ],
 })
