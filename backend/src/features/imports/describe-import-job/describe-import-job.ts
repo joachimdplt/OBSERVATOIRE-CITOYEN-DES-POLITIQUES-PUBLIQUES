@@ -106,7 +106,10 @@ export class DescribeImportJobController {
 
     const codes = description.values.map((v) => v.indicatorCode);
     const indicators = await this.prisma.indicatorDefinition.findMany({
-      where: { code: { in: codes }, datasetId: job.version.datasetId },
+      where: {
+        code: { in: codes },
+        sources: { some: { datasetId: job.version.datasetId } },
+      },
       select: { code: true },
     });
     const knownCodes = new Set(indicators.map((i) => i.code));

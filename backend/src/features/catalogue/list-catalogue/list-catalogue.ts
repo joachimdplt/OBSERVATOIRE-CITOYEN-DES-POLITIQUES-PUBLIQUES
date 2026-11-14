@@ -13,9 +13,9 @@ export class ListCatalogueController {
   constructor(private prisma: PrismaService) {}
 
   @Get()
-  list() {
+  async list() {
     const declaredBy = { select: { name: true } };
-    return this.prisma.dataProvider.findMany({
+    const providers = await this.prisma.dataProvider.findMany({
       orderBy: { acronym: 'asc' },
       include: {
         createdBy: declaredBy,
@@ -23,13 +23,21 @@ export class ListCatalogueController {
           orderBy: { title: 'asc' },
           include: {
             createdBy: declaredBy,
-            indicators: {
-              orderBy: { code: 'asc' },
-              include: { createdBy: declaredBy },
+            indicatorSources: {
+              orderBy: { indicator: { code: 'asc' } },
+              include: { indicator: { include: { createdBy: declaredBy } } },
             },
           },
         },
       },
     });
+    // Chaque jeu montre les indicateurs qu'il alimente.
+    return providers.map((p) => ({
+      ...p,
+      datasets: p.datasets.map(({ indicatorSources, ...d }) => ({
+        ...d,
+        indicators: indicatorSources.map((s) => s.indicator),
+      })),
+    }));
   }
 }

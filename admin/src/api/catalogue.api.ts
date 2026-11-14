@@ -34,3 +34,11 @@ export async function createIndicator(payload: NewIndicator) {
   )
   return data
 }
+
+/** Relier un indicateur existant à un jeu de plus : l'arrêté d'une autre ARS, par exemple. */
+export async function addIndicatorSource(code: string, datasetId: string) {
+  await apiClient.post(
+    `/admin/indicators/${encodeURIComponent(code)}/sources`,
+    { datasetId },
+  )
+}

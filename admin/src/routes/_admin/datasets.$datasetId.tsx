@@ -2,9 +2,13 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Breadcrumb } from '../../components/atoms/Breadcrumb'
 import { Card } from '../../components/atoms/Card'
 import { PageHeader } from '../../components/atoms/PageHeader'
+import { LinkIndicatorForm } from '../../components/organisms/catalogue/LinkIndicatorForm'
 import { DepositForm } from '../../components/organisms/imports/DepositForm'
 import { VersionList } from '../../components/organisms/imports/VersionList'
-import { useCatalogue } from '../../hooks/catalogue/useCatalogue'
+import {
+  useCatalogue,
+  useLinkIndicator,
+} from '../../hooks/catalogue/useCatalogue'
 import { useDeposit, useVersions } from '../../hooks/imports/useImports'
 import { reasonsOf } from '../../utils/api-error'
 
@@ -14,11 +18,19 @@ export const Route = createFileRoute('/_admin/datasets/$datasetId')({
 
 function DatasetPage() {
   const { datasetId } = Route.useParams()
-  const dataset = useCatalogue()
-    .data?.flatMap((p) =>
-      p.datasets.map((d) => ({ ...d, provider: p.acronym })),
-    )
+  const catalogue = useCatalogue().data
+  const link = useLinkIndicator()
+  const dataset = catalogue
+    ?.flatMap((p) => p.datasets.map((d) => ({ ...d, provider: p.acronym })))
     .find((d) => d.id === datasetId)
+  const allIndicators = [
+    ...new Map(
+      (catalogue ?? [])
+        .flatMap((p) => p.datasets.flatMap((d) => d.indicators))
+        .map((i) => [i.code, i]),
+    ).values(),
+  ]
+  const fed = new Set(dataset?.indicators.map((i) => i.code))
   const versions = useVersions(datasetId)
   const deposit = useDeposit(datasetId)
   const navigate = useNavigate()
@@ -35,6 +47,30 @@ function DatasetPage() {
         title={dataset?.title ?? 'Jeu de données'}
         lead={dataset ? `${dataset.provider} · ${dataset.license}` : undefined}
       />
+      <Card title="Indicateurs alimentés par ce jeu">
+        <div className="space-y-4">
+          {dataset && dataset.indicators.length > 0 ? (
+            <ul className="space-y-1 text-sm">
+              {dataset.indicators.map((i) => (
+                <li key={i.code}>
+                  {i.label}{' '}
+                  <code className="text-xs text-slate-500">{i.code}</code>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-slate-500">
+              Aucun indicateur pour l’instant.
+            </p>
+          )}
+          <LinkIndicatorForm
+            candidates={allIndicators.filter((i) => !fed.has(i.code))}
+            pending={link.isPending}
+            reasons={link.error ? reasonsOf(link.error) : []}
+            onLink={(code) => link.mutate({ code, datasetId })}
+          />
+        </div>
+      </Card>
       <Card title="Déposer un fichier">
         <DepositForm
           pending={deposit.isPending}

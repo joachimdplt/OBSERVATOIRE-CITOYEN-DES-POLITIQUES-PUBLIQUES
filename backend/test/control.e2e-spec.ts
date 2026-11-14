@@ -108,7 +108,7 @@ describe('l’équipe décrit les colonnes d’un fichier et le contrôle', () =
     await prisma.indicatorDefinition.create({
       data: {
         code: 'apl-medecins-generalistes',
-        datasetId,
+        sources: { create: { datasetId, createdById } },
         label: 'APL aux médecins généralistes',
         definition: 'Consultations accessibles par habitant standardisé.',
         scope: 'Toutes communes.',

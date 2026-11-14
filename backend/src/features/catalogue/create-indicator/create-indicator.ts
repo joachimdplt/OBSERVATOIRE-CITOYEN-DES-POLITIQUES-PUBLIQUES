@@ -109,7 +109,8 @@ export class CreateIndicatorController {
       return await this.prisma.indicatorDefinition.create({
         data: {
           code: code.code,
-          datasetId: dataset.id,
+          // Le premier jeu qui alimente l'indicateur ; d'autres peuvent s'y relier.
+          sources: { create: { datasetId: dataset.id, createdById: user.id } },
           label: dto.label.trim(),
           definition: dto.definition.trim(),
           scope: dto.scope.trim(),

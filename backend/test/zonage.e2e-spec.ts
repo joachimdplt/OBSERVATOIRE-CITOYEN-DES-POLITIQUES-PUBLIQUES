@@ -183,4 +183,113 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
       prisma.$executeRaw`UPDATE observations SET value = 1 WHERE id = ${observation.id}`,
     ).rejects.toThrow();
   });
+
+  it('un même indicateur s’alimente de l’arrêté de chaque ARS ; chaque commune garde la source de sa région', async () => {
+    const ara = (
+      await founder
+        .post('/api/admin/providers')
+        .send({
+          acronym: 'ARS ARA',
+          name: 'Agence régionale de santé Auvergne-Rhône-Alpes',
+          kind: 'public_operator',
+          officialUrl: 'https://www.auvergne-rhone-alpes.ars.sante.fr',
+        })
+        .expect(201)
+    ).body as Created;
+    const araDataset = (
+      await founder
+        .post('/api/admin/datasets')
+        .send({
+          providerId: ara.id,
+          producerRef: 'zonage-medecins-ara',
+          title: 'Zonage des médecins en Auvergne-Rhône-Alpes',
+          url: 'https://www.auvergne-rhone-alpes.ars.sante.fr',
+          license: 'Document administratif publié',
+          methodology: 'Arrêté régional selon l’arrêté du 9 mai 2025.',
+          frequency: 'irregular',
+        })
+        .expect(201)
+    ).body as Created;
+    const link = () =>
+      founder
+        .post('/api/admin/indicators/zonage-medecins-generalistes/sources')
+        .send({ datasetId: araDataset.id });
+    await link().expect(201);
+    await link().expect(409);
+
+    // Un fichier construit pour le test, au format de l'annexe : deux communes de l'Ain.
+    const csv = Buffer.from(
+      'Code commune;Zonage 2025\n01001;ZIP\n01053;HZ\n',
+      'utf8',
+    );
+    const { job, version } = (
+      await founder
+        .post(`/api/admin/datasets/${araDataset.id}/versions`)
+        .field('vintage', '2025')
+        .field(
+          'fileUrl',
+          'https://www.auvergne-rhone-alpes.ars.sante.fr/zonage.csv',
+        )
+        .field('collectedAt', '2026-11-14')
+        .attach('file', csv, 'zonage-ara.csv')
+        .expect(201)
+    ).body as Uploaded;
+    await founder
+      .put(`/api/admin/import-jobs/${job.id}/description`)
+      .send({
+        headerRow: 1,
+        territory: { column: 'Code commune', level: 'commune', vintage: 2026 },
+        period: { value: '2025' },
+        decimalSeparator: ',',
+        values: [
+          {
+            column: 'Zonage 2025',
+            indicatorCode: 'zonage-medecins-generalistes',
+          },
+        ],
+      })
+      .expect(200);
+    await founder.post(`/api/admin/import-jobs/${job.id}/validate`).expect(200);
+    await founder
+      .post(`/api/admin/versions/${version.id}/preprint`)
+      .expect(200);
+
+    const map = (
+      await request(http(app))
+        .get(
+          '/api/public/indicators/zonage-medecins-generalistes/map?period=2025',
+        )
+        .expect(200)
+    ).body as MapAnswer;
+    expect(map.values.map((v) => [v[0], v[3]]).sort()).toEqual([
+      ['01001', 'ZIP'],
+      ['01053', 'HZ'],
+      ['13201', 'HZ'],
+      ['84007', 'ZAC'],
+    ]);
+
+    const producerOf = async (level: string, code: string) =>
+      (
+        (
+          await request(http(app))
+            .get(`/api/public/territories/${level}/${code}/values`)
+            .expect(200)
+        ).body as {
+          layers: { indicator: { code: string; producer: string } }[];
+        }
+      ).layers.find((l) => l.indicator.code === 'zonage-medecins-generalistes')
+        ?.indicator.producer;
+    expect(await producerOf('commune', '01001')).toBe('ARS ARA');
+    expect(await producerOf('commune', '84007')).toBe('ARS PACA');
+
+    const sheet = (
+      await request(http(app))
+        .get('/api/public/indicators/zonage-medecins-generalistes')
+        .expect(200)
+    ).body as { provenance: { producer: { acronym: string } }[] };
+    expect(sheet.provenance.map((p) => p.producer.acronym).sort()).toEqual([
+      'ARS ARA',
+      'ARS PACA',
+    ]);
+  });
 });

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  addIndicatorSource,
   createDataset,
   createIndicator,
   createProvider,
@@ -23,3 +24,8 @@ function useDeclare<T>(mutationFn: (payload: T) => Promise<unknown>) {
 export const useCreateProvider = () => useDeclare(createProvider)
 export const useCreateDataset = () => useDeclare(createDataset)
 export const useCreateIndicator = () => useDeclare(createIndicator)
+
+export const useLinkIndicator = () =>
+  useDeclare(({ code, datasetId }: { code: string; datasetId: string }) =>
+    addIndicatorSource(code, datasetId),
+  )

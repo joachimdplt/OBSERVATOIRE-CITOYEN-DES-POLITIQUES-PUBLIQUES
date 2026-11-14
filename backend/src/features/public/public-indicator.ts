@@ -8,47 +8,54 @@ import {
 } from '../../domain/publication';
 import type { PrismaService } from '../../prisma/prisma.service';
 
+/** Les versions visibles du public d'un jeu, avec leurs signataires. */
+const publicVersions = {
+  where: { state: { in: PUBLIC_STATES } },
+  orderBy: { vintage: 'desc' as const },
+  include: {
+    submittedBy: { select: { name: true } },
+    reviewedBy: { select: { name: true } },
+  },
+};
+
 /**
  * Un indicateur tel que le public peut le lire : sa définition, et les
- * versions de son jeu visibles du public, une par millésime, publiée ou
- * prépubliée. Sans aucune version visible, l'indicateur n'existe pas pour le
- * public : un brouillon ne se devine pas.
+ * versions visibles de chacune de ses sources (une par millésime et par jeu,
+ * publiée ou prépubliée). Sans aucune version visible, l'indicateur n'existe
+ * pas pour le public : un brouillon ne se devine pas.
  */
 export async function loadPublicIndicator(prisma: PrismaService, code: string) {
   const indicator = await prisma.indicatorDefinition.findUnique({
     where: { code },
     include: {
-      dataset: {
+      sources: {
         include: {
-          provider: true,
-          versions: {
-            where: { state: { in: PUBLIC_STATES } },
-            orderBy: { vintage: 'desc' },
-            include: {
-              submittedBy: { select: { name: true } },
-              reviewedBy: { select: { name: true } },
-            },
-          },
+          dataset: { include: { provider: true, versions: publicVersions } },
         },
       },
     },
   });
-  if (!indicator || indicator.dataset.versions.length === 0) {
+  const versions =
+    indicator?.sources.flatMap(({ dataset }) =>
+      dataset.versions.map((version) => ({ ...version, dataset })),
+    ) ?? [];
+  if (!indicator || versions.length === 0) {
     throw new NotFoundException('Indicateur inconnu');
   }
-  return { indicator, versions: indicator.dataset.versions };
+  versions.sort((a, b) => b.vintage.localeCompare(a.vintage));
+  return { indicator, versions };
 }
 
 type Loaded = Awaited<ReturnType<typeof loadPublicIndicator>>;
 type PublicVersion = Loaded['versions'][number];
 
 /**
- * La provenance d'un millésime, jointe à chaque valeur montrée au public :
- * le producteur, le jeu, le fichier d'origine, l'état de relecture avec ses
+ * La provenance d'une version, jointe à chaque valeur montrée au public : le
+ * producteur, le jeu, le fichier d'origine, l'état de relecture avec ses
  * signataires, et les licences.
  */
-export function provenanceOf({ indicator }: Loaded, version: PublicVersion) {
-  const { dataset } = indicator;
+export function provenanceOf(version: PublicVersion) {
+  const { dataset } = version;
   const state = version.state as PublicState;
   return {
     status: state,
@@ -81,6 +88,11 @@ export function provenanceOf({ indicator }: Loaded, version: PublicVersion) {
   };
 }
 
-/** La provenance de chaque millésime visible, le plus récent en premier. */
+/** La provenance de chaque version visible, la plus récente en premier. */
 export const provenancesOf = (loaded: Loaded) =>
-  loaded.versions.map((v) => provenanceOf(loaded, v));
+  loaded.versions.map((v) => provenanceOf(v));
+
+/** Les producteurs d'un indicateur, chacun une fois. */
+export const producersOf = (loaded: Loaded) => [
+  ...new Set(loaded.versions.map((v) => v.dataset.provider.acronym)),
+];

@@ -50,7 +50,7 @@ export async function seedApl(prisma: PrismaService, createdById: string) {
   await prisma.indicatorDefinition.create({
     data: {
       code: 'apl-medecins-generalistes',
-      datasetId: dataset.id,
+      sources: { create: { datasetId: dataset.id, createdById } },
       label: 'APL aux médecins généralistes',
       definition: 'Consultations accessibles par habitant standardisé.',
       scope: 'Toutes communes.',

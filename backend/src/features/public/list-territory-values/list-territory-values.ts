@@ -43,7 +43,13 @@ export class ListTerritoryValuesController {
       },
       orderBy: { period: 'asc' },
       include: {
-        version: { select: { state: true, vintage: true } },
+        version: {
+          select: {
+            state: true,
+            vintage: true,
+            dataset: { select: { provider: { select: { acronym: true } } } },
+          },
+        },
         indicator: {
           select: {
             code: true,
@@ -53,7 +59,6 @@ export class ListTerritoryValuesController {
             kind: true,
             categories: true,
             limits: true,
-            dataset: { select: { provider: { select: { acronym: true } } } },
           },
         },
       },
@@ -62,6 +67,8 @@ export class ListTerritoryValuesController {
     const layers = new Map<string, ReturnType<typeof layerOf>>();
     for (const o of observations) {
       const layer = layers.get(o.indicator.code) ?? layerOf(o.indicator);
+      // La source de la valeur : la DREES, ou l'ARS de la région de la commune.
+      layer.indicator.producers.add(o.version.dataset.provider.acronym);
       layer.values.push({
         period: o.period,
         status: o.status,
@@ -80,7 +87,12 @@ export class ListTerritoryValuesController {
     const { name, level: territoryLevel } = territories[0];
     return {
       territory: { code: code.toUpperCase(), level: territoryLevel, name },
-      layers: [...layers.values()],
+      layers: [...layers.values()].map(
+        ({ indicator: { producers, ...indicator }, values }) => ({
+          indicator: { ...indicator, producer: [...producers].join(', ') },
+          values,
+        }),
+      ),
     };
   }
 }
@@ -93,7 +105,6 @@ type IndicatorView = {
   kind: string;
   categories: unknown;
   limits: string;
-  dataset: { provider: { acronym: string } };
 };
 
 const layerOf = (i: IndicatorView) => ({
@@ -105,7 +116,7 @@ const layerOf = (i: IndicatorView) => ({
     kind: i.kind,
     categories: i.categories,
     limits: i.limits,
-    producer: i.dataset.provider.acronym,
+    producers: new Set<string>(),
   },
   values: [] as {
     period: string;

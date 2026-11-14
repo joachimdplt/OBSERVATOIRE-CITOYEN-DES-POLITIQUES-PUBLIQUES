@@ -28,13 +28,14 @@ model User {
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
 
-  providers    DataProvider[]
-  datasets     SourceDataset[]
-  indicators   IndicatorDefinition[]
-  versions     DatasetVersion[]      @relation("VersionCreatedBy")
-  submitted    DatasetVersion[]      @relation("VersionSubmittedBy")
-  reviewed     DatasetVersion[]      @relation("VersionReviewedBy")
-  reviewEvents ReviewEvent[]
+  providers        DataProvider[]
+  datasets         SourceDataset[]
+  indicators       IndicatorDefinition[]
+  indicatorSources IndicatorSource[]
+  versions         DatasetVersion[]      @relation("VersionCreatedBy")
+  submitted        DatasetVersion[]      @relation("VersionSubmittedBy")
+  reviewed         DatasetVersion[]      @relation("VersionReviewedBy")
+  reviewEvents     ReviewEvent[]
 
   @@map("users")
 }
@@ -156,37 +157,36 @@ model DataProvider {
 }
 
 model SourceDataset {
-  id          String                @id @default(uuid())
-  providerId  String
+  id               String            @id @default(uuid())
+  providerId       String
   // L'identifiant du jeu chez son producteur, tel quel.
-  producerRef String
-  title       String
-  url         String
-  license     String
-  methodology String
-  frequency   Frequency
-  createdById String
-  createdAt   DateTime              @default(now())
-  provider    DataProvider          @relation(fields: [providerId], references: [id])
-  createdBy   User                  @relation(fields: [createdById], references: [id])
-  indicators  IndicatorDefinition[]
-  versions    DatasetVersion[]
+  producerRef      String
+  title            String
+  url              String
+  license          String
+  methodology      String
+  frequency        Frequency
+  createdById      String
+  createdAt        DateTime          @default(now())
+  provider         DataProvider      @relation(fields: [providerId], references: [id])
+  createdBy        User              @relation(fields: [createdById], references: [id])
+  indicatorSources IndicatorSource[]
+  versions         DatasetVersion[]
 
   @@unique([providerId, producerRef])
   @@map("source_datasets")
 }
 
 model IndicatorDefinition {
-  id                  String        @id @default(uuid())
-  code                String        @unique
-  datasetId           String
+  id                  String            @id @default(uuid())
+  code                String            @unique
   label               String
   definition          String
   // Le champ couvert : « écoliers du premier degré », pas « tous les élèves ».
   scope               String
   // L'unité telle que le producteur l'écrit.
   unit                String
-  kind                IndicatorKind @default(number)
+  kind                IndicatorKind     @default(number)
   // Pour une catégorie : la liste fermée [{ code, label }], dans l'ordre de l'arrêté.
   categories          Json?
   pillar              Pillar
@@ -195,9 +195,11 @@ model IndicatorDefinition {
   // Ce que l'indicateur ne dit pas : « pas un nombre de médecins manquants ».
   limits              String
   createdById         String
-  createdAt           DateTime      @default(now())
-  dataset             SourceDataset @relation(fields: [datasetId], references: [id])
-  createdBy           User          @relation(fields: [createdById], references: [id])
+  createdAt           DateTime          @default(now())
+  // Les jeux qui alimentent l'indicateur : un seul pour l'APL de la DREES,
+  // un par ARS pour le zonage des médecins.
+  sources             IndicatorSource[]
+  createdBy           User              @relation(fields: [createdById], references: [id])
   observations        Observation[]
 
   @@map("indicator_definitions")
@@ -378,4 +380,22 @@ model ReviewEvent {
 
   @@index([subjectType, subjectId])
   @@map("review_events")
+}
+
+/**
+ * Un jeu de données qui alimente un indicateur. Le zonage des médecins est un
+ * indicateur, alimenté par l'arrêté de chaque ARS ; chacun garde sa
+ * provenance, sa licence et ses versions.
+ */
+model IndicatorSource {
+  indicatorId String
+  datasetId   String
+  createdById String
+  createdAt   DateTime            @default(now())
+  indicator   IndicatorDefinition @relation(fields: [indicatorId], references: [id])
+  dataset     SourceDataset       @relation(fields: [datasetId], references: [id])
+  createdBy   User                @relation(fields: [createdById], references: [id])
+
+  @@id([indicatorId, datasetId])
+  @@map("indicator_sources")
 }
