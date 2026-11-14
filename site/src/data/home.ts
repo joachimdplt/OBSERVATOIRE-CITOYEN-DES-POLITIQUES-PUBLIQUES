@@ -1,21 +1,21 @@
 import { SOURCE_CODE, newIssue } from './project'
 
 /**
- * Les textes de l'accueil, un raisonnement en écrans : la question, le
- * constat, la réponse, les garanties, la contribution, l'action. Un seul
- * objectif : chercher sa commune. Les passages entre [[ ]] sont surlignés.
+ * Les textes de l'accueil, sobres et apolitiques, repris du cahier des
+ * charges (docs/01-mvp.md) : ce que fait l'observatoire, nommé simplement.
+ * Un seul objectif : chercher une commune. Les passages entre [[ ]] sont surlignés.
  * Aucun chiffre statistique ici, sauf un fait vérifié sur le fichier lui-même.
  */
 export const HOME = {
   hero: {
-    title: 'Votre commune en chiffres.\n[[Les partis en citations.]]',
-    lead: 'Santé, école, logement, emploi : tapez votre commune, lisez les statistiques publiques en mots simples, avec leur source. Premier sujet en ligne : l’accès aux médecins.',
-    cta: 'Chercher ma commune',
+    title: 'Observatoire citoyen\ndes [[politiques publiques]]',
+    lead: 'Les statistiques publiques rendues lisibles, et les propositions publiées par les partis rattachées aux mêmes sujets. Sans score ni verdict.',
+    cta: 'Chercher une commune',
   },
 
   constat: {
-    title: 'Les chiffres existent. [[Personne ne les lit.]]',
-    lead: 'Ils dorment dans des tableurs, chez l’INSEE, la DREES, les ministères et les agences de l’État.',
+    title: 'Des chiffres publics, [[difficiles à lire]]',
+    lead: 'L’INSEE, la DREES et les ministères les publient dans des fichiers conçus pour les spécialistes.',
     accroche: 'Un seul fichier de la DREES',
     valeur: '313 340',
     legende: 'lignes sur\nles médecins\nde France',
@@ -25,34 +25,34 @@ export const HOME = {
         text: '«\u00a0045 -Loiret\u00a0», «\u00a0SM54\u00a0», «\u00a0ND\u00a0» : il faut la notice pour comprendre une ligne.',
       },
       {
-        title: 'Des chiffres seuls',
-        text: 'Les propositions des partis sur le même sujet sont ailleurs, dans d’autres documents.',
+        title: 'Des sujets séparés',
+        text: 'Les propositions des partis sur le même sujet figurent dans d’autres documents.',
       },
     ],
   },
 
   reponse: {
-    title: 'Votre commune, [[lisible en une minute]]',
-    lead: 'L’observatoire lit le fichier. Vous lisez la réponse.',
+    title: 'Explorer, comprendre, [[comparer]]',
+    lead: 'Du sujet à la commune, puis aux propositions publiées sur ce sujet.',
     items: [
       {
-        title: 'Une question',
-        text: 'Chaque chiffre répond à une question simple : « Est-ce facile de voir un médecin près de chez moi ? »',
+        title: 'Explorer',
+        text: 'Douze piliers, de l’agriculture à la culture. Chaque indicateur par commune ou par département, sur une carte.',
       },
       {
-        title: 'La phrase du producteur',
-        text: 'L’INSEE ou la DREES écrit comment lire son chiffre. Vous lisez sa phrase, mot pour mot.',
+        title: 'Comprendre',
+        text: 'Définition, champ, méthode, millésime et limites. La phrase de lecture du producteur, mot pour mot.',
       },
       {
-        title: 'La ligne d’origine',
-        text: 'Chaque chiffre donne son fichier et sa ligne. Vous vérifiez en un clic.',
+        title: 'Comparer',
+        text: 'La situation observée et les propositions des partis côte à côte : citation exacte, document d’origine.',
       },
     ],
   },
 
   regles: {
-    title: 'Aucun chiffre [[inventé]]',
-    lead: 'Bientôt, à côté des chiffres : les propositions des partis, citées mot pour mot. Les mêmes règles pour tous.',
+    title: 'Les mêmes règles [[pour tous]]',
+    lead: 'Elles s’appliquent à chaque source et à chaque parti.',
     items: [
       {
         label: 'Une donnée manque',
@@ -114,8 +114,8 @@ export const HOME = {
   },
 
   fin: {
-    title: 'Tapez [[votre commune.]]',
+    title: 'Commencer par une commune',
     lead: 'Les contenus sont libres (CC BY-SA 4.0) : reprenez-les, en citant la source.',
-    cta: 'Chercher ma commune',
+    cta: 'Chercher une commune',
   },
 }

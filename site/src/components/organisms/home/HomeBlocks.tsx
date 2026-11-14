@@ -5,10 +5,10 @@ import {
   Binary,
   BookOpen,
   Code2,
-  FileSearch,
   Flag,
-  HelpCircle,
-  Quote,
+  Columns2,
+  BookOpenText,
+  Map,
   Search,
   ShieldCheck,
   Split,
@@ -179,7 +179,7 @@ export function HomeConstat() {
   )
 }
 
-const REPONSE_ICONS = [HelpCircle, Quote, FileSearch]
+const REPONSE_ICONS = [Map, BookOpenText, Columns2]
 
 export function HomeReponse() {
   const { reponse } = HOME
