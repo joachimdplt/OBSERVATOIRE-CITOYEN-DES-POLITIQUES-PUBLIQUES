@@ -9,6 +9,9 @@ import tailwindcss from '@tailwindcss/vite'
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
   plugins: [devtools(), tailwindcss(), tanstackStart(), viteReact()],
+  // MapLibre charge son worker depuis un fichier voisin du sien : réemballé
+  // par Vite, il ne le trouve plus et la carte reste blanche.
+  optimizeDeps: { exclude: ['maplibre-gl'] },
 })
 
 export default config
