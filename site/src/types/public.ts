@@ -180,6 +180,25 @@ export type PublicationSheet = PublicationLine & {
       mapLayer: boolean
       justification: string
     }[]
+    /** Les mesures rattachées : la citation d'abord, puis le libellé et le document. */
+    measures: {
+      article: string
+      quote: string
+      label: string
+      justification: string
+      document: {
+        kind: 'bill' | 'government_bill' | 'law' | 'amendment' | 'programme'
+        title: string
+        number: string | null
+        chamber: 'national_assembly' | 'senate' | null
+        filedAt: string
+        url: string
+        firstAuthor: string
+        authorGroup: string | null
+        authorGroupSource: string | null
+        progress: string | null
+      }
+    }[]
   }[]
   history: { number: number; status: string; publishedAt: string | null }[]
 }

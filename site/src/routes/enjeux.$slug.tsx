@@ -8,6 +8,7 @@ import { ArrowRight, Map as MapIcon, X } from 'lucide-react'
 import { z } from 'zod'
 import { CommuneSearch } from '../components/molecules/CommuneSearch'
 import { ValueCell } from '../components/organisms/indicators/ValueCell'
+import { MeasureList } from '../components/organisms/publications/MeasureList'
 import { pillarLabel } from '../data/pillars'
 import { getPublication, getTerritoryValues } from '../services/public-api'
 import type { TerritoryLayer } from '../types/public'
@@ -237,6 +238,7 @@ function PublicationPage() {
                   )
                 })}
               </ul>
+              <MeasureList measures={section.measures} />
             </li>
           ))}
         </ol>
