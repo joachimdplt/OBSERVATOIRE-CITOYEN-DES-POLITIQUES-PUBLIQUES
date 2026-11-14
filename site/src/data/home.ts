@@ -1,112 +1,128 @@
 import { SOURCE_CODE, newIssue } from './project'
 
 /**
- * Les textes de l'accueil, sobres et apolitiques, repris du cahier des
- * charges (docs/01-mvp.md) : ce que fait l'observatoire, nommé simplement.
- * Un seul objectif : chercher une commune. Les passages entre [[ ]] sont surlignés.
- * Aucun chiffre statistique ici, sauf un fait vérifié sur le fichier lui-même.
+ * Les textes de l'accueil, repris du cahier des charges (docs/01-mvp.md) dans
+ * son ordre : le principe directeur, les douze piliers, le parcours de
+ * référence, les fonctionnalités, les règles de données. Chaque élément dit
+ * s'il est en ligne ou à venir.
  */
 export const HOME = {
   hero: {
     title: 'Observatoire citoyen\ndes [[politiques publiques]]',
-    lead: 'Les statistiques publiques rendues lisibles, et les propositions publiées par les partis rattachées aux mêmes sujets. Sans score ni verdict.',
-    cta: 'Chercher une commune',
+    lead: 'Partir des statistiques publiques disponibles, les rendre lisibles et les relier aux mesures politiques.',
+    cta: 'Explorer les indicateurs',
   },
 
-  constat: {
-    title: 'Des chiffres publics, [[difficiles à lire]]',
-    lead: 'L’INSEE, la DREES et les ministères les publient dans des fichiers conçus pour les spécialistes.',
-    accroche: 'Un seul fichier de la DREES',
-    valeur: '313 340',
-    legende: 'lignes sur\nles médecins\nde France',
-    points: [
+  piliers: {
+    title: 'Douze [[piliers]]',
+    lead: 'Chaque pilier s’ouvre au rythme des jeux de données vérifiés.',
+    online: (n: number) => `${n} indicateur${n > 1 ? 's' : ''} en ligne`,
+    soon: 'À venir',
+  },
+
+  parcours: {
+    title: 'Du sujet [[à votre commune]]',
+    lead: 'Le premier parcours en ligne, tel que le décrit le cahier des charges.',
+    steps: [
+      { label: 'Santé', soon: false },
+      { label: 'Accès aux médecins', soon: false },
+      { label: 'Votre commune', soon: false },
       {
-        title: 'Des codes, pas des mots',
-        text: '«\u00a0045 -Loiret\u00a0», «\u00a0SM54\u00a0», «\u00a0ND\u00a0» : il faut la notice pour comprendre une ligne.',
+        label: 'L’APL, son millésime, sa définition, sa source DREES',
+        soon: false,
       },
       {
-        title: 'Des sujets séparés',
-        text: 'Les propositions des partis sur le même sujet figurent dans d’autres documents.',
+        label: 'Les propositions des partis sur l’accès aux soins',
+        soon: true,
       },
     ],
+    note: 'L’APL ne se transforme jamais en «\u00a0nombre de médecins manquants\u00a0».',
+    cta: 'Suivre ce parcours',
   },
 
-  reponse: {
-    title: 'Explorer, comprendre, [[comparer]]',
-    lead: 'Du sujet à la commune, puis aux propositions publiées sur ce sujet.',
+  fiches: {
+    title: 'Indicateurs et [[mesures politiques]]',
     items: [
       {
-        title: 'Explorer',
-        text: 'Douze piliers, de l’agriculture à la culture. Chaque indicateur par commune ou par département, sur une carte.',
+        title: 'Fiche indicateur',
+        text: 'Définition, champ, méthode, millésime, liens originaux, limites et statut de relecture.',
+        soon: false,
       },
       {
-        title: 'Comprendre',
-        text: 'Définition, champ, méthode, millésime et limites. La phrase de lecture du producteur, mot pour mot.',
+        title: 'Carte',
+        text: 'Par commune ou par département, quand le jeu de données et les limites géographiques le permettent.',
+        soon: false,
       },
       {
-        title: 'Comparer',
-        text: 'La situation observée et les propositions des partis côte à côte : citation exacte, document d’origine.',
+        title: 'Fiche mesure politique',
+        text: 'Citation exacte, parti, document, date, territoire, horizon et montants déclarés.',
+        soon: true,
+      },
+      {
+        title: 'Comparateur',
+        text: 'Situation observée et propositions des partis côte à côte, sans score ni verdict.',
+        soon: true,
       },
     ],
   },
 
   regles: {
-    title: 'Les mêmes règles [[pour tous]]',
-    lead: 'Elles s’appliquent à chaque source et à chaque parti.',
+    title: 'Règles de données [[non négociables]]',
     items: [
+      { label: 'Donnée absente', text: '« non documenté », jamais zéro' },
       {
-        label: 'Une donnée manque',
-        text: '«\u00a0non documentée\u00a0», jamais zéro',
+        label: 'Échelles incompatibles',
+        text: 'affichées séparément, la différence expliquée',
       },
       {
-        label: 'Un écart, un manque',
-        text: 'jamais calculé si la source ne le publie pas',
+        label: 'Besoin chiffré',
+        text: 'seulement si un organisme publie la mesure et sa méthode',
       },
       {
-        label: 'Un parti',
-        text: 'aucune note, aucun classement, aucun verdict',
+        label: 'Comparaison',
+        text: 'aucun classement automatique des partis',
       },
       {
-        label: 'Une erreur',
-        text: 'une nouvelle version, l’ancienne reste lisible',
+        label: 'Correction',
+        text: 'une nouvelle version, l’historique visible',
       },
     ],
   },
 
   contribuer: {
-    title: 'Contribuez, [[sous votre nom]]',
-    lead: 'Comme une encyclopédie : vous proposez, une autre personne relit, tout est signé d’un vrai nom.',
+    title: 'Contribuer, [[sous son nom]]',
+    lead: 'Les contributions sont séparées de la validation : une autre personne relit avant publication.',
     ways: [
       {
         title: 'Signaler une erreur',
-        text: 'Un chiffre faux, une commune mal placée : dites où, citez la source.',
+        text: 'Un chiffre qui ne correspond pas à sa source : la page, la valeur, la ligne du fichier.',
         action: 'Signaler',
         href: newIssue(
           'Erreur : [commune ou indicateur]',
-          'Page concernée :\nCe qui est affiché :\nLa source (lien et ligne du fichier) :\n',
+          'Page concernée :\nValeur affichée :\nSource (lien et ligne du fichier) :\n',
         ),
       },
       {
         title: 'Proposer une source',
-        text: 'Un fichier public utile : son producteur, son adresse, sa licence.',
+        text: 'Un jeu de données public : producteur, adresse, licence.',
         action: 'Proposer',
         href: newIssue(
           'Source : [titre du jeu de données]',
-          'Producteur :\nAdresse du fichier :\nLicence :\nQuestion à laquelle il répond :\n',
+          'Producteur :\nAdresse du fichier :\nLicence :\nPilier concerné :\n',
         ),
       },
       {
         title: 'Relire',
-        text: 'Vous vérifiez avant publication, sous votre nom, vos liens politiques affichés.',
+        text: 'Vérifier une version avant publication, liens politiques déclarés et affichés.',
         action: 'Devenir relecteur',
         href: newIssue(
-          'Relecture : [votre nom]',
-          'Nom :\nDomaines (santé, école, logement…) :\nLiens politiques à déclarer (adhésion, mandat, emploi), ou « aucun » :\n',
+          'Relecture : [nom]',
+          'Nom :\nPiliers :\nLiens politiques à déclarer (adhésion, mandat, emploi), ou « aucun » :\n',
         ),
       },
       {
-        title: 'Écrire le code',
-        text: 'Site, administration, API : tout est libre, sous licence AGPL.',
+        title: 'Code source',
+        text: 'Site, administration et API, sous licence AGPL-3.0.',
         action: 'Voir le code',
         href: SOURCE_CODE,
       },
@@ -114,8 +130,8 @@ export const HOME = {
   },
 
   fin: {
-    title: 'Commencer par une commune',
-    lead: 'Les contenus sont libres (CC BY-SA 4.0) : reprenez-les, en citant la source.',
-    cta: 'Chercher une commune',
+    title: 'Explorer les indicateurs',
+    lead: 'Contenus sous licence CC BY-SA 4.0. Les données gardent la licence de leur producteur.',
+    cta: 'Ouvrir la carte',
   },
 }
