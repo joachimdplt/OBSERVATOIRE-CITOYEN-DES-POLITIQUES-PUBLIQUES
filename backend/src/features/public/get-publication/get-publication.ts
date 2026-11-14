@@ -30,6 +30,10 @@ export class GetPublicationController {
             sections: {
               orderBy: { position: 'asc' },
               include: {
+                measures: {
+                  orderBy: { position: 'asc' },
+                  include: { measure: { include: { document: true } } },
+                },
                 indicators: {
                   orderBy: { position: 'asc' },
                   include: {
@@ -72,6 +76,25 @@ export class GetPublicationController {
         indicators: s.indicators.map((x) => ({
           ...x.indicator,
           justification: x.justification,
+        })),
+        // La citation d'abord, puis le libellé, puis le document.
+        measures: s.measures.map(({ measure: m, justification }) => ({
+          article: m.article,
+          quote: m.quote,
+          label: m.label,
+          justification,
+          document: {
+            kind: m.document.kind,
+            title: m.document.title,
+            number: m.document.number,
+            chamber: m.document.chamber,
+            filedAt: m.document.filedAt.toISOString().slice(0, 10),
+            url: m.document.url,
+            firstAuthor: m.document.firstAuthor,
+            authorGroup: m.document.authorGroup,
+            authorGroupSource: m.document.authorGroupSource,
+            progress: m.document.progress,
+          },
         })),
       })),
       // Les versions remplacées restent citables : leur numéro et leur date.

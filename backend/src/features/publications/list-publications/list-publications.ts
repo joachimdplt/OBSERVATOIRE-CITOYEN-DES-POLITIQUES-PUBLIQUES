@@ -30,6 +30,18 @@ export class ListPublicationsController {
                     indicator: { select: { code: true, label: true } },
                   },
                 },
+                measures: {
+                  orderBy: { position: 'asc' },
+                  include: {
+                    measure: {
+                      select: {
+                        id: true,
+                        label: true,
+                        document: { select: { title: true } },
+                      },
+                    },
+                  },
+                },
               },
             },
           },

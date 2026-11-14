@@ -20,6 +20,7 @@ export async function loadPublicationVersion(db: Db, id: string) {
             orderBy: { position: 'asc' },
             include: { indicator: { select: { code: true } } },
           },
+          measures: { orderBy: { position: 'asc' } },
         },
       },
     },
@@ -40,6 +41,10 @@ export const contentOf = (v: LoadedVersion): PublicationContent => ({
     indicators: s.indicators.map((x) => ({
       code: x.indicator.code,
       justification: x.justification,
+    })),
+    measures: s.measures.map((m) => ({
+      measureId: m.measureId,
+      justification: m.justification,
     })),
   })),
 });

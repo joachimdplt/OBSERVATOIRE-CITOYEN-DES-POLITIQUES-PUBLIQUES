@@ -192,4 +192,97 @@ describe('une publication : un enjeu lu maillon par maillon, relu avant d’êtr
       .body as { slug: string }[];
     expect(list.map((p) => p.slug)).toEqual(['acces-aux-medecins']);
   });
+
+  it('une mesure se cite mot pour mot, se rattache à un maillon, et sa citation ne se réécrit pas', async () => {
+    const document = (
+      await founder
+        .post('/api/admin/political-documents')
+        .send({
+          kind: 'bill',
+          title:
+            'Proposition de loi visant à lutter contre les déserts médicaux, d’initiative transpartisane',
+          number: '966',
+          chamber: 'national_assembly',
+          filedAt: '2025-02-13',
+          url: 'https://www.assemblee-nationale.fr/dyn/17/textes/l17b0966_proposition-loi.pdf',
+          firstAuthor: 'Guillaume Garot',
+        })
+        .expect(201)
+    ).body as { id: string };
+    await founder
+      .post('/api/admin/political-documents')
+      .send({
+        kind: 'bill',
+        title: 'x',
+        filedAt: '2025-02-13',
+        url: 'https://www.assemblee-nationale.fr/x.pdf',
+        firstAuthor: 'X',
+        authorGroup: 'Un groupe sans source',
+      })
+      .expect(400);
+    const add = (label: string) =>
+      founder
+        .post(`/api/admin/political-documents/${document.id}/measures`)
+        .send({
+          article: 'Article 1er',
+          quote:
+            'L’installation d’un médecin exerçant à titre libéral ou salarié est soumise à l’autorisation préalable du directeur général de l’agence régionale de santé compétente',
+          label,
+        });
+    await add('Une promesse irréaliste').expect(400);
+    const measure = (
+      await add(
+        'Soumettre l’installation des médecins à l’autorisation de l’agence régionale de santé',
+      ).expect(201)
+    ).body as { id: string };
+    await expect(
+      prisma.measure.update({
+        where: { id: measure.id },
+        data: { quote: 'Autre citation' },
+      }),
+    ).rejects.toThrow();
+
+    const draft = (
+      await founder
+        .post('/api/admin/publications/acces-aux-medecins/drafts')
+        .expect(201)
+    ).body as { id: string };
+    const sections = [
+      {
+        ...DRAFT.sections[0],
+        measures: [
+          {
+            measureId: measure.id,
+            justification:
+              'La mesure porte sur le lieu d’installation des médecins.',
+          },
+        ],
+      },
+    ];
+    await founder
+      .put(`/api/admin/publication-versions/${draft.id}`)
+      .send({ ...DRAFT, sections })
+      .expect(200);
+    await founder
+      .post(`/api/admin/publication-versions/${draft.id}/preprint`)
+      .expect(200);
+    const page = (
+      await visitor()
+        .get('/api/public/publications/acces-aux-medecins')
+        .expect(200)
+    ).body as {
+      sections: {
+        measures: {
+          quote: string;
+          label: string;
+          document: { number: string; firstAuthor: string };
+        }[];
+      }[];
+    };
+    expect(page.sections[0].measures[0]).toMatchObject({
+      label:
+        'Soumettre l’installation des médecins à l’autorisation de l’agence régionale de santé',
+      document: { number: '966', firstAuthor: 'Guillaume Garot' },
+    });
+  });
 });

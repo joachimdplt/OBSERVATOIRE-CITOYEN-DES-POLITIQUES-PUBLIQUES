@@ -9,7 +9,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Type } from 'class-transformer';
-import { IsArray, IsString, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsOptional,
+  IsString,
+  IsUUID,
+  ValidateNested,
+} from 'class-validator';
 import { Requires, SessionGuard } from '../../../auth/session.guard';
 import { checkPublicationText } from '../../../domain/publication-content';
 import { VersionState } from '../../../generated/prisma/enums';
@@ -21,6 +27,11 @@ class ChosenIndicatorDto {
   @IsString() justification!: string;
 }
 
+class ChosenMeasureDto {
+  @IsUUID() measureId!: string;
+  @IsString() justification!: string;
+}
+
 class SectionDto {
   @IsString() title!: string;
   @IsString() text!: string;
@@ -28,6 +39,11 @@ class SectionDto {
   @ValidateNested({ each: true })
   @Type(() => ChosenIndicatorDto)
   indicators!: ChosenIndicatorDto[];
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ChosenMeasureDto)
+  measures?: ChosenMeasureDto[];
 }
 
 export class WritePublicationDraftDto {
@@ -72,6 +88,16 @@ export class WritePublicationDraftController {
     for (const code of codes)
       if (!idOf.has(code))
         errors.push(`L’indicateur « ${code} » n’existe pas.`);
+    const measureIds = [
+      ...new Set(
+        dto.sections.flatMap((s) => (s.measures ?? []).map((m) => m.measureId)),
+      ),
+    ];
+    const known = await this.prisma.measure.count({
+      where: { id: { in: measureIds } },
+    });
+    if (known !== measureIds.length)
+      errors.push('Une mesure rattachée n’existe pas.');
     if (errors.length > 0) throw new BadRequestException(errors);
 
     await this.prisma.$transaction(async (tx) => {
@@ -80,6 +106,9 @@ export class WritePublicationDraftController {
         select: { id: true },
       });
       await tx.sectionIndicator.deleteMany({
+        where: { sectionId: { in: old.map((s) => s.id) } },
+      });
+      await tx.sectionMeasure.deleteMany({
         where: { sectionId: { in: old.map((s) => s.id) } },
       });
       await tx.publicationSection.deleteMany({ where: { versionId: id } });
@@ -99,6 +128,13 @@ export class WritePublicationDraftController {
                 indicatorId: idOf.get(x.code)!,
                 position: i,
                 justification: x.justification.trim(),
+              })),
+            },
+            measures: {
+              create: (section.measures ?? []).map((m, i) => ({
+                measureId: m.measureId,
+                position: i,
+                justification: m.justification.trim(),
               })),
             },
           },

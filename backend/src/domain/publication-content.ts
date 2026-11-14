@@ -10,6 +10,8 @@ export type PublicationContent = {
     title: string;
     text: string;
     indicators: { code: string; justification: string }[];
+    /** Les mesures politiques rattachées au maillon, chacune justifiée. */
+    measures?: { measureId: string; justification: string }[];
   }[];
 };
 
@@ -67,6 +69,11 @@ export function checkPublicationContent(content: PublicationContent): string[] {
     const codes = section.indicators.map((x) => x.code);
     if (new Set(codes).size !== codes.length)
       errors.push(`Un indicateur ne figure qu’une fois dans « ${name} ».`);
+    for (const m of section.measures ?? [])
+      if (!m.justification.trim())
+        errors.push(
+          `Une mesure rattachée à « ${name} » dit pourquoi elle est là.`,
+        );
     for (const x of section.indicators)
       if (!x.justification.trim())
         errors.push(

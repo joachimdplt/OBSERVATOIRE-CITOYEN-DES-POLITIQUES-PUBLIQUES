@@ -59,6 +59,13 @@ export class OpenPublicationDraftController {
                 justification: x.justification,
               })),
             },
+            measures: {
+              create: s.measures.map((m) => ({
+                measureId: m.measureId,
+                position: m.position,
+                justification: m.justification,
+              })),
+            },
           })),
         },
       },
