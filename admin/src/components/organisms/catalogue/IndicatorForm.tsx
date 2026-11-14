@@ -29,6 +29,8 @@ const schema = z.object({
   unit: z.string().trim().min(1, 'Unité requise'),
   pillar: z.enum(Object.keys(PILLAR_LABELS) as [Pillar, ...Pillar[]]),
   allowedAggregations: z.array(z.enum(['sum', 'mean'])),
+  kind: z.enum(['number', 'category']),
+  categoriesText: z.string(),
   method: z.string().trim().min(1, 'Méthode requise'),
   limits: z.string().trim().min(1, 'Les limites sont obligatoires'),
 })
@@ -45,19 +47,52 @@ type Props = {
   reasons: string[]
 }
 
+type Values = NewIndicator & {
+  kind: 'number' | 'category'
+  categoriesText: string
+}
+
+/** « ZIP = Zone d’intervention prioritaire », une catégorie par ligne. */
+const parseCategories = (text: string) =>
+  text
+    .split('\n')
+    .map((line) => line.split('='))
+    .filter(([code]) => code.trim() !== '')
+    .map(([code, ...label]) => ({
+      code: code.trim(),
+      label: label.join('=').trim(),
+    }))
+
 export function IndicatorForm({
   datasetId,
   onSubmit,
   pending,
   reasons,
 }: Props) {
-  const { register, handleSubmit, formState } = useForm<NewIndicator>({
+  const { register, handleSubmit, formState, watch } = useForm<Values>({
     resolver: zodResolver(schema),
-    defaultValues: { datasetId, pillar: 'health', allowedAggregations: [] },
+    defaultValues: {
+      datasetId,
+      pillar: 'health',
+      allowedAggregations: [],
+      kind: 'number',
+      categoriesText: '',
+    },
   })
+  const kind = watch('kind')
+  const submit = ({ categoriesText, ...values }: Values) =>
+    onSubmit(
+      values.kind === 'category'
+        ? {
+            ...values,
+            allowedAggregations: [],
+            categories: parseCategories(categoriesText),
+          }
+        : values,
+    )
   const errors = formState.errors
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+    <form onSubmit={handleSubmit(submit)} className="space-y-5" noValidate>
       <Field
         label="Libellé"
         error={errors.label?.message}
@@ -95,7 +130,26 @@ export function IndicatorForm({
         }))}
         {...register('pillar')}
       />
-      <fieldset className="space-y-2">
+      <Select
+        label="Nature"
+        options={[
+          { value: 'number', label: 'Un nombre (une valeur par territoire)' },
+          {
+            value: 'category',
+            label: 'Une catégorie d’une liste fermée (un zonage)',
+          },
+        ]}
+        {...register('kind')}
+      />
+      {kind === 'category' && (
+        <TextArea
+          label="Catégories, une par ligne"
+          hint="Le code tel que le fichier l’écrit, puis le libellé du texte officiel : ZIP = Zone d’intervention prioritaire"
+          rows={4}
+          {...register('categoriesText')}
+        />
+      )}
+      <fieldset className={`space-y-2 ${kind === 'category' ? 'hidden' : ''}`}>
         <legend className="text-sm font-medium text-slate-700">
           Agrégations permises
         </legend>

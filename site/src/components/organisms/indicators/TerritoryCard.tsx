@@ -1,8 +1,9 @@
 import { X } from 'lucide-react'
-import type { Observation } from '../../../types/public'
+import type { Category, Observation } from '../../../types/public'
 import { ValueCell } from './ValueCell'
 
 type Props = {
+  categories?: Category[] | null
   name: string
   code: string
   observations: Observation[] | null
@@ -15,6 +16,7 @@ type Props = {
  * côte à côte. Aucun écart n'est calculé ; le lecteur compare.
  */
 export function TerritoryCard({
+  categories,
   name,
   code,
   observations,
@@ -49,7 +51,7 @@ export function TerritoryCard({
             <div key={o.period} className="space-y-1">
               <dt className="text-xs text-slate-500">{o.period}</dt>
               <dd className="text-xl">
-                <ValueCell observation={o} />
+                <ValueCell observation={o} categories={categories} />
               </dd>
             </div>
           ))}

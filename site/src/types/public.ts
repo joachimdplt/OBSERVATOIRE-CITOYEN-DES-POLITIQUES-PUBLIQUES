@@ -14,6 +14,11 @@ export type Pillar =
 
 export type PublicStatus = 'preprint' | 'published'
 
+/** Une catégorie d'une liste fermée, avec le libellé de son texte officiel. */
+export type Category = { code: string; label: string }
+
+export type IndicatorKind = 'number' | 'category'
+
 export type ObservationStatus =
   'documented' | 'not_documented' | 'confidential' | 'not_applicable'
 
@@ -22,6 +27,7 @@ export type IndicatorLine = {
   label: string
   pillar: Pillar
   unit: string
+  kind: IndicatorKind
   producer: string
   vintage: string
   vintages: string[]
@@ -65,6 +71,8 @@ export type IndicatorSheet = {
   method: string
   limits: string
   allowedAggregations: ('sum' | 'mean')[]
+  kind: IndicatorKind
+  categories: Category[] | null
   periods: string[]
   territoryLevels: string[]
   /** Une provenance par millésime visible, le plus récent en premier. */
@@ -76,6 +84,7 @@ export type Observation = {
   period: string
   status: ObservationStatus
   value: string | null
+  category: string | null
   sourceRow: number
   vintage: string
 }

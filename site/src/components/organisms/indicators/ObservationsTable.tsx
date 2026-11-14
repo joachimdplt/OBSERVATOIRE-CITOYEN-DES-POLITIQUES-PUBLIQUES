@@ -1,13 +1,15 @@
-import type { Observation } from '../../../types/public'
+import type { Category, Observation } from '../../../types/public'
 import { ValueCell } from './ValueCell'
 
 /** Les valeurs, une ligne par territoire et période, avec la ligne du fichier d'origine. */
 export function ObservationsTable({
   observations,
   unit,
+  categories,
 }: {
   observations: Observation[]
   unit: string
+  categories?: Category[] | null
 }) {
   return (
     <div className="surface overflow-x-auto">
@@ -38,7 +40,7 @@ export function ObservationsTable({
                 {o.vintage}
               </td>
               <td className="px-5 py-2.5 text-right">
-                <ValueCell observation={o} />
+                <ValueCell observation={o} categories={categories} />
               </td>
               <td className="px-5 py-2.5 text-right tabular-nums text-slate-400">
                 {o.sourceRow}

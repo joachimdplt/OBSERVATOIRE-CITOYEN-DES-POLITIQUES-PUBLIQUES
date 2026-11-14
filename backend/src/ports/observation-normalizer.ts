@@ -1,3 +1,4 @@
+import type { Category } from '../domain/category';
 import type { ImportDescription } from '../domain/import-description';
 import type {
   AnomalySeverity,
@@ -15,7 +16,12 @@ export type CandidateObservation = {
   period: string;
   status: ObservationStatus;
   value: string | null;
+  category: string | null;
 };
+
+/** Ce que lit chaque indicateur décrit : un nombre, ou une catégorie de sa liste fermée. */
+export type ValueReading =
+  { kind: 'number' } | { kind: 'category'; categories: Category[] };
 
 export type Anomaly = {
   rowNumber: number | null;
@@ -44,6 +50,7 @@ export interface ObservationNormalizer {
     header: string[],
     rows: SourceRow[],
     description: ImportDescription,
+    readings: Map<string, ValueReading>,
   ): Normalization;
 }
 

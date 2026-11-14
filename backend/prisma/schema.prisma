@@ -125,6 +125,15 @@ enum Pillar {
 }
 
 /**
+ * Ce que donne un indicateur : un nombre (l'APL, des élèves par classe) ou
+ * une catégorie d'une liste fermée (le zonage d'une ARS : ZIP, ZAC, HZ).
+ */
+enum IndicatorKind {
+  number
+  category
+}
+
+/**
  * Une agrégation qu'un indicateur permet. Aucune = aucune somme ni moyenne.
  */
 enum Aggregation {
@@ -177,6 +186,9 @@ model IndicatorDefinition {
   scope               String
   // L'unité telle que le producteur l'écrit.
   unit                String
+  kind                IndicatorKind @default(number)
+  // Pour une catégorie : la liste fermée [{ code, label }], dans l'ordre de l'arrêté.
+  categories          Json?
   pillar              Pillar
   allowedAggregations Aggregation[]
   method              String
@@ -331,6 +343,8 @@ model Observation {
   // « 2024 », « 2024-T3 », « 2024-03 », « 2025-2026 » (année scolaire).
   period      String
   value       Decimal?            @db.Decimal(20, 6)
+  // Pour un indicateur de catégorie : le code de la catégorie, tel que l'arrêté l'écrit.
+  category    String?
   status      ObservationStatus
   versionId   String
   // La ligne du fichier d'où vient la valeur.

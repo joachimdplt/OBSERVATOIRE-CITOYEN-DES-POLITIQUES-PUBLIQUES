@@ -35,6 +35,7 @@ describe('la lecture d’un tableau une ligne par territoire', () => {
         period: '2024',
         status: 'documented',
         value: '3.3',
+        category: null,
       },
       expect.objectContaining({ indicatorCode: 'population', value: '832' }),
     ]);
@@ -87,6 +88,49 @@ describe('la lecture d’un tableau une ligne par territoire', () => {
     expect(candidates).toEqual([]);
     expect(anomalies).toEqual([
       expect.objectContaining({ kind: 'empty_rows', severity: 'info' }),
+    ]);
+  });
+
+  it('lit une catégorie de la liste fermée de son indicateur, et refuse le reste', () => {
+    const zonage = {
+      ...DESCRIPTION,
+      values: [{ column: 'APL', indicatorCode: 'zonage' }],
+    };
+    const readings = new Map([
+      [
+        'zonage',
+        {
+          kind: 'category' as const,
+          categories: [
+            { code: 'ZIP', label: 'Zone d’intervention prioritaire' },
+            { code: 'ZAC', label: 'Zone d’action complémentaire' },
+            { code: 'HZ', label: 'Hors zonage' },
+          ],
+        },
+      ],
+    ]);
+    const { candidates, anomalies } = new ColumnMappingNormalizer().normalize(
+      HEADER,
+      [
+        { rowNumber: 2, cells: ['13202', 'Marseille 2e', 'ZAC', ''] },
+        { rowNumber: 3, cells: ['13201', 'Marseille 1er', 'Hors zone', ''] },
+      ],
+      zonage,
+      readings,
+    );
+    expect(candidates).toEqual([
+      expect.objectContaining({
+        status: 'documented',
+        value: null,
+        category: 'ZAC',
+      }),
+    ]);
+    expect(anomalies).toEqual([
+      expect.objectContaining({
+        rowNumber: 3,
+        kind: 'invalid_value',
+        severity: 'blocking',
+      }),
     ]);
   });
 });

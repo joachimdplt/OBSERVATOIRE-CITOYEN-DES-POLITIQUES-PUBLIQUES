@@ -7,25 +7,45 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { Type } from 'class-transformer';
 import {
   ArrayUnique,
   IsArray,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsString,
   IsUUID,
+  ValidateNested,
 } from 'class-validator';
 import {
   CurrentUser,
   type TeamMember,
 } from '../../../auth/current-user.decorator';
 import { Requires, SessionGuard } from '../../../auth/session.guard';
+import { checkCategories } from '../../../domain/category';
 import { readIndicatorCode } from '../../../domain/indicator-code';
-import { Aggregation, Pillar } from '../../../generated/prisma/enums';
+import {
+  Aggregation,
+  IndicatorKind,
+  Pillar,
+} from '../../../generated/prisma/enums';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { isUniqueViolation } from '../../../prisma/unique-violation';
 
+class CategoryDto {
+  @IsString() @IsNotEmpty() code!: string;
+  @IsString() @IsNotEmpty() label!: string;
+}
+
 export class CreateIndicatorDto {
+  /** Un nombre, par défaut, ou une catégorie d'une liste fermée. */
+  @IsOptional() @IsEnum(IndicatorKind) kind?: IndicatorKind;
+  /** Pour une catégorie : la liste fermée, avec les libellés du texte officiel. */
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CategoryDto)
+  categories?: CategoryDto[];
   @IsUUID() datasetId!: string;
   @IsString() code!: string;
   @IsString() @IsNotEmpty() label!: string;
@@ -64,6 +84,19 @@ export class CreateIndicatorController {
     @CurrentUser() user: TeamMember,
     @Body() dto: CreateIndicatorDto,
   ) {
+    const kind = dto.kind ?? IndicatorKind.number;
+    if (kind === IndicatorKind.category) {
+      const errors = checkCategories(dto.categories ?? []);
+      if (dto.allowedAggregations.length > 0) {
+        errors.push('Une catégorie ne s’additionne ni ne se moyenne.');
+      }
+      if (errors.length > 0) throw new BadRequestException(errors);
+    } else if (dto.categories) {
+      throw new BadRequestException(
+        'Seul un indicateur de catégorie a une liste de catégories.',
+      );
+    }
+
     const code = readIndicatorCode(dto.code);
     if (!code.valid) throw new BadRequestException(code.reason);
 
@@ -83,6 +116,14 @@ export class CreateIndicatorController {
           unit: dto.unit.trim(),
           pillar: dto.pillar,
           allowedAggregations: dto.allowedAggregations,
+          kind,
+          categories:
+            kind === IndicatorKind.category
+              ? (dto.categories ?? []).map((c) => ({
+                  code: c.code.trim(),
+                  label: c.label.trim(),
+                }))
+              : undefined,
           method: dto.method.trim(),
           limits: dto.limits.trim(),
           createdById: user.id,

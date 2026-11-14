@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Requires, SessionGuard } from '../../../auth/session.guard';
+import type { Category } from '../../../domain/category';
 import {
   firstDataRow,
   type ImportDescription,
@@ -18,12 +19,14 @@ import {
   AnomalySeverity,
   ImportState,
   ObservationStatus,
+  IndicatorKind,
   TerritoryLevel,
 } from '../../../generated/prisma/enums';
 import {
   OBSERVATION_NORMALIZER,
   type Anomaly,
   type ObservationNormalizer,
+  type ValueReading,
 } from '../../../ports/observation-normalizer';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { headerOf, loadDraftJob } from '../import-job';
@@ -73,10 +76,26 @@ export class ValidateImportJobController {
       },
       orderBy: { rowNumber: 'asc' },
     });
+    // Chaque colonne décrite lit un nombre, ou une catégorie de la liste de son indicateur.
+    const indicators = await this.prisma.indicatorDefinition.findMany({
+      where: { code: { in: description.values.map((v) => v.indicatorCode) } },
+      select: { id: true, code: true, kind: true, categories: true },
+    });
+    const indicatorId = new Map(indicators.map((i) => [i.code, i.id]));
+    const readings = new Map<string, ValueReading>(
+      indicators.map((i) => [
+        i.code,
+        i.kind === IndicatorKind.category
+          ? { kind: 'category', categories: i.categories as Category[] }
+          : { kind: 'number' },
+      ]),
+    );
+
     const { candidates, anomalies } = this.normalizer.normalize(
       header,
       rows.map((r) => ({ rowNumber: r.rowNumber, cells: r.cells as string[] })),
       description,
+      readings,
     );
 
     // Les territoires connus du millésime déclaré. Une colonne de communes se
@@ -108,12 +127,6 @@ export class ValidateImportJobController {
       });
     }
     const territoryId = new Map(territories.map((t) => [t.code, t.id]));
-
-    const indicators = await this.prisma.indicatorDefinition.findMany({
-      where: { code: { in: description.values.map((v) => v.indicatorCode) } },
-      select: { id: true, code: true },
-    });
-    const indicatorId = new Map(indicators.map((i) => [i.code, i.id]));
 
     const unknownReported = new Set<number>();
     const seen = new Map<string, number>();
@@ -152,6 +165,7 @@ export class ValidateImportJobController {
         period: c.period,
         status: c.status,
         value: c.value,
+        category: c.category,
         versionId: job.versionId,
         rowNumber: c.rowNumber,
       });

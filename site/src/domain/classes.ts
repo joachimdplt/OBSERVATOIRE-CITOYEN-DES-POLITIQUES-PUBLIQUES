@@ -1,4 +1,9 @@
-export type MapValue = [code: string, value: string | null, status: string]
+export type MapValue = [
+  code: string,
+  value: string | null,
+  status: string,
+  category: string | null,
+]
 
 export type Classes = {
   /** Les bornes basses de chaque classe : des valeurs réelles de territoires, jamais arrondies. */
@@ -17,7 +22,7 @@ const COUNT = 5
  */
 export function quantileClasses(values: MapValue[]): Classes {
   const documented = values
-    .filter((v): v is [string, string, string] => v[1] !== null)
+    .filter((v): v is [string, string, string, string | null] => v[1] !== null)
     .sort((a, b) => Number(a[1]) - Number(b[1]))
   const lower: string[] = []
   const byCode = new Map<string, number>()
@@ -42,4 +47,16 @@ export function quantileClasses(values: MapValue[]): Classes {
     byCode.set(code, cls)
   }
   return { lower, byCode }
+}
+
+/**
+ * Pour un indicateur de catégorie : la classe d'un territoire est le rang de
+ * sa catégorie dans la liste officielle. Rien n'est calculé.
+ */
+export function categoryClasses(values: MapValue[], codes: string[]): Classes {
+  const byCode = new Map<string, number>()
+  for (const [code, , , category] of values) {
+    byCode.set(code, category === null ? -1 : codes.indexOf(category))
+  }
+  return { lower: [], byCode }
 }

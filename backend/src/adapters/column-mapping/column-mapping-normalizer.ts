@@ -1,3 +1,4 @@
+import { readCategory } from '../../domain/category';
 import { readCell } from '../../domain/cell';
 import type { ImportDescription } from '../../domain/import-description';
 import { readPeriod } from '../../domain/period';
@@ -12,6 +13,7 @@ import type {
   Normalization,
   ObservationNormalizer,
   SourceRow,
+  ValueReading,
 } from '../../ports/observation-normalizer';
 
 const ABSENCE_LABELS: Record<
@@ -37,6 +39,7 @@ export class ColumnMappingNormalizer implements ObservationNormalizer {
     header: string[],
     rows: SourceRow[],
     d: ImportDescription,
+    readings: Map<string, ValueReading> = new Map(),
   ): Normalization {
     const index = (column: string) =>
       header.findIndex((h) => h.trim() === column.trim());
@@ -98,7 +101,12 @@ export class ColumnMappingNormalizer implements ObservationNormalizer {
       }
 
       for (const { column, indicatorCode, at } of valueColumns) {
-        const cell = readCell(cells[at] ?? '', d.decimalSeparator);
+        const reading = readings.get(indicatorCode) ?? { kind: 'number' };
+        const raw = cells[at] ?? '';
+        const cell =
+          reading.kind === 'category'
+            ? readCategory(raw, reading.categories)
+            : readCell(raw, d.decimalSeparator);
         if (cell.kind === 'invalid') {
           blocking(rowNumber, column, 'invalid_value', cell.reason);
           continue;
@@ -114,6 +122,7 @@ export class ColumnMappingNormalizer implements ObservationNormalizer {
           period: period.period,
           status: cell.status,
           value: cell.kind === 'value' ? cell.value : null,
+          category: cell.kind === 'category' ? cell.category : null,
         });
       }
     }

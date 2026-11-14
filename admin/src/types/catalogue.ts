@@ -65,4 +65,6 @@ export type NewDataset = Pick<
 > & { providerId: string }
 export type NewIndicator = Omit<Indicator, 'id' | 'createdBy'> & {
   datasetId: string
+  kind?: 'number' | 'category'
+  categories?: { code: string; label: string }[]
 }

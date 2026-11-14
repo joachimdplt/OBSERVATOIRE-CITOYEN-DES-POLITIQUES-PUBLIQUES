@@ -1,8 +1,11 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useIndicatorMap } from '../../../hooks/useIndicatorMap'
-import type { Observation } from '../../../types/public'
+import { categoryClasses, quantileClasses } from '../../../domain/classes'
+import type { Category, Observation } from '../../../types/public'
+import { frenchNumber } from '../../../utils/number'
 import { TerritoryCard } from '../indicators/TerritoryCard'
 import { MapLegend } from './MapLegend'
+import { CLASS_COLORS, categoryColors } from './palette'
 
 // La carte ne se dessine que dans le navigateur.
 const IndicatorMap = lazy(() =>
@@ -12,6 +15,7 @@ const IndicatorMap = lazy(() =>
 type Props = {
   code: string
   unit: string
+  categories: Category[] | null
   periods: string[]
   period: string
   selected: {
@@ -28,6 +32,7 @@ type Props = {
 export function MapPanel({
   code,
   unit,
+  categories,
   periods,
   period,
   selected,
@@ -35,7 +40,32 @@ export function MapPanel({
   onSelect,
   onClose,
 }: Props) {
-  const { values, classes, failed } = useIndicatorMap(code, period)
+  const { values, failed } = useIndicatorMap(code, period)
+  const classes = useMemo(
+    () =>
+      values
+        ? categories
+          ? categoryClasses(
+              values,
+              categories.map((c) => c.code),
+            )
+          : quantileClasses(values)
+        : null,
+    [values, categories],
+  )
+  const colors = useMemo(
+    () => (categories ? categoryColors(categories.length) : [...CLASS_COLORS]),
+    [categories],
+  )
+  const entries = categories
+    ? categories.map((c, i) => ({ color: colors[i], label: c.label }))
+    : (classes?.lower ?? []).map((value, k, lower) => ({
+        color: colors[k],
+        label:
+          k === 0
+            ? `moins de ${frenchNumber(lower[1] ?? value)}`
+            : `à partir de ${frenchNumber(value)}`,
+      }))
   const [browser, setBrowser] = useState(false)
   useEffect(() => setBrowser(true), [])
 
@@ -70,7 +100,11 @@ export function MapPanel({
             <Suspense
               fallback={<div className="h-[70vh] min-h-[420px] bg-slate-100" />}
             >
-              <IndicatorMap classes={classes.byCode} onSelect={onSelect} />
+              <IndicatorMap
+                classes={classes.byCode}
+                colors={colors}
+                onSelect={onSelect}
+              />
             </Suspense>
           ) : (
             <div className="h-[70vh] min-h-[420px] animate-pulse bg-slate-100" />
@@ -79,6 +113,7 @@ export function MapPanel({
         <div className="space-y-4">
           {selected ? (
             <TerritoryCard
+              categories={categories}
               name={selected.name}
               code={selected.code}
               observations={selected.observations}
@@ -90,8 +125,16 @@ export function MapPanel({
               Cliquez sur une commune pour lire ses valeurs.
             </p>
           )}
-          {classes && classes.lower.length > 0 && (
-            <MapLegend lower={classes.lower} unit={unit} />
+          {entries.length > 0 && (
+            <MapLegend
+              title={unit}
+              entries={entries}
+              note={
+                categories
+                  ? 'Les libellés sont ceux du texte officiel.'
+                  : 'Cinq classes de même effectif. Les bornes sont des valeurs publiées, non arrondies.'
+              }
+            />
           )}
           <p className="text-xs text-slate-400">
             Outre-mer : à venir sur la carte. Ses communes ont déjà leurs

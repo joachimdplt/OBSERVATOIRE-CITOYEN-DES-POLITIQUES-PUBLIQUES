@@ -47,6 +47,7 @@ export class ListIndicatorsController {
         label: i.label,
         pillar: i.pillar,
         unit: i.unit,
+        kind: i.kind,
         producer: i.dataset.provider.acronym,
         vintage: version.vintage,
         vintages: i.dataset.versions.map((v) => v.vintage),

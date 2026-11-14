@@ -69,6 +69,7 @@ function IndicatorPage() {
       <MapPanel
         code={sheet.code}
         unit={sheet.unit}
+        categories={sheet.kind === 'category' ? sheet.categories : null}
         periods={sheet.periods}
         period={period}
         selected={
@@ -128,7 +129,11 @@ function IndicatorPage() {
             Le détail, ligne du fichier comprise
           </summary>
           <div className="mt-4">
-            <ObservationsTable observations={selected} unit={sheet.unit} />
+            <ObservationsTable
+              observations={selected}
+              unit={sheet.unit}
+              categories={sheet.categories}
+            />
           </div>
         </details>
       )}

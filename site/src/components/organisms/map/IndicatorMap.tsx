@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { MapLayerMouseEvent, Map as MapLibreMap } from 'maplibre-gl'
-import { ABSENT_COLOR, CLASS_COLORS, OUTSIDE_COLOR } from './palette'
+import { fillExpression } from './palette'
 
 import 'maplibre-gl/dist/maplibre-gl.css'
 
@@ -9,34 +9,18 @@ const FRANCE: [number, number, number, number] = [-5.3, 41.2, 9.7, 51.2]
 const LAYERS = ['commune', 'arrondissement_municipal'] as const
 
 type Props = {
-  /** La classe de chaque code INSEE : 0 à 4, -1 pour une absence. */
+  /** La classe de chaque code INSEE : son rang, ou -1 pour une absence. */
   classes: Map<string, number>
+  /** La teinte de chaque classe, dans l'ordre. */
+  colors: readonly string[]
   onSelect: (territory: { code: string; name: string }) => void
 }
-
-const fill = [
-  'match',
-  ['coalesce', ['feature-state', 'cls'], -2],
-  -2,
-  OUTSIDE_COLOR,
-  -1,
-  ABSENT_COLOR,
-  0,
-  CLASS_COLORS[0],
-  1,
-  CLASS_COLORS[1],
-  2,
-  CLASS_COLORS[2],
-  3,
-  CLASS_COLORS[3],
-  CLASS_COLORS[4],
-] as const
 
 /**
  * La carte de France, commune par commune, sur le fond officiel de l'IGN
  * (ADMIN EXPRESS). Elle ne se dessine que dans le navigateur.
  */
-export function IndicatorMap({ classes, onSelect }: Props) {
+export function IndicatorMap({ classes, colors, onSelect }: Props) {
   const container = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
   const select = useRef(onSelect)
@@ -77,7 +61,7 @@ export function IndicatorMap({ classes, onSelect }: Props) {
               source: 'admin',
               'source-layer': layer,
               paint: {
-                'fill-color': fill as never,
+                'fill-color': fillExpression(colors) as never,
                 'fill-outline-color': 'rgba(255,255,255,0.15)',
               },
             })),
@@ -129,6 +113,13 @@ export function IndicatorMap({ classes, onSelect }: Props) {
     const paint = () => {
       const instance = map.current
       if (!instance) return
+      for (const layer of LAYERS) {
+        instance.setPaintProperty(
+          layer,
+          'fill-color',
+          fillExpression(colors) as never,
+        )
+      }
       for (const layer of LAYERS)
         instance.removeFeatureState({ source: 'admin', sourceLayer: layer })
       for (const [code, cls] of classes) {
@@ -150,7 +141,7 @@ export function IndicatorMap({ classes, onSelect }: Props) {
       }, 100)
       return () => clearInterval(timer)
     }
-  }, [classes])
+  }, [classes, colors])
 
   return (
     <div

@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
-import { quantileClasses } from '../domain/classes'
+import { useEffect, useState } from 'react'
 import type { MapValue } from '../domain/classes'
 import { getIndicatorMap } from '../services/public-api'
 
@@ -22,10 +21,5 @@ export function useIndicatorMap(code: string, period: string) {
       cancelled = true
     }
   }, [code, period])
-
-  const classes = useMemo(
-    () => (values ? quantileClasses(values) : null),
-    [values],
-  )
-  return { values, classes, failed }
+  return { values, failed }
 }

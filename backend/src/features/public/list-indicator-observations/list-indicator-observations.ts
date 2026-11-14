@@ -80,6 +80,7 @@ export class ListIndicatorObservationsController {
         period: o.period,
         status: o.status,
         value: o.value?.toString() ?? null,
+        category: o.category,
         sourceRow: o.rowNumber,
         // Le millésime d'où vient la valeur ; sa provenance est dans `provenance`.
         vintage: o.version.vintage,
