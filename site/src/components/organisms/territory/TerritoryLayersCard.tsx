@@ -5,6 +5,7 @@ import { frenchDate } from '../../../utils/date'
 import { approximately, frenchNumber } from '../../../utils/number'
 import { readingOf } from '../../../utils/reading'
 import { ValueCell } from '../indicators/ValueCell'
+import { LayerGroupSection } from './LayerGroupSection'
 
 type Props = { data: TerritoryValues | null; name: string; onClose: () => void }
 
@@ -20,6 +21,21 @@ function sentenceOf({ indicator, values }: TerritoryLayer, territory: string) {
         ? `environ ${approximately(latest.value)}`
         : null
   return value ? readingOf(indicator.readingTemplate, territory, value) : null
+}
+
+/**
+ * Les couches rangées par question : celles qui posent la même (la population
+ * de chaque tranche d'âge) se lisent ensemble, dans l'ordre de leur code.
+ */
+function groupsOf(layers: TerritoryLayer[]): TerritoryLayer[][] {
+  const groups = new Map<string, TerritoryLayer[]>()
+  for (const layer of layers) {
+    const key = layer.indicator.question ?? layer.indicator.code
+    groups.set(key, [...(groups.get(key) ?? []), layer])
+  }
+  return [...groups.values()].map((g) =>
+    g.sort((a, b) => a.indicator.code.localeCompare(b.indicator.code)),
+  )
 }
 
 /**
@@ -56,7 +72,12 @@ export function TerritoryLayersCard({ data, name, onClose }: Props) {
           Aucune valeur publiée pour ce territoire.
         </p>
       ) : (
-        data.layers.map((layer) => {
+        groupsOf(data.layers).map((group) => {
+          if (group.length > 1)
+            return (
+              <LayerGroupSection key={group[0].indicator.code} layers={group} />
+            )
+          const [layer] = group
           const { indicator, values } = layer
           const sentence = sentenceOf(layer, territory)
           const latest = values.at(-1)

@@ -46,7 +46,8 @@ export class UploadDatasetVersionDto {
   @IsOptional() @IsString() sheet?: string;
 }
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024;
+// Les bases communales de l'INSEE dépassent 100 Mo : le fichier se garde entier.
+const MAX_FILE_SIZE = 200 * 1024 * 1024;
 const ROWS_PER_INSERT = 1000;
 
 /**
