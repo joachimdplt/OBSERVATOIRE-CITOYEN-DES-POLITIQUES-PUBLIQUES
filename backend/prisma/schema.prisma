@@ -28,6 +28,10 @@ model User {
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
 
+  providers  DataProvider[]
+  datasets   SourceDataset[]
+  indicators IndicatorDefinition[]
+
   @@map("users")
 }
 
@@ -44,12 +48,14 @@ enum TerritoryLevel {
   municipal_district // arrondissements de Paris, Lyon et Marseille
 }
 
-/** Un millésime du COG chargé, avec la trace de ses fichiers. */
+/**
+ * Un millésime du COG chargé, avec la trace de ses fichiers.
+ */
 model TerritoryVintage {
-  year       Int         @id
+  year        Int         @id
   // Les fichiers lus : adresse, empreinte SHA-256, date de lecture.
-  sources    Json
-  importedAt DateTime    @default(now())
+  sources     Json
+  importedAt  DateTime    @default(now())
   territories Territory[]
 
   @@map("territory_vintages")
@@ -73,4 +79,107 @@ model Territory {
   // Alpes et Vaucluse) : un code ne se lit qu'avec son niveau.
   @@unique([level, code, vintage])
   @@map("territories")
+}
+
+// ── Le catalogue : qui publie quoi ──────────────────────────────────────────
+// Un producteur publie des jeux ; un jeu définit des indicateurs. Le code d'un
+// indicateur devient une adresse publique (/indicators/:code) : il ne se
+// renomme pas.
+
+enum ProviderKind {
+  statistical_service // service statistique ministériel : DREES, DEPP, DARES, SDES
+  national_institute // INSEE
+  public_operator // RTE, CNAF, OFB…
+  other
+}
+
+enum Frequency {
+  annual
+  quarterly
+  monthly
+  irregular
+  one_off
+}
+
+/**
+ * Les douze piliers. Un pilier est une donnée, jamais un module de code.
+ */
+enum Pillar {
+  agriculture_food
+  health
+  education_research
+  energy
+  housing
+  transport_infrastructure
+  labour_economy_industry
+  social_protection
+  security_justice_defence
+  environment_resources
+  institutions_public_services
+  culture_sports_associations
+}
+
+/**
+ * Une agrégation qu'un indicateur permet. Aucune = aucune somme ni moyenne.
+ */
+enum Aggregation {
+  sum
+  mean
+}
+
+model DataProvider {
+  id          String          @id @default(uuid())
+  name        String
+  acronym     String          @unique
+  kind        ProviderKind
+  officialUrl String
+  createdById String
+  createdAt   DateTime        @default(now())
+  createdBy   User            @relation(fields: [createdById], references: [id])
+  datasets    SourceDataset[]
+
+  @@map("data_providers")
+}
+
+model SourceDataset {
+  id          String                @id @default(uuid())
+  providerId  String
+  // L'identifiant du jeu chez son producteur, tel quel.
+  producerRef String
+  title       String
+  url         String
+  license     String
+  methodology String
+  frequency   Frequency
+  createdById String
+  createdAt   DateTime              @default(now())
+  provider    DataProvider          @relation(fields: [providerId], references: [id])
+  createdBy   User                  @relation(fields: [createdById], references: [id])
+  indicators  IndicatorDefinition[]
+
+  @@unique([providerId, producerRef])
+  @@map("source_datasets")
+}
+
+model IndicatorDefinition {
+  id                  String        @id @default(uuid())
+  code                String        @unique
+  datasetId           String
+  label               String
+  definition          String
+  // Le champ couvert : « écoliers du premier degré », pas « tous les élèves ».
+  scope               String
+  // L'unité telle que le producteur l'écrit.
+  unit                String
+  pillar              Pillar
+  allowedAggregations Aggregation[]
+  method              String
+  // Ce que l'indicateur ne dit pas : « pas un nombre de médecins manquants ».
+  limits              String
+  createdById         String
+  createdAt           DateTime      @default(now())
+  dataset             SourceDataset @relation(fields: [datasetId], references: [id])
+  createdBy           User          @relation(fields: [createdById], references: [id])
+
+  @@map("indicator_definitions")
 }

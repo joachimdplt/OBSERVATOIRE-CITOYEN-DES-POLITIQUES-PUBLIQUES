@@ -1,0 +1,16 @@
+import { Module } from '@nestjs/common';
+import { CreateDatasetController } from './create-dataset/create-dataset';
+import { CreateIndicatorController } from './create-indicator/create-indicator';
+import { CreateProviderController } from './create-provider/create-provider';
+import { ListCatalogueController } from './list-catalogue/list-catalogue';
+
+/** Le catalogue : les producteurs, leurs jeux, les indicateurs de chaque jeu. */
+@Module({
+  controllers: [
+    CreateProviderController,
+    CreateDatasetController,
+    CreateIndicatorController,
+    ListCatalogueController,
+  ],
+})
+export class CatalogueModule {}
