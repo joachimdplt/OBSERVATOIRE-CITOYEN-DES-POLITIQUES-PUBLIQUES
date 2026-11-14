@@ -47,6 +47,11 @@ export class GetIndicatorController {
       allowedAggregations: indicator.allowedAggregations,
       // Un nombre, ou une catégorie d'une liste fermée avec ses libellés officiels.
       kind: indicator.kind,
+      // La lecture en mots simples.
+      question: indicator.question,
+      readingTemplate: indicator.readingTemplate,
+      scaleLow: indicator.scaleLow,
+      scaleHigh: indicator.scaleHigh,
       categories: indicator.categories,
       periods: periods.map((p) => p.period),
       territoryLevels: levels.map((l) => l.level),

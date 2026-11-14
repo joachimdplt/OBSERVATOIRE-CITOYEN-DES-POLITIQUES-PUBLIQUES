@@ -59,6 +59,8 @@ export class ListTerritoryValuesController {
             kind: true,
             categories: true,
             limits: true,
+            question: true,
+            readingTemplate: true,
           },
         },
       },
@@ -105,6 +107,8 @@ type IndicatorView = {
   kind: string;
   categories: unknown;
   limits: string;
+  question: string | null;
+  readingTemplate: string | null;
 };
 
 const layerOf = (i: IndicatorView) => ({
@@ -116,6 +120,8 @@ const layerOf = (i: IndicatorView) => ({
     kind: i.kind,
     categories: i.categories,
     limits: i.limits,
+    question: i.question,
+    readingTemplate: i.readingTemplate,
     producers: new Set<string>(),
   },
   values: [] as {

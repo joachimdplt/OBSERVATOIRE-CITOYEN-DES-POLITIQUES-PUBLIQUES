@@ -1,7 +1,12 @@
 import { ObservationStatus } from '../generated/prisma/enums';
 
 /** Une catégorie d'une liste fermée, avec le libellé de son texte officiel. */
-export type Category = { code: string; label: string };
+export type Category = {
+  code: string;
+  label: string;
+  /** Ce que la catégorie veut dire, en mots simples, repris du texte officiel. */
+  explanation?: string;
+};
 
 export type CategoryReading =
   | {

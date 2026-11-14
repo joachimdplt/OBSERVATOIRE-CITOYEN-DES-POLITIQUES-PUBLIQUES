@@ -35,7 +35,9 @@ export function LayerPicker({ layers, active, onPick }: Props) {
                   onChange={() => onPick(l.code)}
                 />
                 <span className="space-y-0.5">
-                  <span className="block font-medium">{l.label}</span>
+                  <span className="block font-medium">
+                    {l.question ?? l.label}
+                  </span>
                   <span
                     className={`block text-xs ${l.code === active ? 'text-slate-300' : 'text-slate-500'}`}
                   >

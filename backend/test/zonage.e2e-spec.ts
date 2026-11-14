@@ -292,4 +292,37 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
       'ARS PACA',
     ]);
   });
+
+  it('l’équipe écrit la lecture en mots simples, que le public lit avec l’indicateur', async () => {
+    const reading = (body: object) =>
+      founder
+        .patch('/api/admin/indicators/zonage-medecins-generalistes/reading')
+        .send(body);
+    await reading({ readingTemplate: 'Un bon accès aux soins.' }).expect(400);
+    await reading({ categoryExplanations: { XYZ: 'inconnue' } }).expect(400);
+    await reading({
+      question: 'Ma commune est-elle classée en zone sous-dotée en médecins ?',
+      readingTemplate:
+        '{territoire} est classée « {valeur} » par l’agence régionale de santé.',
+      categoryExplanations: { ZIP: 'Les territoires les plus en tension.' },
+    }).expect(200);
+
+    const sheet = (
+      await request(http(app))
+        .get('/api/public/indicators/zonage-medecins-generalistes')
+        .expect(200)
+    ).body as {
+      question: string;
+      readingTemplate: string;
+      categories: { code: string; explanation?: string }[];
+    };
+    expect(sheet.question).toMatch(/sous-dotée/);
+    expect(sheet.readingTemplate).toContain('{valeur}');
+    expect(sheet.categories.find((c) => c.code === 'ZIP')?.explanation).toBe(
+      'Les territoires les plus en tension.',
+    );
+    expect(
+      sheet.categories.find((c) => c.code === 'ZAC')?.explanation,
+    ).toBeUndefined();
+  });
 });

@@ -16,6 +16,8 @@ type Props = {
   code: string
   unit: string
   categories: Category[] | null
+  /** Pour un nombre : les deux bouts de l'échelle, en mots. */
+  scale: { low: string; high: string } | null
   periods: string[]
   period: string
   onPeriod: (period: string) => void
@@ -33,6 +35,7 @@ export function MapPanel({
   code,
   unit,
   categories,
+  scale,
   periods,
   period,
   onPeriod,
@@ -57,13 +60,15 @@ export function MapPanel({
     [categories],
   )
   const entries = categories
-    ? categories.map((c, i) => ({ color: colors[i], label: c.label }))
-    : (classes?.lower ?? []).map((value, k, lower) => ({
+    ? categories.map((c, i) => ({
+        color: colors[i],
+        label: c.label,
+        detail: c.explanation,
+      }))
+    : (classes?.lower ?? []).map((value, k) => ({
         color: colors[k],
         label:
-          k === 0
-            ? `moins de ${frenchNumber(lower[1] ?? value)}`
-            : `à partir de ${frenchNumber(value)}`,
+          k === 0 ? `${frenchNumber(value)}` : `dès ${frenchNumber(value)}`,
       }))
   const [browser, setBrowser] = useState(false)
   useEffect(() => setBrowser(true), [])
@@ -115,10 +120,11 @@ export function MapPanel({
             <MapLegend
               title={unit}
               entries={entries}
+              scale={categories ? null : scale}
               note={
                 categories
                   ? 'Les libellés sont ceux du texte officiel.'
-                  : 'Cinq classes de même effectif. Les bornes sont des valeurs publiées, non arrondies.'
+                  : 'Cinq groupes de communes de même taille. Les chiffres sont des valeurs publiées, non arrondies.'
               }
             />
           )}

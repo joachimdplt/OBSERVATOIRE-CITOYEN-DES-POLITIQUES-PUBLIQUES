@@ -56,6 +56,7 @@ export class ListIndicatorsController {
         pillar: i.pillar,
         unit: i.unit,
         kind: i.kind,
+        question: i.question,
         // Un producteur pour l'APL ; une ARS par région pour le zonage.
         producer: [
           ...new Set(

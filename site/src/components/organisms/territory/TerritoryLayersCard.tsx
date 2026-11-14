@@ -1,23 +1,38 @@
 import { Link } from '@tanstack/react-router'
 import { X } from 'lucide-react'
-import type { TerritoryValues } from '../../../types/public'
+import type { TerritoryLayer, TerritoryValues } from '../../../types/public'
+import { frenchNumber } from '../../../utils/number'
+import { readingOf } from '../../../utils/reading'
 import { ValueCell } from '../indicators/ValueCell'
 
 type Props = { data: TerritoryValues | null; name: string; onClose: () => void }
 
+/** La phrase de lecture de la valeur la plus récente, si elle est documentée. */
+function sentenceOf({ indicator, values }: TerritoryLayer, territory: string) {
+  const latest = values.at(-1)
+  if (!latest || latest.status !== 'documented') return null
+  const value =
+    latest.category !== null
+      ? (indicator.categories?.find((c) => c.code === latest.category)?.label ??
+        latest.category)
+      : latest.value !== null
+        ? frenchNumber(latest.value)
+        : null
+  return value ? readingOf(indicator.readingTemplate, territory, value) : null
+}
+
 /**
- * La fiche d'une commune : toutes les couches publiées, chacune avec ses
- * valeurs par année côte à côte. Aucun écart n'est calculé ; le lecteur
- * compare.
+ * La fiche d'une commune : pour chaque couche, la phrase de lecture du
+ * producteur, puis les valeurs par année côte à côte. Aucun écart n'est
+ * calculé ; le lecteur compare.
  */
 export function TerritoryLayersCard({ data, name, onClose }: Props) {
+  const territory = data?.territory.name ?? name
   return (
     <div className="surface space-y-5 p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-lg font-semibold">
-            {data?.territory.name ?? name}
-          </p>
+          <p className="text-lg font-semibold">{territory}</p>
           {data && (
             <p className="font-mono text-xs text-slate-400">
               {data.territory.code}
@@ -40,44 +55,73 @@ export function TerritoryLayersCard({ data, name, onClose }: Props) {
           Aucune valeur publiée pour ce territoire.
         </p>
       ) : (
-        data.layers.map(({ indicator, values }) => (
-          <section
-            key={indicator.code}
-            className="space-y-2 border-t border-slate-100 pt-4"
-          >
-            <Link
-              to="/indicators/$code"
-              params={{ code: indicator.code }}
-              className="block text-sm font-medium hover:underline"
+        data.layers.map((layer) => {
+          const { indicator, values } = layer
+          const sentence = sentenceOf(layer, territory)
+          const latest = values.at(-1)
+          const explanation = indicator.categories?.find(
+            (c) => c.code === latest?.category,
+          )?.explanation
+          return (
+            <section
+              key={indicator.code}
+              className="space-y-2 border-t border-slate-100 pt-4"
             >
-              {indicator.label}
-            </Link>
-            <dl className="flex flex-wrap gap-x-5 gap-y-2">
-              {values.map((v) => (
-                <div
-                  key={v.period}
-                  title={`Ligne ${v.sourceRow} du fichier du producteur`}
+              <p className="text-xs font-medium text-slate-500">
+                {indicator.question ?? indicator.label}
+              </p>
+              {sentence && (
+                <p className="text-sm leading-relaxed text-slate-900">
+                  {sentence}
+                </p>
+              )}
+              {explanation && (
+                <p className="text-xs text-slate-500">{explanation}</p>
+              )}
+              {values.length > 1 && (
+                <dl className="flex flex-wrap gap-x-5 gap-y-2">
+                  {values.map((v) => (
+                    <div
+                      key={v.period}
+                      title={`Ligne ${v.sourceRow} du fichier du producteur`}
+                    >
+                      <dt className="text-xs text-slate-500">{v.period}</dt>
+                      <dd className="text-base">
+                        <ValueCell
+                          observation={v}
+                          categories={indicator.categories}
+                        />
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+              {!sentence && values.length === 1 && latest && (
+                <p className="text-base">
+                  <ValueCell
+                    observation={latest}
+                    categories={indicator.categories}
+                  />
+                </p>
+              )}
+              <p className="text-xs text-slate-400">
+                {indicator.producer} · ligne{values.length > 1 ? 's' : ''} du
+                fichier : {values.map((v) => v.sourceRow).join(', ')}
+                {values.some((v) => v.publication.status === 'preprint')
+                  ? ' · prépublication'
+                  : ''}{' '}
+                ·{' '}
+                <Link
+                  to="/indicators/$code"
+                  params={{ code: indicator.code }}
+                  className="underline"
                 >
-                  <dt className="text-xs text-slate-500">{v.period}</dt>
-                  <dd className="text-base">
-                    <ValueCell
-                      observation={v}
-                      categories={indicator.categories}
-                    />
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            <p className="text-xs text-slate-500">
-              {indicator.unit} · {indicator.producer} · ligne
-              {values.length > 1 ? 's' : ''} du fichier :{' '}
-              {values.map((v) => v.sourceRow).join(', ')}
-              {values.some((v) => v.publication.status === 'preprint')
-                ? ' · prépublication'
-                : ''}
-            </p>
-          </section>
-        ))
+                  comment lire ce chiffre
+                </Link>
+              </p>
+            </section>
+          )
+        })
       )}
     </div>
   )

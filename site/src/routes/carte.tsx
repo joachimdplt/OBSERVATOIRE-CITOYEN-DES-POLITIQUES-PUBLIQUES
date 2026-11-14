@@ -68,7 +68,7 @@ function MapPage() {
   return (
     <main className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[260px_1fr]">
       <aside className="space-y-3">
-        <h1 className="text-lg font-semibold">Couches</h1>
+        <p className="text-sm font-semibold">Les couches de la carte</p>
         <LayerPicker
           layers={layers}
           active={sheet.code}
@@ -80,50 +80,69 @@ function MapPage() {
           }
         />
       </aside>
-      <MapPanel
-        code={sheet.code}
-        unit={sheet.unit}
-        categories={sheet.kind === 'category' ? sheet.categories : null}
-        periods={sheet.periods}
-        period={period}
-        onPeriod={(p) =>
-          navigate({ search: (s) => ({ ...s, period: p }), ...keep })
-        }
-        onSelect={(t) =>
-          navigate({
-            search: (s) => ({
-              ...s,
-              territory: t.code,
-              level: t.level,
-              name: t.name,
-            }),
-            ...keep,
-          })
-        }
-        side={
-          filters.territory ? (
-            <TerritoryLayersCard
-              data={territory}
-              name={filters.name ?? filters.territory}
-              onClose={() =>
-                navigate({
-                  search: (s) => ({
-                    ...s,
-                    territory: undefined,
-                    level: undefined,
-                    name: undefined,
-                  }),
-                  ...keep,
-                })
-              }
-            />
-          ) : (
-            <p className="surface p-5 text-sm text-slate-600">
-              Cliquez sur une commune pour lire toutes ses données.
-            </p>
-          )
-        }
-      />
+      <div className="space-y-4">
+        <header className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance">
+            {sheet.question ?? sheet.label}
+          </h1>
+          <p className="text-sm text-slate-500">
+            {sheet.label} ·{' '}
+            {sheet.provenance
+              .map((p) => p.producer.acronym)
+              .filter((a, i, all) => all.indexOf(a) === i)
+              .join(', ')}
+          </p>
+        </header>
+        <MapPanel
+          code={sheet.code}
+          unit={sheet.unit}
+          categories={sheet.kind === 'category' ? sheet.categories : null}
+          scale={
+            sheet.scaleLow && sheet.scaleHigh
+              ? { low: sheet.scaleLow, high: sheet.scaleHigh }
+              : null
+          }
+          periods={sheet.periods}
+          period={period}
+          onPeriod={(p) =>
+            navigate({ search: (s) => ({ ...s, period: p }), ...keep })
+          }
+          onSelect={(t) =>
+            navigate({
+              search: (s) => ({
+                ...s,
+                territory: t.code,
+                level: t.level,
+                name: t.name,
+              }),
+              ...keep,
+            })
+          }
+          side={
+            filters.territory ? (
+              <TerritoryLayersCard
+                data={territory}
+                name={filters.name ?? filters.territory}
+                onClose={() =>
+                  navigate({
+                    search: (s) => ({
+                      ...s,
+                      territory: undefined,
+                      level: undefined,
+                      name: undefined,
+                    }),
+                    ...keep,
+                  })
+                }
+              />
+            ) : (
+              <p className="surface p-5 text-sm text-slate-600">
+                Cliquez sur une commune pour lire toutes ses données.
+              </p>
+            )
+          }
+        />
+      </div>
     </main>
   )
 }

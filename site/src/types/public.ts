@@ -15,7 +15,7 @@ export type Pillar =
 export type PublicStatus = 'preprint' | 'published'
 
 /** Une catégorie d'une liste fermée, avec le libellé de son texte officiel. */
-export type Category = { code: string; label: string }
+export type Category = { code: string; label: string; explanation?: string }
 
 export type IndicatorKind = 'number' | 'category'
 
@@ -28,6 +28,7 @@ export type IndicatorLine = {
   pillar: Pillar
   unit: string
   kind: IndicatorKind
+  question: string | null
   producer: string
   vintage: string
   vintages: string[]
@@ -73,6 +74,10 @@ export type IndicatorSheet = {
   allowedAggregations: ('sum' | 'mean')[]
   kind: IndicatorKind
   categories: Category[] | null
+  question: string | null
+  readingTemplate: string | null
+  scaleLow: string | null
+  scaleHigh: string | null
   periods: string[]
   territoryLevels: string[]
   /** Une provenance par millésime visible, le plus récent en premier. */
@@ -106,6 +111,8 @@ export type TerritoryLayer = {
     kind: IndicatorKind
     categories: Category[] | null
     limits: string
+    question: string | null
+    readingTemplate: string | null
     producer: string
   }
   values: (Omit<Observation, 'territory' | 'vintage'> & {

@@ -25,6 +25,7 @@ import {
 import { Requires, SessionGuard } from '../../../auth/session.guard';
 import { checkCategories } from '../../../domain/category';
 import { readIndicatorCode } from '../../../domain/indicator-code';
+import { checkReadingTemplate } from '../../../domain/reading';
 import {
   Aggregation,
   IndicatorKind,
@@ -36,9 +37,15 @@ import { isUniqueViolation } from '../../../prisma/unique-violation';
 class CategoryDto {
   @IsString() @IsNotEmpty() code!: string;
   @IsString() @IsNotEmpty() label!: string;
+  @IsOptional() @IsString() explanation?: string;
 }
 
 export class CreateIndicatorDto {
+  /** La lecture en mots simples, reprise du producteur. */
+  @IsOptional() @IsString() question?: string;
+  @IsOptional() @IsString() readingTemplate?: string;
+  @IsOptional() @IsString() scaleLow?: string;
+  @IsOptional() @IsString() scaleHigh?: string;
   /** Un nombre, par défaut, ou une catégorie d'une liste fermée. */
   @IsOptional() @IsEnum(IndicatorKind) kind?: IndicatorKind;
   /** Pour une catégorie : la liste fermée, avec les libellés du texte officiel. */
@@ -97,6 +104,11 @@ export class CreateIndicatorController {
       );
     }
 
+    if (dto.readingTemplate) {
+      const errors = checkReadingTemplate(dto.readingTemplate);
+      if (errors.length > 0) throw new BadRequestException(errors);
+    }
+
     const code = readIndicatorCode(dto.code);
     if (!code.valid) throw new BadRequestException(code.reason);
 
@@ -117,12 +129,19 @@ export class CreateIndicatorController {
           unit: dto.unit.trim(),
           pillar: dto.pillar,
           allowedAggregations: dto.allowedAggregations,
+          question: dto.question?.trim() || null,
+          readingTemplate: dto.readingTemplate?.trim() || null,
+          scaleLow: dto.scaleLow?.trim() || null,
+          scaleHigh: dto.scaleHigh?.trim() || null,
           kind,
           categories:
             kind === IndicatorKind.category
               ? (dto.categories ?? []).map((c) => ({
                   code: c.code.trim(),
                   label: c.label.trim(),
+                  ...(c.explanation?.trim()
+                    ? { explanation: c.explanation.trim() }
+                    : {}),
                 }))
               : undefined,
           method: dto.method.trim(),

@@ -194,6 +194,14 @@ model IndicatorDefinition {
   method              String
   // Ce que l'indicateur ne dit pas : « pas un nombre de médecins manquants ».
   limits              String
+  // La lecture en mots simples, reprise du producteur et relue comme le reste.
+  // Une question pour titre : « Est-ce facile de voir un généraliste ? »
+  question            String?
+  // La phrase de lecture du producteur, avec {territoire} et {valeur}.
+  readingTemplate     String?
+  // Les deux bouts de l'échelle d'un nombre : « accès plus faible », « accès plus élevé ».
+  scaleLow            String?
+  scaleHigh           String?
   createdById         String
   createdAt           DateTime          @default(now())
   // Les jeux qui alimentent l'indicateur : un seul pour l'APL de la DREES,

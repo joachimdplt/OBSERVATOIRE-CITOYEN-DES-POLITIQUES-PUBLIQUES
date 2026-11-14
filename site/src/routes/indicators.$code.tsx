@@ -40,8 +40,11 @@ function IndicatorPage() {
           {sheet.periods.join(', ')}
         </p>
         <h1 className="text-3xl font-semibold tracking-tight text-balance">
-          {sheet.label}
+          {sheet.question ?? sheet.label}
         </h1>
+        {sheet.question && (
+          <p className="text-sm text-slate-500">{sheet.label}</p>
+        )}
         <p className="text-sm text-slate-600">{sheet.unit}</p>
         <PublicationBadge status={latest.status} label={latest.statusLabel} />
       </header>
