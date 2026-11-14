@@ -76,11 +76,15 @@ function MapPage() {
   const regional = sheet.comparisonScale === 'regional'
   // La carte se lit une région à la fois ; un indicateur national peut aussi
   // se voir sur la France entière.
+  // La carte s'ouvre sur la France entière ; une région se choisit pour
+  // zoomer. Un indicateur décidé région par région attend son choix.
   const region =
     sheet.regions.some((r) => r.code === filters.region) ||
     (!regional && filters.region === FRANCE)
       ? filters.region
-      : undefined
+      : regional
+        ? undefined
+        : FRANCE
 
   return (
     <main className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[260px_1fr]">
