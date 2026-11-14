@@ -30,3 +30,47 @@ model User {
 
   @@map("users")
 }
+
+// ── Les territoires ─────────────────────────────────────────────────────────
+// Le référentiel du Code officiel géographique de l'INSEE, par millésime. Une
+// commune fusionnée disparaît du millésime suivant mais reste dans celui où
+// ses observations ont été publiées : un territoire n'est jamais réécrit.
+
+enum TerritoryLevel {
+  country
+  region
+  department
+  commune
+  municipal_district // arrondissements de Paris, Lyon et Marseille
+}
+
+/** Un millésime du COG chargé, avec la trace de ses fichiers. */
+model TerritoryVintage {
+  year       Int         @id
+  // Les fichiers lus : adresse, empreinte SHA-256, date de lecture.
+  sources    Json
+  importedAt DateTime    @default(now())
+  territories Territory[]
+
+  @@map("territory_vintages")
+}
+
+model Territory {
+  id             String         @id @default(uuid())
+  level          TerritoryLevel
+  // Le code du producteur, tel quel : 01001, 2A004, 971, 84.
+  code           String
+  name           String
+  vintage        Int
+  regionCode     String?
+  departmentCode String?
+  // Pour un arrondissement municipal : sa commune.
+  communeCode    String?
+
+  territoryVintage TerritoryVintage @relation(fields: [vintage], references: [year])
+
+  // Le même code désigne une région et un département (84 : Auvergne-Rhône-
+  // Alpes et Vaucluse) : un code ne se lit qu'avec son niveau.
+  @@unique([level, code, vintage])
+  @@map("territories")
+}
