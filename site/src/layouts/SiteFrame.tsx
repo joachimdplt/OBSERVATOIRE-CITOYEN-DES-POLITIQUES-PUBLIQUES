@@ -22,6 +22,9 @@ export function SiteFrame({ children }: { children: ReactNode }) {
             <Link to="/" hash="contribuer" className="hover:text-slate-900">
               Contribuer
             </Link>
+            <Link to="/developpeurs" className="hover:text-slate-900">
+              Développeurs
+            </Link>
           </nav>
         </div>
       </header>

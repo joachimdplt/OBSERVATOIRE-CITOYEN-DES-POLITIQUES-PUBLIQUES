@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CarteRouteImport } from './routes/carte'
+import { Route as DeveloppeursRouteImport } from './routes/developpeurs'
 import { Route as IndicatorsCodeRouteImport } from './routes/indicators.$code'
 import { Route as PillarsPillarRouteImport } from './routes/pillars.$pillar'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const CarteRoute = CarteRouteImport.update({
   id: '/carte',
   path: '/carte',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeveloppeursRoute = DeveloppeursRouteImport.update({
+  id: '/developpeurs',
+  path: '/developpeurs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndicatorsCodeRoute = IndicatorsCodeRouteImport.update({
@@ -38,12 +44,14 @@ const PillarsPillarRoute = PillarsPillarRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/carte': typeof CarteRoute
+  '/developpeurs': typeof DeveloppeursRoute
   '/indicators/$code': typeof IndicatorsCodeRoute
   '/pillars/$pillar': typeof PillarsPillarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/carte': typeof CarteRoute
+  '/developpeurs': typeof DeveloppeursRoute
   '/indicators/$code': typeof IndicatorsCodeRoute
   '/pillars/$pillar': typeof PillarsPillarRoute
 }
@@ -51,20 +59,30 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/carte': typeof CarteRoute
+  '/developpeurs': typeof DeveloppeursRoute
   '/indicators/$code': typeof IndicatorsCodeRoute
   '/pillars/$pillar': typeof PillarsPillarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/carte' | '/indicators/$code' | '/pillars/$pillar'
+  fullPaths:
+    '/' | '/carte' | '/developpeurs' | '/indicators/$code' | '/pillars/$pillar'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/carte' | '/indicators/$code' | '/pillars/$pillar'
-  id: '__root__' | '/' | '/carte' | '/indicators/$code' | '/pillars/$pillar'
+  to:
+    '/' | '/carte' | '/developpeurs' | '/indicators/$code' | '/pillars/$pillar'
+  id:
+    | '__root__'
+    | '/'
+    | '/carte'
+    | '/developpeurs'
+    | '/indicators/$code'
+    | '/pillars/$pillar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CarteRoute: typeof CarteRoute
+  DeveloppeursRoute: typeof DeveloppeursRoute
   IndicatorsCodeRoute: typeof IndicatorsCodeRoute
   PillarsPillarRoute: typeof PillarsPillarRoute
 }
@@ -83,6 +101,13 @@ declare module '@tanstack/react-router' {
       path: '/carte'
       fullPath: '/carte'
       preLoaderRoute: typeof CarteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/developpeurs': {
+      id: '/developpeurs'
+      path: '/developpeurs'
+      fullPath: '/developpeurs'
+      preLoaderRoute: typeof DeveloppeursRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/indicators/$code': {
@@ -105,6 +130,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CarteRoute: CarteRoute,
+  DeveloppeursRoute: DeveloppeursRoute,
   IndicatorsCodeRoute: IndicatorsCodeRoute,
   PillarsPillarRoute: PillarsPillarRoute,
 }

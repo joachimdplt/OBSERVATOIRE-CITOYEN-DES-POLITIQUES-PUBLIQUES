@@ -293,4 +293,16 @@ describe('le public consulte un indicateur', () => {
     });
     await visitor().get('/api/public/territories?q=a').expect(400);
   });
+
+  it('l’API publique se lit depuis un autre site ; l’administration, non', async () => {
+    const res = await visitor()
+      .get('/api/public/indicators')
+      .set('Origin', 'https://exemple.org')
+      .expect(200);
+    expect(res.headers['access-control-allow-origin']).toBe('*');
+    const admin = await visitor()
+      .get('/api/admin/catalogue')
+      .set('Origin', 'https://exemple.org');
+    expect(admin.headers['access-control-allow-origin']).toBeUndefined();
+  });
 });
