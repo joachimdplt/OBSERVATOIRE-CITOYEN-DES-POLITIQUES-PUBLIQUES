@@ -12,8 +12,13 @@ import type {
  */
 const API = process.env.API_ORIGIN ?? 'http://localhost:3001'
 
+/** Au-delà, la page dit que les données sont indisponibles plutôt que d'attendre. */
+const TIMEOUT_MS = 5000
+
 async function get<T>(path: string): Promise<T | null> {
-  const res = await fetch(`${API}/api/public${path}`)
+  const res = await fetch(`${API}/api/public${path}`, {
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  })
   if (res.status === 404) return null
   if (!res.ok) throw new Error(`API publique : ${res.status} sur ${path}`)
   return (await res.json()) as T
