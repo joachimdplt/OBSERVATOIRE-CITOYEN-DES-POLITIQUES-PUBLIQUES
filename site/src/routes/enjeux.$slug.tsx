@@ -8,6 +8,7 @@ import { ArrowRight, Map as MapIcon, X } from 'lucide-react'
 import { z } from 'zod'
 import { CommuneSearch } from '../components/molecules/CommuneSearch'
 import { ValueCell } from '../components/organisms/indicators/ValueCell'
+import { MeasureComparison } from '../components/organisms/publications/MeasureComparison'
 import { MeasureList } from '../components/organisms/publications/MeasureList'
 import { pillarLabel } from '../data/pillars'
 import { getPublication, getTerritoryValues } from '../services/public-api'
@@ -132,6 +133,8 @@ function PublicationPage() {
           )}
         </div>
       </section>
+
+      <MeasureComparison sections={p.sections} />
 
       <section className="bg-[#F4F6F8] px-6 py-16 md:px-10">
         <ol className="mx-auto max-w-[920px] space-y-8">

@@ -1,6 +1,7 @@
 import { ArrowUpRight } from 'lucide-react'
 import type { PublicationSheet } from '../../../types/public'
 import { frenchDate } from '../../../utils/date'
+import { measureAnchor } from './MeasureComparison'
 
 type Measure = PublicationSheet['sections'][number]['measures'][number]
 
@@ -36,7 +37,8 @@ export function MeasureList({ measures }: { measures: Measure[] }) {
           return (
             <li
               key={`${d.url}-${m.quote.slice(0, 40)}`}
-              className="rounded-2xl bg-[#F4F6F8] p-5"
+              id={measureAnchor(m)}
+              className="scroll-mt-32 rounded-2xl bg-[#F4F6F8] p-5"
             >
               <blockquote className="border-l-2 border-[#0B1A2A] pl-4 text-[0.98rem] leading-relaxed text-[#0B1A2A]">
                 «&nbsp;{m.quote}&nbsp;»
