@@ -1,9 +1,9 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useIndicatorMap } from '../../../hooks/useIndicatorMap'
 import { categoryClasses, quantileClasses } from '../../../domain/classes'
-import type { Category, Observation } from '../../../types/public'
+import type { Category } from '../../../types/public'
 import { frenchNumber } from '../../../utils/number'
-import { TerritoryCard } from '../indicators/TerritoryCard'
 import { MapLegend } from './MapLegend'
 import { CLASS_COLORS, categoryColors } from './palette'
 
@@ -18,27 +18,26 @@ type Props = {
   categories: Category[] | null
   periods: string[]
   period: string
-  selected: {
+  onPeriod: (period: string) => void
+  onSelect: (territory: {
     code: string
     name: string
-    observations: Observation[] | null
-  } | null
-  onPeriod: (period: string) => void
-  onSelect: (territory: { code: string; name: string }) => void
-  onClose: () => void
+    level: 'commune' | 'municipal_district'
+  }) => void
+  /** Ce qui s'affiche à côté de la carte : la fiche de la commune choisie, ou une consigne. */
+  side: ReactNode
 }
 
-/** La carte de France d'un indicateur, l'année choisie, la légende, et le territoire cliqué. */
+/** La carte de France, une couche à la fois : l'année choisie, la légende, et à côté ce qu'on lui confie. */
 export function MapPanel({
   code,
   unit,
   categories,
   periods,
   period,
-  selected,
   onPeriod,
   onSelect,
-  onClose,
+  side,
 }: Props) {
   const { values, failed } = useIndicatorMap(code, period)
   const classes = useMemo(
@@ -111,20 +110,7 @@ export function MapPanel({
           )}
         </div>
         <div className="space-y-4">
-          {selected ? (
-            <TerritoryCard
-              categories={categories}
-              name={selected.name}
-              code={selected.code}
-              observations={selected.observations}
-              unit={unit}
-              onClose={onClose}
-            />
-          ) : (
-            <p className="surface p-5 text-sm text-slate-600">
-              Cliquez sur une commune pour lire ses valeurs.
-            </p>
-          )}
+          {side}
           {entries.length > 0 && (
             <MapLegend
               title={unit}
@@ -137,8 +123,7 @@ export function MapPanel({
             />
           )}
           <p className="text-xs text-slate-400">
-            Outre-mer : à venir sur la carte. Ses communes ont déjà leurs
-            valeurs, par le détail.
+            Outre-mer : à venir sur la carte.
           </p>
         </div>
       </div>

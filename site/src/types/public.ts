@@ -95,3 +95,25 @@ export type ObservationPage = {
   offset: number
   observations: Observation[]
 }
+
+/** Une couche de la carte, pour un territoire : ses valeurs par période. */
+export type TerritoryLayer = {
+  indicator: {
+    code: string
+    label: string
+    unit: string
+    pillar: Pillar
+    kind: IndicatorKind
+    categories: Category[] | null
+    limits: string
+    producer: string
+  }
+  values: (Omit<Observation, 'territory' | 'vintage'> & {
+    publication: { status: PublicStatus; label: string }
+  })[]
+}
+
+export type TerritoryValues = {
+  territory: { code: string; level: string; name: string }
+  layers: TerritoryLayer[]
+}

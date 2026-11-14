@@ -1,0 +1,129 @@
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { z } from 'zod'
+import { LayerPicker } from '../components/organisms/map/LayerPicker'
+import { MapPanel } from '../components/organisms/map/MapPanel'
+import { TerritoryLayersCard } from '../components/organisms/territory/TerritoryLayersCard'
+import {
+  getIndicator,
+  getTerritoryValues,
+  listIndicators,
+} from '../services/public-api'
+import { seo } from '../utils/seo'
+
+const search = z.object({
+  layer: z.string().optional(),
+  period: z.string().optional(),
+  territory: z.string().optional(),
+  level: z.string().optional(),
+  name: z.string().optional(),
+})
+
+export const Route = createFileRoute('/carte')({
+  validateSearch: search,
+  loaderDeps: ({ search: s }) => ({
+    layer: s.layer,
+    territory: s.territory,
+    level: s.level,
+  }),
+  loader: async ({ deps }) => {
+    const layers = (await listIndicators({ data: {} })) ?? []
+    const code = deps.layer ?? layers.at(0)?.code
+    const sheet = code ? await getIndicator({ data: { code } }) : null
+    const territory =
+      deps.territory && deps.level
+        ? await getTerritoryValues({
+            data: { level: deps.level, code: deps.territory },
+          })
+        : null
+    return { layers, sheet, territory }
+  },
+  head: () => ({
+    meta: seo({
+      title: 'Carte',
+      description:
+        'La France commune par commune : chaque donnée publiée est une couche, chaque commune a sa fiche.',
+    }),
+  }),
+  component: MapPage,
+})
+
+function MapPage() {
+  const { layers, sheet, territory } = Route.useLoaderData()
+  const filters = Route.useSearch()
+  const navigate = useNavigate({ from: Route.fullPath })
+  const keep = { replace: true, resetScroll: false } as const
+
+  if (!sheet) {
+    return (
+      <p className="mx-auto max-w-5xl px-6 py-24 text-sm text-slate-500">
+        Aucune donnée publiée pour l’instant.
+      </p>
+    )
+  }
+  const period =
+    filters.period && sheet.periods.includes(filters.period)
+      ? filters.period
+      : sheet.periods.at(-1)!
+
+  return (
+    <main className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[260px_1fr]">
+      <aside className="space-y-3">
+        <h1 className="text-lg font-semibold">Couches</h1>
+        <LayerPicker
+          layers={layers}
+          active={sheet.code}
+          onPick={(layer) =>
+            navigate({
+              search: (s) => ({ ...s, layer, period: undefined }),
+              ...keep,
+            })
+          }
+        />
+      </aside>
+      <MapPanel
+        code={sheet.code}
+        unit={sheet.unit}
+        categories={sheet.kind === 'category' ? sheet.categories : null}
+        periods={sheet.periods}
+        period={period}
+        onPeriod={(p) =>
+          navigate({ search: (s) => ({ ...s, period: p }), ...keep })
+        }
+        onSelect={(t) =>
+          navigate({
+            search: (s) => ({
+              ...s,
+              territory: t.code,
+              level: t.level,
+              name: t.name,
+            }),
+            ...keep,
+          })
+        }
+        side={
+          filters.territory ? (
+            <TerritoryLayersCard
+              data={territory}
+              name={filters.name ?? filters.territory}
+              onClose={() =>
+                navigate({
+                  search: (s) => ({
+                    ...s,
+                    territory: undefined,
+                    level: undefined,
+                    name: undefined,
+                  }),
+                  ...keep,
+                })
+              }
+            />
+          ) : (
+            <p className="surface p-5 text-sm text-slate-600">
+              Cliquez sur une commune pour lire toutes ses données.
+            </p>
+          )
+        }
+      />
+    </main>
+  )
+}

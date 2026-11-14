@@ -16,13 +16,14 @@ export function SiteFrame({ children }: { children: ReactNode }) {
           <Link to="/" className="text-sm font-semibold tracking-tight">
             Observatoire citoyen
           </Link>
-          <Link
-            to="/"
-            hash="indicateurs"
-            className="text-sm text-slate-600 hover:text-slate-900"
-          >
-            Indicateurs
-          </Link>
+          <nav className="flex items-center gap-5 text-sm text-slate-600">
+            <Link to="/carte" className="hover:text-slate-900">
+              Carte
+            </Link>
+            <Link to="/" hash="indicateurs" className="hover:text-slate-900">
+              Indicateurs
+            </Link>
+          </nav>
         </div>
       </header>
       <div className="flex-1">{children}</div>

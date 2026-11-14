@@ -13,7 +13,11 @@ type Props = {
   classes: Map<string, number>
   /** La teinte de chaque classe, dans l'ordre. */
   colors: readonly string[]
-  onSelect: (territory: { code: string; name: string }) => void
+  onSelect: (territory: {
+    code: string
+    name: string
+    level: 'commune' | 'municipal_district'
+  }) => void
 }
 
 /**
@@ -82,11 +86,16 @@ export function IndicatorMap({ classes, colors, onSelect }: Props) {
       instance.on('click', [...LAYERS], (e: MapLayerMouseEvent) => {
         const props = e.features?.[0]?.properties as
           { code_insee?: string; nom_officiel?: string } | undefined
-        if (props?.code_insee)
+        if (props?.code_insee) {
           select.current({
             code: props.code_insee,
             name: props.nom_officiel ?? props.code_insee,
+            level:
+              e.features?.[0]?.layer.id === 'arrondissement_municipal'
+                ? 'municipal_district'
+                : 'commune',
           })
+        }
       })
       for (const layer of LAYERS) {
         instance.on(

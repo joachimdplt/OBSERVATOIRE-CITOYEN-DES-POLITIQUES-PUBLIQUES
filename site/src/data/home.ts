@@ -7,5 +7,5 @@ export const HOME = {
     'Aucun chiffre n’est déduit : ni manque, ni besoin, ni écart que la source ne publie pas.',
     'Aucun score, aucun classement, aucun verdict sur un parti.',
   ],
-  explore: 'Explorer les indicateurs',
+  explore: 'Voir la carte',
 }

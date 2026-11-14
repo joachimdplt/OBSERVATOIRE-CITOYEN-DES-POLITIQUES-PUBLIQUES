@@ -232,4 +232,34 @@ describe('le public consulte un indicateur', () => {
     for (const page of pages)
       expect(JSON.stringify(page.body)).not.toMatch(/@/);
   });
+
+  it('une commune cliquée donne toutes ses couches publiées, chacune avec ses périodes', async () => {
+    await preprinted('2023', '3,1');
+    await preprinted('2024', '3,3');
+    await validatedVersion(founder, datasetId, '2025', '9,9');
+    const { territory, layers } = (
+      await visitor()
+        .get('/api/public/territories/commune/01001/values')
+        .expect(200)
+    ).body as {
+      territory: { name: string };
+      layers: {
+        indicator: { code: string; producer: string };
+        values: { period: string; value: string }[];
+      }[];
+    };
+    expect(territory.name).toBe("L'Abergement-Clémenciat");
+    expect(layers).toHaveLength(1);
+    expect(layers[0].indicator).toMatchObject({
+      code: CODE,
+      producer: 'DREES',
+    });
+    expect(layers[0].values.map((v) => [v.period, v.value])).toEqual([
+      ['2023', '3.1'],
+      ['2024', '3.3'],
+    ]);
+    await visitor()
+      .get('/api/public/territories/commune/99999/values')
+      .expect(404);
+  });
 });

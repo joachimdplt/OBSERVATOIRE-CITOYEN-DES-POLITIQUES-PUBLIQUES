@@ -16,7 +16,7 @@ export function ValueCell({
   observation,
   categories,
 }: {
-  observation: Observation
+  observation: Pick<Observation, 'status' | 'value' | 'category'>
   categories?: Category[] | null
 }) {
   if (observation.status === 'documented' && observation.category !== null) {

@@ -1,39 +1,21 @@
-import {
-  Link,
-  createFileRoute,
-  notFound,
-  useNavigate,
-} from '@tanstack/react-router'
-import { z } from 'zod'
+import { Link, createFileRoute, notFound } from '@tanstack/react-router'
+import { Map as MapIcon } from 'lucide-react'
 import { Term } from '../components/atoms/Term'
 import { PublicationBadge } from '../components/molecules/PublicationBadge'
-import { MapPanel } from '../components/organisms/map/MapPanel'
-import { ObservationsTable } from '../components/organisms/indicators/ObservationsTable'
 import { ProvenancePanel } from '../components/organisms/indicators/ProvenancePanel'
 import { pillarLabel } from '../data/pillars'
-import { getIndicator, listObservations } from '../services/public-api'
+import { getIndicator } from '../services/public-api'
 import { seo } from '../utils/seo'
 
-const search = z.object({
-  territory: z.string().optional(),
-  name: z.string().optional(),
-  period: z.string().optional(),
-})
-
+/**
+ * La fiche d'un indicateur : ce qu'il mesure, comment le lire, d'où il vient.
+ * Ses valeurs se lisent sur la carte, où il est une couche parmi les autres.
+ */
 export const Route = createFileRoute('/indicators/$code')({
-  validateSearch: search,
-  loaderDeps: ({ search: s }) => ({ territory: s.territory }),
-  loader: async ({ params, deps }) => {
+  loader: async ({ params }) => {
     const sheet = await getIndicator({ data: { code: params.code } })
     if (!sheet) throw notFound()
-    const selected = deps.territory
-      ? ((
-          await listObservations({
-            data: { code: params.code, territory: deps.territory, offset: 0 },
-          })
-        )?.observations ?? [])
-      : null
-    return { sheet, selected }
+    return { sheet }
   },
   head: ({ loaderData }) => ({
     meta: loaderData
@@ -47,17 +29,15 @@ export const Route = createFileRoute('/indicators/$code')({
 })
 
 function IndicatorPage() {
-  const { sheet, selected } = Route.useLoaderData()
-  const filters = Route.useSearch()
-  const navigate = useNavigate({ from: Route.fullPath })
+  const { sheet } = Route.useLoaderData()
   const [latest] = sheet.provenance
-  const period = filters.period ?? sheet.periods[sheet.periods.length - 1]
 
   return (
-    <main className="mx-auto max-w-6xl space-y-8 px-6 py-10">
+    <main className="mx-auto max-w-5xl space-y-8 px-6 py-10">
       <header className="space-y-3">
         <p className="text-xs text-slate-500">
-          {pillarLabel(sheet.pillar)} · source {latest.producer.acronym}
+          {pillarLabel(sheet.pillar)} · source {latest.producer.acronym} ·{' '}
+          {sheet.periods.join(', ')}
         </p>
         <h1 className="text-3xl font-semibold tracking-tight text-balance">
           {sheet.label}
@@ -66,83 +46,30 @@ function IndicatorPage() {
         <PublicationBadge status={latest.status} label={latest.statusLabel} />
       </header>
 
-      <MapPanel
-        code={sheet.code}
-        unit={sheet.unit}
-        categories={sheet.kind === 'category' ? sheet.categories : null}
-        periods={sheet.periods}
-        period={period}
-        selected={
-          filters.territory
-            ? {
-                code: filters.territory,
-                name: filters.name ?? filters.territory,
-                observations: selected,
-              }
-            : null
-        }
-        onPeriod={(p) =>
-          navigate({ search: (s) => ({ ...s, period: p }), replace: true })
-        }
-        onSelect={(t) =>
-          navigate({
-            search: (s) => ({ ...s, territory: t.code, name: t.name }),
-            replace: true,
-            resetScroll: false,
-          })
-        }
-        onClose={() =>
-          navigate({
-            search: (s) => ({ ...s, territory: undefined, name: undefined }),
-            replace: true,
-            resetScroll: false,
-          })
-        }
-      />
+      <Link
+        to="/carte"
+        search={{ layer: sheet.code }}
+        className="inline-flex h-10 items-center gap-2 rounded-lg bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-800"
+      >
+        <MapIcon size={16} /> Voir sur la carte
+      </Link>
 
-      <details className="surface group p-5" open>
-        <summary className="cursor-pointer text-sm font-semibold">
-          Comment lire ce chiffre
-        </summary>
-        <dl className="mt-4 grid gap-5 sm:grid-cols-2">
+      <section className="surface space-y-4 p-5">
+        <h2 className="text-sm font-semibold">Comment lire ce chiffre</h2>
+        <dl className="grid gap-5 sm:grid-cols-2">
           <Term label="Définition">{sheet.definition}</Term>
           <Term label="Limites">{sheet.limits}</Term>
           <Term label="Champ">{sheet.scope}</Term>
           <Term label="Méthode">{sheet.method}</Term>
         </dl>
-      </details>
+      </section>
 
-      <details className="space-y-4">
-        <summary className="cursor-pointer text-sm font-semibold">
-          D’où viennent ces chiffres
-        </summary>
-        <div className="mt-4 space-y-4">
-          {sheet.provenance.map((p) => (
-            <ProvenancePanel key={p.version.vintage} provenance={p} />
-          ))}
-        </div>
-      </details>
-
-      {selected && selected.length > 0 && (
-        <details>
-          <summary className="cursor-pointer text-sm font-semibold">
-            Le détail, ligne du fichier comprise
-          </summary>
-          <div className="mt-4">
-            <ObservationsTable
-              observations={selected}
-              unit={sheet.unit}
-              categories={sheet.categories}
-            />
-          </div>
-        </details>
-      )}
-
-      <p className="text-xs text-slate-400">
-        <Link to="/" className="underline">
-          Tous les indicateurs
-        </Link>
-      </p>
+      <section className="space-y-4">
+        <h2 className="text-sm font-semibold">D’où viennent ces chiffres</h2>
+        {sheet.provenance.map((p) => (
+          <ProvenancePanel key={p.version.vintage} provenance={p} />
+        ))}
+      </section>
     </main>
   )
 }

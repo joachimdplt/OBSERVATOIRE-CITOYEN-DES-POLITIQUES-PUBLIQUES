@@ -2,9 +2,9 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import type { MapValue } from '../domain/classes'
 import type {
+  TerritoryValues,
   IndicatorLine,
   IndicatorSheet,
-  ObservationPage,
 } from '../types/public'
 
 /**
@@ -39,32 +39,20 @@ export const getIndicator = createServerFn({ method: 'GET' })
     get<IndicatorSheet>(`/indicators/${encodeURIComponent(data.code)}`),
   )
 
-export const listObservations = createServerFn({ method: 'GET' })
-  .validator(
-    z.object({
-      code: z.string(),
-      territory: z.string().optional(),
-      period: z.string().optional(),
-      offset: z.number().int().min(0).default(0),
-    }),
-  )
-  .handler(({ data }) => {
-    const query = new URLSearchParams({
-      limit: '50',
-      offset: String(data.offset),
-    })
-    if (data.territory) query.set('territory', data.territory)
-    if (data.period) query.set('period', data.period)
-    return get<ObservationPage>(
-      `/indicators/${encodeURIComponent(data.code)}/observations?${query}`,
-    )
-  })
-
 /** Toutes les valeurs d'une période, pour la carte : une ligne [code, valeur, statut] par territoire. */
 export const getIndicatorMap = createServerFn({ method: 'GET' })
   .validator(z.object({ code: z.string(), period: z.string() }))
   .handler(({ data }) =>
     get<{ period: string; values: MapValue[] }>(
       `/indicators/${encodeURIComponent(data.code)}/map?period=${encodeURIComponent(data.period)}`,
+    ),
+  )
+
+/** Toutes les couches publiées pour un territoire, à la commune cliquée. */
+export const getTerritoryValues = createServerFn({ method: 'GET' })
+  .validator(z.object({ level: z.string(), code: z.string() }))
+  .handler(({ data }) =>
+    get<TerritoryValues>(
+      `/territories/${encodeURIComponent(data.level)}/${encodeURIComponent(data.code)}/values`,
     ),
   )

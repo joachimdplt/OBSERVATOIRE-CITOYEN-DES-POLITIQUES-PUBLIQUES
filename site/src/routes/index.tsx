@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { ArrowDown } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { Section } from '../components/atoms/Section'
 import { PillarGrid } from '../components/organisms/home/PillarGrid'
 import { IndicatorList } from '../components/organisms/indicators/IndicatorList'
@@ -35,11 +35,10 @@ function Home() {
             ))}
           </ul>
           <Link
-            to="/"
-            hash="piliers"
+            to="/carte"
             className="inline-flex h-10 items-center gap-2 rounded-lg bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-800"
           >
-            {HOME.explore} <ArrowDown size={15} />
+            {HOME.explore} <ArrowRight size={15} />
           </Link>
         </div>
       </Section>
