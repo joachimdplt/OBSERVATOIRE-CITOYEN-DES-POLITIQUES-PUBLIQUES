@@ -137,9 +137,11 @@ export function MapPanel({
               }
             />
           )}
-          <p className="text-xs text-slate-400">
-            Outre-mer : à venir sur la carte.
-          </p>
+          {!region && (
+            <p className="text-xs text-slate-400">
+              Outre-mer : à venir sur la carte.
+            </p>
+          )}
         </div>
       </div>
     </section>

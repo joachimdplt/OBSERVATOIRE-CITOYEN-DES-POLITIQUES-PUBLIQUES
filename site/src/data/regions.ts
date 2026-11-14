@@ -1,5 +1,5 @@
 /**
- * Le cadre de chaque région de métropole sur la carte : ouest, sud, est,
+ * Le cadre de chaque région sur la carte, outre-mer compris : ouest, sud, est,
  * nord, en degrés. Un réglage d'affichage, pas une donnée publiée.
  */
 export const REGION_BOUNDS: Record<string, [number, number, number, number]> = {
@@ -16,6 +16,11 @@ export const REGION_BOUNDS: Record<string, [number, number, number, number]> = {
   '84': [2.06, 44.12, 7.19, 46.81],
   '93': [4.23, 42.98, 7.72, 45.13],
   '94': [8.53, 41.33, 9.56, 43.03],
+  '01': [-61.81, 15.83, -61.0, 16.52],
+  '02': [-61.23, 14.39, -60.81, 14.88],
+  '03': [-54.6, 2.1, -51.6, 5.8],
+  '04': [55.21, -21.39, 55.84, -20.87],
+  '06': [44.98, -13.0, 45.3, -12.63],
 }
 
 export const FRANCE_BOUNDS: [number, number, number, number] = [
