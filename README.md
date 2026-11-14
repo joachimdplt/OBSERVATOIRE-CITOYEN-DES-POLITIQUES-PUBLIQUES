@@ -77,6 +77,15 @@ sur le port 3002.
 - `docs/04-feuille-de-route.md` : les lots, la définition de « prêt à
   publier », la gouvernance.
 
+## Licences
+
+- **Le code** : [AGPL-3.0](LICENSE). Un service en ligne qui reprend ce code
+  publie ses modifications.
+- **Le contenu de l'observatoire** (fiches, définitions, descriptions, liens,
+  résumés, rapports, historique) : [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.fr).
+- **Les données des producteurs** gardent leur licence, donnée avec chaque
+  valeur ; **les citations des partis** relèvent du droit de courte citation.
+
 ## Branches
 
 `main` : déployée automatiquement · `dev` : intégration
