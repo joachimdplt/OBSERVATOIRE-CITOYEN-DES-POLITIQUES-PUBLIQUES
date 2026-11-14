@@ -1,0 +1,58 @@
+# Dépendances
+node_modules/
+.pnp
+.pnp.js
+
+# Build
+dist/
+build/
+.vite/
+*.tsbuildinfo
+
+# Environnement
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Prisma
+**/generated/prisma/
+**/prisma/*.db
+**/prisma/*.db-journal
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# Éditeurs
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests
+coverage/
+.nyc_output/
+
+# Divers
+.cache/
+.temp/
+
+# Secrets de déploiement : un fichier par environnement, sur le serveur seul.
+.env.deploy
+
+# TanStack Start (site/)
+.output/
+.nitro/
+.tanstack/
+
+# Fichiers bruts déposés en local
+backend/storage/
+
+# Fichiers déposés pendant les tests
+backend/storage-test/
