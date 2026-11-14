@@ -246,3 +246,25 @@ export type LiveValues = {
     }[]
   }[]
 }
+
+/** L'état du programme d'un candidat, constaté à une date. */
+export type ProgrammeStatus = 'complete' | 'partial' | 'none'
+
+/** Une élection et ses candidats déclarés, selon un critère écrit. */
+export type ElectionSheet = {
+  slug: string
+  name: string
+  date: string | null
+  criterion: string
+  candidates: {
+    slug: string
+    name: string
+    party: string | null
+    declaredAt: string
+    declarationSource: string
+    programmeStatus: ProgrammeStatus
+    programmeUrl: string | null
+    programmeNote: string | null
+    programmeCheckedAt: string | null
+  }[]
+}

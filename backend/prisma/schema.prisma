@@ -641,6 +641,13 @@ model DocumentMatch {
 // L'application vulgarise les programmes des candidats : chaque proposition se
 // lit en une phrase simple, suivie de sa citation exacte et de sa source.
 
+/// L'état du programme d'un candidat, à la date de vérification.
+enum ProgrammeStatus {
+  complete // un programme d'ensemble publié
+  partial // des documents partiels : livrets, premier volet, contre-budget
+  none // rien de publié
+}
+
 /// Une élection suivie, avec le critère d'entrée publié, le même pour tous.
 model Election {
   id         String      @id @default(uuid())
@@ -657,21 +664,26 @@ model Election {
 
 /// Un candidat déclaré, et la source de sa déclaration.
 model Candidate {
-  id                String              @id @default(uuid())
-  electionId        String
-  slug              String
-  name              String
+  id                 String              @id @default(uuid())
+  electionId         String
+  slug               String
+  name               String
   /// Le parti ou le mouvement qui le soutient, tel qu'il le nomme.
-  party             String
-  declaredAt        DateTime            @db.Date
-  declarationSource String
+  party              String
+  declaredAt         DateTime            @db.Date
+  declarationSource  String
   /// L'adresse de son programme, s'il est publié.
-  programmeUrl      String?
-  createdById       String
-  createdAt         DateTime            @default(now())
-  election          Election            @relation(fields: [electionId], references: [id])
-  createdBy         User                @relation(fields: [createdById], references: [id])
-  documents         PoliticalDocument[]
+  programmeUrl       String?
+  programmeStatus    ProgrammeStatus     @default(none)
+  /// Ce que dit la vérification du programme : « édition 2025 », « annoncé, pas encore en ligne ».
+  programmeNote      String?
+  /// La date de la dernière vérification du programme.
+  programmeCheckedAt DateTime?           @db.Date
+  createdById        String
+  createdAt          DateTime            @default(now())
+  election           Election            @relation(fields: [electionId], references: [id])
+  createdBy          User                @relation(fields: [createdById], references: [id])
+  documents          PoliticalDocument[]
 
   @@unique([electionId, slug])
   @@map("candidates")

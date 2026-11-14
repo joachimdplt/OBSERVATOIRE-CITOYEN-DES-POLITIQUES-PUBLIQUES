@@ -7,6 +7,7 @@ import { ListIndicatorObservationsController } from './list-indicator-observatio
 import { ListIndicatorsController } from './list-indicators/list-indicators';
 import { ListPublicationsPublicController } from './list-publications/list-publications';
 import { GetPublicationController } from './get-publication/get-publication';
+import { GetElectionController } from './get-election/get-election';
 import { SearchTerritoriesController } from './search-territories/search-territories';
 
 /**
@@ -21,6 +22,7 @@ import { SearchTerritoriesController } from './search-territories/search-territo
     ListIndicatorsController,
     ListPublicationsPublicController,
     GetPublicationController,
+    GetElectionController,
     GetIndicatorController,
     GetIndicatorMapController,
     ListIndicatorObservationsController,

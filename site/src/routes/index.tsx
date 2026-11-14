@@ -6,8 +6,13 @@ import {
   HomePiliers,
 } from '../components/organisms/home/HomeBlocks'
 import { HomeFront } from '../components/organisms/home/HomeFront'
+import { HomeProgrammes } from '../components/organisms/home/HomeProgrammes'
 import { HOME } from '../data/home'
-import { getPublication, listPublications } from '../services/public-api'
+import {
+  getElection,
+  getPublication,
+  listPublications,
+} from '../services/public-api'
 import type { PublicationSheet } from '../types/public'
 import { seo } from '../utils/seo'
 
@@ -21,7 +26,11 @@ export const Route = createFileRoute('/')({
     )
       .filter((a): a is PublicationSheet => a !== null)
       .sort((a, b) => (b.publishedAt ?? '').localeCompare(a.publishedAt ?? ''))
-    return { publications, articles }
+    // L'accueil reste lisible si l'élection n'est pas encore inscrite.
+    const election = await getElection({
+      data: { slug: 'presidentielle-2027' },
+    }).catch(() => null)
+    return { publications, articles, election }
   },
   head: () => ({
     meta: seo({
@@ -32,12 +41,16 @@ export const Route = createFileRoute('/')({
   component: Home,
 })
 
-/** La une : le principe, les articles publiés, les piliers, la contribution. */
+/**
+ * La une : le principe, les articles publiés, l'état des programmes de la
+ * présidentielle, les piliers, la contribution.
+ */
 function Home() {
-  const { publications, articles } = Route.useLoaderData()
+  const { publications, articles, election } = Route.useLoaderData()
   return (
     <>
       <HomeFront articles={articles} />
+      {election && <HomeProgrammes election={election} />}
       <HomePiliers publications={publications} />
       <HomeContribuer />
       <HomeFin />

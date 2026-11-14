@@ -90,6 +90,17 @@ base à côté ; la lecture à la demande lit ce miroir comme elle lit
 data.gouv.fr. Un déclencheur vérifie la date de modification et l'empreinte
 du fichier chez le producteur, et recharge le miroir quand il change.
 
+## Les candidats et leurs programmes
+
+L'élection suivie (la présidentielle 2027) s'inscrit avec son critère : toute
+personne qui a déclaré publiquement sa candidature, d'après une source datée.
+Chaque candidat porte la source de sa déclaration et l'état de son programme,
+vérifié à la main à une date donnée : programme complet, documents partiels
+(livrets, premier volet, contre-budget), ou rien de publié. L'accueil donne
+ces trois comptes et la liste, avec le lien vers chaque programme. Au
+14 novembre 2026 : 25 candidats déclarés, 3 programmes complets, 4 ensembles
+de documents partiels, 18 sans rien de publié.
+
 ## Les étiquettes, du moins au plus relu
 
 | Étiquette | Sens |

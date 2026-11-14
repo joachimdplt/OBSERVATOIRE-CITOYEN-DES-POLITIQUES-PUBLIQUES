@@ -16,6 +16,9 @@ ne conclut pas.
 - **Une carte** : la France commune par commune, une région à la fois si on
   veut zoomer, la recherche d'une commune par son nom, et pour chaque commune
   une fiche avec tous ses chiffres et leur source.
+- **Les programmes de la présidentielle 2027** : sur l'accueil, chaque
+  candidat déclaré, la source de sa déclaration, et l'état de son programme
+  (complet, partiel, rien de publié) à la date de la vérification.
 - **Un comparateur** : groupe par groupe, les textes déposés sur un enjeu,
   sans note ni verdict.
 - **Une API publique**, en lecture seule, ouverte à toute origine

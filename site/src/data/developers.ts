@@ -136,6 +136,11 @@ export const DEVELOPERS = {
         text: 'Un article : ses rubriques, les indicateurs choisis et leur justification, les mesures citées mot pour mot, les textes collectés, sa signature et ses versions.',
       },
       {
+        path: '/api/public/elections/{slug}',
+        query: '',
+        text: 'Une élection, son critère d’inscription, et ses candidats déclarés par ordre alphabétique : parti, source de la déclaration, état du programme (complet, partiel, rien de publié), son adresse et la date de la vérification.',
+      },
+      {
         path: '/api/public/territories/{niveau}/{code}/live',
         query: '',
         text: 'Les valeurs lues à la demande chez le producteur pour une commune, avec la date de la lecture et l’adresse des lignes d’origine.',

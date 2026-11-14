@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import type { MapValue } from '../domain/classes'
 import type {
+  ElectionSheet,
   LiveValues,
   PublicationLine,
   PublicationSheet,
@@ -103,4 +104,10 @@ export const getLiveValues = createServerFn({ method: 'GET' })
     get<LiveValues>(
       `/territories/${encodeURIComponent(data.level)}/${encodeURIComponent(data.code)}/live`,
     ),
+  )
+
+export const getElection = createServerFn({ method: 'GET' })
+  .validator(z.object({ slug: z.string() }))
+  .handler(({ data }) =>
+    get<ElectionSheet>(`/elections/${encodeURIComponent(data.slug)}`),
   )

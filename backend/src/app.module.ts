@@ -4,6 +4,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { CatalogueModule } from './features/catalogue/catalogue.module';
 import { ImportsModule } from './features/imports/imports.module';
+import { ElectionsModule } from './features/elections/elections.module';
 import { LiveModule } from './features/live/live.module';
 import { PoliticsModule } from './features/politics/politics.module';
 import { PublicationsModule } from './features/publications/publications.module';
@@ -26,6 +27,7 @@ import { PublicModule } from './features/public/public.module';
     PublicationsModule,
     PoliticsModule,
     LiveModule,
+    ElectionsModule,
     PublicModule,
   ],
 })
