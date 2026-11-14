@@ -11,9 +11,14 @@ import { ValueCell } from '../components/organisms/indicators/ValueCell'
 import { MeasureComparison } from '../components/organisms/publications/MeasureComparison'
 import { MeasureList } from '../components/organisms/publications/MeasureList'
 import { CollectedTexts } from '../components/organisms/publications/CollectedTexts'
+import { ProgrammePassages } from '../components/organisms/publications/ProgrammePassages'
 import { pillarLabel } from '../data/pillars'
-import { getPublication, getTerritoryValues } from '../services/public-api'
-import type { TerritoryLayer } from '../types/public'
+import {
+  getPublication,
+  getTerritoryValues,
+  getTopic,
+} from '../services/public-api'
+import type { TerritoryLayer, TopicSheet } from '../types/public'
 import { frenchDate } from '../utils/date'
 import { approximately, frenchNumber } from '../utils/number'
 import { seo } from '../utils/seo'
@@ -28,20 +33,28 @@ export const Route = createFileRoute('/enjeux/$slug')({
   validateSearch: search,
   loaderDeps: ({ search: s }) => ({ territory: s.territory, level: s.level }),
   loader: async ({ params, deps }) => {
-    const publication = await getPublication({ data: { slug: params.slug } })
-    if (!publication) throw notFound()
+    const [publication, topic] = await Promise.all([
+      getPublication({ data: { slug: params.slug } }),
+      getTopic({ data: { slug: params.slug } }).catch(() => null),
+    ])
+    if (!publication && !topic) throw notFound()
     const territory =
-      deps.territory && deps.level
+      publication && deps.territory && deps.level
         ? await getTerritoryValues({
             data: { level: deps.level, code: deps.territory },
           })
         : null
-    return { publication, territory }
+    return { publication, topic, territory }
   },
   head: ({ loaderData }) => ({
     meta: seo({
-      title: loaderData?.publication.title ?? 'Enjeu',
-      description: loaderData?.publication.summary ?? '',
+      title:
+        loaderData?.publication?.title ?? loaderData?.topic?.name ?? 'Enjeu',
+      description:
+        loaderData?.publication?.summary ??
+        (loaderData?.topic
+          ? `${loaderData.topic.name} dans les programmes des candidats à la présidentielle 2027, cité mot pour mot.`
+          : ''),
     }),
   }),
   component: PublicationPage,
@@ -57,7 +70,55 @@ const DISPLAY = 'font-extrabold tracking-[-0.03em] text-[#0B1A2A]'
  * la source ne descend pas plus bas.
  */
 function PublicationPage() {
-  const { publication: p, territory } = Route.useLoaderData()
+  const { publication, topic } = Route.useLoaderData()
+  if (!publication) return topic ? <TopicOnly topic={topic} /> : null
+  return <PublicationView topic={topic} />
+}
+
+/**
+ * Un enjeu sans article : son nom et son pilier, puis les passages des
+ * programmes. L'article viendra avec les indicateurs.
+ */
+function TopicOnly({ topic }: { topic: TopicSheet }) {
+  return (
+    <main>
+      <section className="bg-white px-6 pt-20 pb-6 md:px-10">
+        <div className="mx-auto max-w-[920px]">
+          <p className={`text-sm font-semibold ${MUTED}`}>
+            {pillarLabel(topic.pillar)}
+          </p>
+          <h1
+            className={`${DISPLAY} mt-3 text-[clamp(2.2rem,5vw,3.8rem)] leading-[1.08]`}
+          >
+            {topic.name}
+          </h1>
+          <p
+            className={`mt-6 max-w-[62ch] text-[1.05rem] leading-relaxed ${MUTED}`}
+          >
+            Pas encore d’article de l’observatoire sur cet enjeu : ni
+            indicateurs choisis, ni relecture. Les passages des programmes
+            publiés suivent.
+          </p>
+        </div>
+      </section>
+      <ProgrammePassages topic={topic} />
+      <section className="bg-white px-6 pb-16 md:px-10">
+        <div className="mx-auto max-w-[920px]">
+          <Link
+            to="/enjeux"
+            className="inline-flex h-12 items-center gap-2 rounded-full bg-[#0B1A2A] px-6 font-extrabold text-white no-underline hover:opacity-90"
+          >
+            Tous les enjeux <ArrowRight size={17} />
+          </Link>
+        </div>
+      </section>
+    </main>
+  )
+}
+
+function PublicationView({ topic }: { topic: TopicSheet | null }) {
+  const { publication, territory } = Route.useLoaderData()
+  const p = publication!
   const filters = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
   const layerOf = (code: string): TerritoryLayer | undefined =>
@@ -267,6 +328,7 @@ function PublicationPage() {
           </Link>
         </div>
       </section>
+      {topic && <ProgrammePassages topic={topic} />}
     </main>
   )
 }

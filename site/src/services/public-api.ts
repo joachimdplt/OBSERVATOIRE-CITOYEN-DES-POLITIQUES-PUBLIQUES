@@ -3,6 +3,8 @@ import { z } from 'zod'
 import type { MapValue } from '../domain/classes'
 import type {
   ElectionSheet,
+  TopicList,
+  TopicSheet,
   LiveValues,
   PublicationLine,
   PublicationSheet,
@@ -110,4 +112,14 @@ export const getElection = createServerFn({ method: 'GET' })
   .validator(z.object({ slug: z.string() }))
   .handler(({ data }) =>
     get<ElectionSheet>(`/elections/${encodeURIComponent(data.slug)}`),
+  )
+
+export const listTopics = createServerFn({ method: 'GET' }).handler(() =>
+  get<TopicList>('/enjeux'),
+)
+
+export const getTopic = createServerFn({ method: 'GET' })
+  .validator(z.object({ slug: z.string() }))
+  .handler(({ data }) =>
+    get<TopicSheet>(`/enjeux/${encodeURIComponent(data.slug)}`),
   )

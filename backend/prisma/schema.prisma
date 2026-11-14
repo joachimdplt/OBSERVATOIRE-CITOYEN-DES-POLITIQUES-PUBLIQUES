@@ -43,6 +43,8 @@ model User {
   publicationReviewed  PublicationVersion[]  @relation("PublicationVersionReviewedBy")
   politicalDocuments   PoliticalDocument[]
   candidates           Candidate[]
+  programmeSources     ProgrammeSource[]
+  topics               Topic[]
   measures             Measure[]
 
   @@map("users")
@@ -552,13 +554,13 @@ enum Chamber {
 
 /// Un texte officiel ou un programme, tel que publié par son auteur.
 model PoliticalDocument {
-  id                String          @id @default(uuid())
+  id                String           @id @default(uuid())
   kind              DocumentKind
   title             String
   /// Le numéro du texte dans sa chambre : « 966 », « 494 (2024-2025) ».
   number            String?
   chamber           Chamber?
-  filedAt           DateTime        @db.Date
+  filedAt           DateTime         @db.Date
   /// L'adresse du texte lui-même, chez l'Assemblée, le Sénat ou Légifrance.
   url               String
   /// Le premier signataire, ou « Gouvernement » pour un projet de loi.
@@ -569,17 +571,24 @@ model PoliticalDocument {
   /// Où en est le texte, en mots et daté : « Adopté par l'Assemblée nationale le 7 mai 2025 ».
   progress          String?
   /// team : saisi par l'équipe ; automatic : collecté sur les données ouvertes du Parlement.
-  origin            Origin          @default(team)
+  origin            Origin           @default(team)
   /// La référence du texte chez son producteur (« PIONANR5L17B0966 ») : un texte ne se collecte qu'une fois.
-  sourceRef         String?         @unique
+  sourceRef         String?          @unique
   matches           DocumentMatch[]
   /// Le candidat dont c'est le programme, pour un programme électoral.
   candidateId       String?
-  candidate         Candidate?      @relation(fields: [candidateId], references: [id])
+  candidate         Candidate?       @relation(fields: [candidateId], references: [id])
   createdById       String
-  createdAt         DateTime        @default(now())
-  createdBy         User            @relation(fields: [createdById], references: [id])
+  createdAt         DateTime         @default(now())
+  createdBy         User             @relation(fields: [createdById], references: [id])
   measures          Measure[]
+  /// Pour un programme collecté : l'adresse suivie, l'empreinte SHA-256 du
+  /// fichier gardé tel que reçu, et la date de la collecte. Un fichier qui
+  /// change chez le candidat entre comme un nouveau document ; l'ancien reste.
+  programmeSourceId String?
+  programmeSource   ProgrammeSource? @relation(fields: [programmeSourceId], references: [id])
+  fileHash          String?
+  fetchedAt         DateTime?
 
   @@map("political_documents")
 }
@@ -604,6 +613,7 @@ model Measure {
   document    PoliticalDocument @relation(fields: [documentId], references: [id])
   createdBy   User              @relation(fields: [createdById], references: [id])
   sections    SectionMeasure[]
+  topics      TopicMatch[]
 
   @@map("measures")
 }
@@ -684,6 +694,7 @@ model Candidate {
   election           Election            @relation(fields: [electionId], references: [id])
   createdBy          User                @relation(fields: [createdById], references: [id])
   documents          PoliticalDocument[]
+  programmeSources   ProgrammeSource[]
 
   @@unique([electionId, slug])
   @@map("candidates")
@@ -727,4 +738,49 @@ model LiveReading {
 
   @@index([sourceId, territoryCode, fetchedAt])
   @@map("live_readings")
+}
+
+/// Où se lit le programme d'un candidat : une page ou un fichier, et pour une
+/// table des matières, le motif des liens à suivre (« /programme/livre/.+ »).
+model ProgrammeSource {
+  id          String              @id @default(uuid())
+  candidateId String
+  url         String
+  follow      String?
+  createdById String
+  createdAt   DateTime            @default(now())
+  candidate   Candidate           @relation(fields: [candidateId], references: [id])
+  createdBy   User                @relation(fields: [createdById], references: [id])
+  documents   PoliticalDocument[]
+
+  @@unique([candidateId, url])
+  @@map("programme_sources")
+}
+
+/// Un enjeu nommé (« Accès aux médecins généralistes ») et les termes qui le
+/// reconnaissent dans les programmes, publiés et les mêmes pour tous.
+model Topic {
+  id          String       @id @default(uuid())
+  slug        String       @unique
+  name        String
+  pillar      Pillar
+  terms       String[]
+  createdById String
+  createdAt   DateTime     @default(now())
+  createdBy   User         @relation(fields: [createdById], references: [id])
+  matches     TopicMatch[]
+
+  @@map("topics")
+}
+
+/// Un passage de programme rattaché à un enjeu, par le terme trouvé.
+model TopicMatch {
+  topicId   String
+  measureId String
+  term      String
+  topic     Topic   @relation(fields: [topicId], references: [id])
+  measure   Measure @relation(fields: [measureId], references: [id])
+
+  @@id([topicId, measureId])
+  @@map("topic_matches")
 }

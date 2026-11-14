@@ -1,4 +1,5 @@
-import { ArrowUpRight } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import type { ElectionSheet, ProgrammeStatus } from '../../../types/public'
 import { frenchDate } from '../../../utils/date'
 
@@ -119,6 +120,12 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
           })}
         </ul>
 
+        <Link
+          to="/enjeux"
+          className="mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-[#0B1A2A] px-6 font-extrabold text-white no-underline hover:opacity-90"
+        >
+          Les enjeux dans ces programmes <ArrowRight size={17} />
+        </Link>
         <p className={`mt-6 max-w-[70ch] text-[0.88rem] ${MUTED}`}>
           Critère d’inscription : {election.criterion.charAt(0).toLowerCase()}
           {election.criterion.slice(1)} Un candidat absent ou un programme paru

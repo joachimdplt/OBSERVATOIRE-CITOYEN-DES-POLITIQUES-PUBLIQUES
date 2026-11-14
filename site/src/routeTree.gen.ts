@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CarteRouteImport } from './routes/carte'
 import { Route as DeveloppeursRouteImport } from './routes/developpeurs'
+import { Route as EnjeuxIndexRouteImport } from './routes/enjeux.index'
 import { Route as EnjeuxSlugRouteImport } from './routes/enjeux.$slug'
 import { Route as IndicatorsCodeRouteImport } from './routes/indicators.$code'
 import { Route as PillarsPillarRouteImport } from './routes/pillars.$pillar'
@@ -29,6 +30,11 @@ const CarteRoute = CarteRouteImport.update({
 const DeveloppeursRoute = DeveloppeursRouteImport.update({
   id: '/developpeurs',
   path: '/developpeurs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnjeuxIndexRoute = EnjeuxIndexRouteImport.update({
+  id: '/enjeux/',
+  path: '/enjeux/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EnjeuxSlugRoute = EnjeuxSlugRouteImport.update({
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/enjeux/$slug': typeof EnjeuxSlugRoute
   '/indicators/$code': typeof IndicatorsCodeRoute
   '/pillars/$pillar': typeof PillarsPillarRoute
+  '/enjeux/': typeof EnjeuxIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/enjeux/$slug': typeof EnjeuxSlugRoute
   '/indicators/$code': typeof IndicatorsCodeRoute
   '/pillars/$pillar': typeof PillarsPillarRoute
+  '/enjeux': typeof EnjeuxIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +79,7 @@ export interface FileRoutesById {
   '/enjeux/$slug': typeof EnjeuxSlugRoute
   '/indicators/$code': typeof IndicatorsCodeRoute
   '/pillars/$pillar': typeof PillarsPillarRoute
+  '/enjeux/': typeof EnjeuxIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,6 +90,7 @@ export interface FileRouteTypes {
     | '/enjeux/$slug'
     | '/indicators/$code'
     | '/pillars/$pillar'
+    | '/enjeux/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -89,6 +99,7 @@ export interface FileRouteTypes {
     | '/enjeux/$slug'
     | '/indicators/$code'
     | '/pillars/$pillar'
+    | '/enjeux'
   id:
     | '__root__'
     | '/'
@@ -97,6 +108,7 @@ export interface FileRouteTypes {
     | '/enjeux/$slug'
     | '/indicators/$code'
     | '/pillars/$pillar'
+    | '/enjeux/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,6 +118,7 @@ export interface RootRouteChildren {
   EnjeuxSlugRoute: typeof EnjeuxSlugRoute
   IndicatorsCodeRoute: typeof IndicatorsCodeRoute
   PillarsPillarRoute: typeof PillarsPillarRoute
+  EnjeuxIndexRoute: typeof EnjeuxIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -129,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/developpeurs'
       fullPath: '/developpeurs'
       preLoaderRoute: typeof DeveloppeursRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/enjeux/': {
+      id: '/enjeux/'
+      path: '/enjeux'
+      fullPath: '/enjeux/'
+      preLoaderRoute: typeof EnjeuxIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/enjeux/$slug': {
@@ -162,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   EnjeuxSlugRoute: EnjeuxSlugRoute,
   IndicatorsCodeRoute: IndicatorsCodeRoute,
   PillarsPillarRoute: PillarsPillarRoute,
+  EnjeuxIndexRoute: EnjeuxIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

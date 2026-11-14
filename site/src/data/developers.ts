@@ -141,6 +141,16 @@ export const DEVELOPERS = {
         text: 'Une élection, son critère d’inscription, et ses candidats déclarés par ordre alphabétique : parti, source de la déclaration, état du programme (complet, partiel, rien de publié), son adresse et la date de la vérification.',
       },
       {
+        path: '/api/public/enjeux',
+        query: '',
+        text: 'Les enjeux rangés par le nombre de programmes publiés qui en parlent, avec leurs termes, le nombre de passages et l’article de l’observatoire s’il existe.',
+      },
+      {
+        path: '/api/public/enjeux/{slug}',
+        query: '',
+        text: 'Un enjeu dans les programmes : pour chaque candidat qui a publié un programme, les passages qui portent un terme, mot pour mot, avec leur rubrique, le terme trouvé, le document et sa date de lecture.',
+      },
+      {
         path: '/api/public/territories/{niveau}/{code}/live',
         query: '',
         text: 'Les valeurs lues à la demande chez le producteur pour une commune, avec la date de la lecture et l’adresse des lignes d’origine.',

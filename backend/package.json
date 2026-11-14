@@ -21,7 +21,8 @@
     "db:migrate": "prisma migrate dev && prisma generate",
     "territories:import": "tsx src/scripts/import-territories.ts",
     "user:create": "tsx src/scripts/create-user.ts",
-    "collect:parliament": "tsx src/scripts/collect-parliament.ts"
+    "collect:parliament": "tsx src/scripts/collect-parliament.ts",
+    "collect:programmes": "tsx src/scripts/collect-programmes.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -39,6 +40,7 @@
     "csv-parse": "^7.0.3",
     "exceljs": "^4.4.0",
     "jszip": "^3.10.2",
+    "node-html-parser": "^7.1.0",
     "pg": "^8.23.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",

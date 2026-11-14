@@ -8,6 +8,8 @@ import { ListIndicatorsController } from './list-indicators/list-indicators';
 import { ListPublicationsPublicController } from './list-publications/list-publications';
 import { GetPublicationController } from './get-publication/get-publication';
 import { GetElectionController } from './get-election/get-election';
+import { GetTopicController } from './get-topic/get-topic';
+import { ListTopicsController } from './list-topics/list-topics';
 import { SearchTerritoriesController } from './search-territories/search-territories';
 
 /**
@@ -23,6 +25,8 @@ import { SearchTerritoriesController } from './search-territories/search-territo
     ListPublicationsPublicController,
     GetPublicationController,
     GetElectionController,
+    ListTopicsController,
+    GetTopicController,
     GetIndicatorController,
     GetIndicatorMapController,
     ListIndicatorObservationsController,

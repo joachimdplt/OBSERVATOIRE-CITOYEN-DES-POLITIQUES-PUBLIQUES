@@ -101,6 +101,34 @@ ces trois comptes et la liste, avec le lien vers chaque programme. Au
 14 novembre 2026 : 25 candidats déclarés, 3 programmes complets, 4 ensembles
 de documents partiels, 18 sans rien de publié.
 
+## La collecte des programmes et le rangement des enjeux
+
+`npm run collect:programmes`, prévu pour tourner chaque jour.
+
+- **Où lire** : l'équipe indique, pour chaque candidat, l'adresse de son
+  programme : un PDF, une page, ou une table des matières avec le motif des
+  pages à suivre (les 30 chapitres de L'Avenir en commun, les 15 thèmes du
+  programme d'Édouard Philippe, les 8 livrets des Républicains).
+- **Ce qui entre** : chaque page ou fichier, gardé tel que reçu sous son
+  empreinte ; son texte découpé en passages, chacun sous sa rubrique, mot pour
+  mot. Un site qui refuse la lecture automatique est lu sur sa copie de
+  web.archive.org, et le lien affiché mène à cette copie.
+- **Les changements** : une page dont le texte change entre comme un nouveau
+  document ; seule la lecture la plus récente s'affiche, l'ancienne reste.
+- **Les enjeux** : l'équipe nomme un enjeu (« Logement social ») et publie
+  les termes qui le reconnaissent (« logement social », « logements
+  sociaux », « HLM », « bailleurs sociaux »). Un passage qui contient un terme,
+  en mots entiers, est rattaché à l'enjeu. Un terme ajouté ou retiré relit
+  tous les programmes déjà collectés.
+- **Le rangement** : la page « Enjeux » range les enjeux par le nombre de
+  programmes où un terme apparaît, puis par le nombre de passages. Ce compte
+  dit de quoi les textes parlent ; il ne dit ni ce qu'ils proposent ni ce
+  qu'ils valent. Un programme sans passage trouvé est nommé : il peut traiter
+  l'enjeu avec d'autres mots.
+
+Au 15 novembre 2026 : 7 programmes (57 pages et fichiers, 4 472 passages),
+48 enjeux sur les douze piliers.
+
 ## Les étiquettes, du moins au plus relu
 
 | Étiquette | Sens |

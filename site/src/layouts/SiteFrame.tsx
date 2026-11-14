@@ -22,6 +22,9 @@ export function SiteFrame({ children }: { children: ReactNode }) {
             <Link to="/" className="hover:text-slate-900">
               Articles
             </Link>
+            <Link to="/enjeux" className="hover:text-slate-900">
+              Enjeux
+            </Link>
             <Link to="/carte" className="hover:text-slate-900">
               Carte
             </Link>

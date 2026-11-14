@@ -268,3 +268,38 @@ export type ElectionSheet = {
     programmeCheckedAt: string | null
   }[]
 }
+
+/** Les enjeux, rangés par le nombre de programmes publiés qui en parlent. */
+export type TopicList = {
+  programmes: { candidates: number; complete: number; partial: number }
+  topics: {
+    slug: string
+    name: string
+    pillar: Pillar
+    terms: string[]
+    programmes: number
+    passages: number
+    publication: string | null
+  }[]
+}
+
+/** Un enjeu dans les programmes : les passages de chaque candidat, mot pour mot. */
+export type TopicSheet = {
+  slug: string
+  name: string
+  pillar: Pillar
+  terms: string[]
+  publication: string | null
+  candidates: {
+    slug: string
+    name: string
+    party: string | null
+    programmeStatus: ProgrammeStatus
+    passages: {
+      heading: string
+      quote: string
+      term: string
+      document: { title: string; url: string; fetchedAt: string | null }
+    }[]
+  }[]
+}

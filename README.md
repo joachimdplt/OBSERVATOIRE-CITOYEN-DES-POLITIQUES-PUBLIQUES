@@ -19,6 +19,10 @@ ne conclut pas.
 - **Les programmes de la présidentielle 2027** : sur l'accueil, chaque
   candidat déclaré, la source de sa déclaration, et l'état de son programme
   (complet, partiel, rien de publié) à la date de la vérification.
+- **Les enjeux dans les programmes** : l'outil collecte les programmes
+  publiés des candidats, les découpe en passages cités mot pour mot, et range
+  les enjeux par le nombre de programmes qui en parlent, d'après des termes
+  publiés, les mêmes pour tous.
 - **Un comparateur** : groupe par groupe, les textes déposés sur un enjeu,
   sans note ni verdict.
 - **Une API publique**, en lecture seule, ouverte à toute origine
@@ -83,7 +87,11 @@ Les sources, une fois l'API lancée :
 cd backend
 npm run territories:import -- 2026   # le découpage officiel des communes (COG INSEE)
 npm run collect:parliament           # les textes déposés à l'Assemblée, à planifier chaque jour
+npm run collect:programmes           # les programmes des candidats, à planifier chaque jour
 ```
+
+La collecte des programmes lit les PDF avec `pdftotext` (poppler) :
+`brew install poppler` ou `apt install poppler-utils`.
 
 La lecture à la demande n'a pas de commande : elle se fait quand une commune
 s'ouvre, et se garde un jour.
