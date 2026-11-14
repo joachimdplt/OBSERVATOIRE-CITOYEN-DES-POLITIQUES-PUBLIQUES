@@ -22,7 +22,16 @@ export const measureAnchor = (m: Measure) =>
  * chaque case donne les mesures déposées, sans note ni verdict. Une case vide
  * dit seulement qu'aucun texte n'a été collecté, pas l'absence de position.
  */
-export function MeasureComparison({ sections }: { sections: Section[] }) {
+export function MeasureComparison({
+  sections,
+  href = '',
+  title = 'Les textes déposés, groupe par groupe',
+}: {
+  sections: Section[]
+  /** La page de l'enjeu, quand le tableau s'affiche ailleurs (sous la carte). */
+  href?: string
+  title?: string
+}) {
   const withMeasures = sections.filter((s) => s.measures.length > 0)
   if (withMeasures.length === 0) return null
   const groups = [
@@ -33,7 +42,7 @@ export function MeasureComparison({ sections }: { sections: Section[] }) {
     <section className="bg-white px-6 py-14 md:px-10">
       <div className="mx-auto max-w-[920px]">
         <h2 className="text-[1.6rem] font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
-          Les textes déposés, groupe par groupe
+          {title}
         </h2>
         <p className="mt-2 max-w-[62ch] text-[0.98rem] leading-relaxed text-[#5B6470]">
           Une ligne par groupe du premier signataire, à la date du dépôt ; un
@@ -78,7 +87,7 @@ export function MeasureComparison({ sections }: { sections: Section[] }) {
                             {own.map((m) => (
                               <li key={measureAnchor(m)}>
                                 <a
-                                  href={`#${measureAnchor(m)}`}
+                                  href={`${href}#${measureAnchor(m)}`}
                                   className="font-semibold text-[#0B1A2A] no-underline hover:underline"
                                 >
                                   {m.label}

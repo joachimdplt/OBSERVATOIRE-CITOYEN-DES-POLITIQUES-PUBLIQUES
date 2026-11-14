@@ -8,9 +8,12 @@ import { FRANCE } from '../data/regions'
 import { TerritoryLayersCard } from '../components/organisms/territory/TerritoryLayersCard'
 import {
   getIndicator,
+  getPublication,
   getTerritoryValues,
   listIndicators,
+  listPublications,
 } from '../services/public-api'
+import { MeasureComparison } from '../components/organisms/publications/MeasureComparison'
 import { seo } from '../utils/seo'
 
 const search = z.object({
@@ -32,19 +35,31 @@ export const Route = createFileRoute('/carte')({
   loader: async ({ deps }) => {
     // Seules les couches de carte s'y choisissent ; la population par âge se
     // lit dans la fiche d'une commune.
-    const layers = ((await listIndicators({ data: {} })) ?? []).filter(
-      (l) => l.mapLayer,
-    )
+    const [all, publications] = await Promise.all([
+      listIndicators({ data: {} }),
+      listPublications(),
+    ])
+    const layers = (all ?? []).filter((l) => l.mapLayer)
     const code =
       layers.find((l) => l.code === deps.layer)?.code ?? layers.at(0)?.code
     const sheet = code ? await getIndicator({ data: { code } }) : null
+    // L'enjeu publié qui contient la couche : ses textes s'affichent sous la carte.
+    const sheets = await Promise.all(
+      (publications ?? []).map((p) =>
+        getPublication({ data: { slug: p.slug } }),
+      ),
+    )
+    const publication =
+      sheets.find((p) =>
+        p?.sections.some((s) => s.indicators.some((i) => i.code === code)),
+      ) ?? null
     const territory =
       deps.territory && deps.level
         ? await getTerritoryValues({
             data: { level: deps.level, code: deps.territory },
           })
         : null
-    return { layers, sheet, territory }
+    return { layers, sheet, territory, publication }
   },
   head: () => ({
     meta: seo({
@@ -57,7 +72,7 @@ export const Route = createFileRoute('/carte')({
 })
 
 function MapPage() {
-  const { layers, sheet, territory } = Route.useLoaderData()
+  const { layers, sheet, territory, publication } = Route.useLoaderData()
   const filters = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
   const keep = { replace: true, resetScroll: false } as const
@@ -87,129 +102,138 @@ function MapPage() {
         : FRANCE
 
   return (
-    <main className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[260px_1fr]">
-      <aside className="space-y-3">
-        <p className="text-sm font-semibold">Les couches de la carte</p>
-        <LayerPicker
-          layers={layers}
-          active={sheet.code}
-          onPick={(layer) =>
-            navigate({
-              search: (s) => ({
-                ...s,
-                layer,
-                period: undefined,
-              }),
-              ...keep,
-            })
-          }
+    <>
+      <main className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[260px_1fr]">
+        <aside className="space-y-3">
+          <p className="text-sm font-semibold">Les couches de la carte</p>
+          <LayerPicker
+            layers={layers}
+            active={sheet.code}
+            onPick={(layer) =>
+              navigate({
+                search: (s) => ({
+                  ...s,
+                  layer,
+                  period: undefined,
+                }),
+                ...keep,
+              })
+            }
+          />
+        </aside>
+        <div className="space-y-4">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-semibold tracking-tight text-balance">
+              {sheet.label}
+            </h1>
+            <p className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+              <span>{sheet.unit}</span>
+              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                {sheet.provenance
+                  .map((p) => p.producer.acronym)
+                  .filter((a, i, all) => all.indexOf(a) === i)
+                  .join(', ')}
+              </span>
+            </p>
+          </header>
+          <MapPanel
+            code={sheet.code}
+            unit={sheet.unit}
+            categories={sheet.kind === 'category' ? sheet.categories : null}
+            scale={
+              sheet.scaleLow && sheet.scaleHigh
+                ? { low: sheet.scaleLow, high: sheet.scaleHigh }
+                : null
+            }
+            periods={sheet.periods}
+            period={period}
+            region={region}
+            regional={regional}
+            waiting={!region}
+            focus={filters.territory}
+            toolbar={
+              <>
+                <CommuneSearch
+                  onPick={(t) =>
+                    navigate({
+                      search: (x) => ({
+                        ...x,
+                        region: t.regionCode ?? x.region,
+                        territory: t.code,
+                        level: t.level,
+                        name: t.name,
+                      }),
+                      ...keep,
+                    })
+                  }
+                />
+                <RegionSelect
+                  regions={sheet.regions}
+                  active={region}
+                  withFrance={!regional}
+                  onPick={(r) =>
+                    // Une autre région ferme la fiche de la commune précédente.
+                    navigate({
+                      search: (x) => ({
+                        ...x,
+                        region: r,
+                        territory: undefined,
+                        level: undefined,
+                        name: undefined,
+                      }),
+                      ...keep,
+                    })
+                  }
+                />
+              </>
+            }
+            onPeriod={(p) =>
+              navigate({ search: (s) => ({ ...s, period: p }), ...keep })
+            }
+            onSelect={(t) =>
+              navigate({
+                search: (s) => ({
+                  ...s,
+                  territory: t.code,
+                  level: t.level,
+                  name: t.name,
+                }),
+                ...keep,
+              })
+            }
+            side={
+              filters.territory ? (
+                <TerritoryLayersCard
+                  data={territory}
+                  name={filters.name ?? filters.territory}
+                  onClose={() =>
+                    navigate({
+                      search: (s) => ({
+                        ...s,
+                        territory: undefined,
+                        level: undefined,
+                        name: undefined,
+                      }),
+                      ...keep,
+                    })
+                  }
+                />
+              ) : (
+                <p className="surface p-5 text-sm text-slate-600">
+                  Cliquez sur une commune pour lire toutes ses données.
+                </p>
+              )
+            }
+          />
+        </div>
+      </main>
+      {publication && (
+        <MeasureComparison
+          sections={publication.sections}
+          href={`/enjeux/${publication.slug}`}
+          title={`Textes déposés sur l’enjeu « ${publication.title} »`}
         />
-      </aside>
-      <div className="space-y-4">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight text-balance">
-            {sheet.label}
-          </h1>
-          <p className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-            <span>{sheet.unit}</span>
-            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
-              {sheet.provenance
-                .map((p) => p.producer.acronym)
-                .filter((a, i, all) => all.indexOf(a) === i)
-                .join(', ')}
-            </span>
-          </p>
-        </header>
-        <MapPanel
-          code={sheet.code}
-          unit={sheet.unit}
-          categories={sheet.kind === 'category' ? sheet.categories : null}
-          scale={
-            sheet.scaleLow && sheet.scaleHigh
-              ? { low: sheet.scaleLow, high: sheet.scaleHigh }
-              : null
-          }
-          periods={sheet.periods}
-          period={period}
-          region={region}
-          regional={regional}
-          waiting={!region}
-          focus={filters.territory}
-          toolbar={
-            <>
-              <CommuneSearch
-                onPick={(t) =>
-                  navigate({
-                    search: (x) => ({
-                      ...x,
-                      region: t.regionCode ?? x.region,
-                      territory: t.code,
-                      level: t.level,
-                      name: t.name,
-                    }),
-                    ...keep,
-                  })
-                }
-              />
-              <RegionSelect
-                regions={sheet.regions}
-                active={region}
-                withFrance={!regional}
-                onPick={(r) =>
-                  // Une autre région ferme la fiche de la commune précédente.
-                  navigate({
-                    search: (x) => ({
-                      ...x,
-                      region: r,
-                      territory: undefined,
-                      level: undefined,
-                      name: undefined,
-                    }),
-                    ...keep,
-                  })
-                }
-              />
-            </>
-          }
-          onPeriod={(p) =>
-            navigate({ search: (s) => ({ ...s, period: p }), ...keep })
-          }
-          onSelect={(t) =>
-            navigate({
-              search: (s) => ({
-                ...s,
-                territory: t.code,
-                level: t.level,
-                name: t.name,
-              }),
-              ...keep,
-            })
-          }
-          side={
-            filters.territory ? (
-              <TerritoryLayersCard
-                data={territory}
-                name={filters.name ?? filters.territory}
-                onClose={() =>
-                  navigate({
-                    search: (s) => ({
-                      ...s,
-                      territory: undefined,
-                      level: undefined,
-                      name: undefined,
-                    }),
-                    ...keep,
-                  })
-                }
-              />
-            ) : (
-              <p className="surface p-5 text-sm text-slate-600">
-                Cliquez sur une commune pour lire toutes ses données.
-              </p>
-            )
-          }
-        />
-      </div>
-    </main>
+      )}
+    </>
   )
 }
