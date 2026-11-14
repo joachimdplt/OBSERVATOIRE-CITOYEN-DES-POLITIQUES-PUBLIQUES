@@ -32,15 +32,21 @@ export class XlsxImporter implements SourceDatasetImporter {
     // Chaque ligne du tableur, vides comprises : le numéro d'une ligne lue
     // est celui que le producteur voit dans son fichier, et la provenance
     // d'une valeur le cite.
-    const rows: string[][] = [];
-    for (let r = 1; r <= worksheet.rowCount; r++) {
-      const row = worksheet.getRow(r);
-      const cells: string[] = [];
-      for (let col = 1; col <= worksheet.columnCount; col++) {
-        cells.push(cellText(row.getCell(col).value));
-      }
-      rows.push(cells);
-    }
+    //
+    // Le parcours passe par `eachRow` et `row.values` : demander chaque
+    // cellule une à une (`getRow(r).getCell(c)`) coûte 45 ms par ligne sur le
+    // fichier de la DREES, soit une demi-heure pendant laquelle l'API ne
+    // répond plus à personne.
+    const width = worksheet.columnCount;
+    const rows: string[][] = Array.from({ length: worksheet.rowCount }, () =>
+      Array<string>(width).fill(''),
+    );
+    worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+      const values = row.values as ExcelJS.CellValue[];
+      rows[rowNumber - 1] = Array.from({ length: width }, (_, i) =>
+        cellText(values[i + 1]),
+      );
+    });
     return { sheetNames, sheet: worksheet.name, rows };
   }
 }
