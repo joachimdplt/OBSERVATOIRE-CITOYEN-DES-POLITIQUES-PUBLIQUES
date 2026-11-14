@@ -4,12 +4,13 @@ import type { SelectHTMLAttributes } from 'react'
 type Props = SelectHTMLAttributes<HTMLSelectElement> & {
   label: string
   options: { value: string; label: string }[]
+  hint?: string
   error?: string
 }
 
 /** Un choix dans une liste fermée. */
 export const Select = forwardRef<HTMLSelectElement, Props>(function Select(
-  { label, options, error, id, ...rest },
+  { label, options, hint, error, id, ...rest },
   ref,
 ) {
   const generated = useId()
@@ -29,6 +30,7 @@ export const Select = forwardRef<HTMLSelectElement, Props>(function Select(
           </option>
         ))}
       </select>
+      {hint && <p className="text-xs text-slate-500">{hint}</p>}
       {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   )

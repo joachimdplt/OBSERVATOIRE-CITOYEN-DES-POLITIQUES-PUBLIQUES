@@ -166,6 +166,7 @@ export class ValidateImportJobController {
         status: c.status,
         value: c.value,
         category: c.category,
+        referenceDate: c.referenceDate ? new Date(c.referenceDate) : null,
         versionId: job.versionId,
         rowNumber: c.rowNumber,
       });

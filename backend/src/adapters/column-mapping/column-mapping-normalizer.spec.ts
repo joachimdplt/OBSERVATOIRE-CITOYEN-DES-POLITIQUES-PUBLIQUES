@@ -36,6 +36,7 @@ describe('la lecture d’un tableau une ligne par territoire', () => {
         status: 'documented',
         value: '3.3',
         category: null,
+        referenceDate: null,
       },
       expect.objectContaining({ indicatorCode: 'population', value: '832' }),
     ]);
@@ -132,5 +133,57 @@ describe('la lecture d’un tableau une ligne par territoire', () => {
         severity: 'blocking',
       }),
     ]);
+  });
+
+  it('lit la date de référence de chaque ligne, et une marque « sans objet » propre au fichier', () => {
+    const header = ['Code commune', 'Zonage', 'Date arrêté'];
+    const zonage = {
+      ...DESCRIPTION,
+      referenceDateColumn: 'Date arrêté',
+      notApplicableMarkers: ['NC'],
+      values: [{ column: 'Zonage', indicatorCode: 'zonage' }],
+    };
+    const readings = new Map([
+      [
+        'zonage',
+        {
+          kind: 'category' as const,
+          categories: [
+            { code: '1_ZIP', label: 'Zone d’intervention prioritaire' },
+            { code: '2_ZAC', label: 'Zone d’action complémentaire' },
+          ],
+        },
+      ],
+    ]);
+    const { candidates, anomalies } = new ColumnMappingNormalizer().normalize(
+      header,
+      [
+        { rowNumber: 2, cells: ['13203', '2_ZAC', '29/12/2025'] },
+        { rowNumber: 3, cells: ['13055', 'NC', ''] },
+        { rowNumber: 4, cells: ['01001', '1_ZIP', '31/02/2026'] },
+      ],
+      zonage,
+      readings,
+    );
+    expect(
+      candidates.map((c) => [
+        c.territory.code,
+        c.status,
+        c.category,
+        c.referenceDate,
+      ]),
+    ).toEqual([
+      ['13203', 'documented', '2_ZAC', '2025-12-29'],
+      ['13055', 'not_applicable', null, null],
+    ]);
+    expect(anomalies).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          rowNumber: 4,
+          kind: 'invalid_reference_date',
+          severity: 'blocking',
+        }),
+      ]),
+    );
   });
 });

@@ -116,6 +116,8 @@ export type TerritoryLayer = {
     producer: string
   }
   values: (Omit<Observation, 'territory' | 'vintage'> & {
+    /** La date du texte d'où vient la valeur (AAAA-MM-JJ), si le fichier la donne. */
+    referenceDate: string | null
     publication: { status: PublicStatus; label: string }
   })[]
 }

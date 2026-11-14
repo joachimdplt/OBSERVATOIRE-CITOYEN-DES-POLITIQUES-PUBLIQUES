@@ -17,6 +17,8 @@ export type CandidateObservation = {
   status: ObservationStatus;
   value: string | null;
   category: string | null;
+  /** La date de référence de la ligne, `AAAA-MM-JJ`, si la description en donne une colonne. */
+  referenceDate: string | null;
 };
 
 /** Ce que lit chaque indicateur décrit : un nombre, ou une catégorie de sa liste fermée. */

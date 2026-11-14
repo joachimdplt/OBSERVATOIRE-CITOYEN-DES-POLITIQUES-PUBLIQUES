@@ -10,6 +10,7 @@ import {
 import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
+  IsArray,
   IsIn,
   IsEnum,
   IsInt,
@@ -60,6 +61,11 @@ export class DescribeImportJobDto {
   territory!: TerritoryColumnDto;
   @ValidateNested() @Type(() => PeriodDto) period!: PeriodDto;
   @IsIn([',', '.']) decimalSeparator!: ',' | '.';
+  @IsOptional() @IsString() referenceDateColumn?: string;
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  notApplicableMarkers?: string[];
   @ValidateNested({ each: true })
   @Type(() => ValueColumnDto)
   @ArrayMinSize(1)
@@ -98,6 +104,8 @@ export class DescribeImportJobController {
           ? { column: dto.period.column }
           : { value: dto.period.value! },
       decimalSeparator: dto.decimalSeparator,
+      referenceDateColumn: dto.referenceDateColumn ?? null,
+      notApplicableMarkers: dto.notApplicableMarkers ?? [],
       values: dto.values,
     };
 

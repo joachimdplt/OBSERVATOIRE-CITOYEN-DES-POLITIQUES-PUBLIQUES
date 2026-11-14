@@ -1,5 +1,6 @@
 import { readCategory } from '../../domain/category';
 import { readCell } from '../../domain/cell';
+import { readDate } from '../../domain/date';
 import type { ImportDescription } from '../../domain/import-description';
 import { readPeriod } from '../../domain/period';
 import { readTerritoryCode } from '../../domain/territory-code';
@@ -47,6 +48,10 @@ export class ColumnMappingNormalizer implements ObservationNormalizer {
     const periodAt = 'column' in d.period ? index(d.period.column) : -1;
     const fixedPeriod = 'value' in d.period ? readPeriod(d.period.value) : null;
     const valueColumns = d.values.map((v) => ({ ...v, at: index(v.column) }));
+    const dateAt = d.referenceDateColumn ? index(d.referenceDateColumn) : -1;
+    const notApplicable = new Set(
+      (d.notApplicableMarkers ?? []).map((m) => m.trim()),
+    );
 
     const candidates: CandidateObservation[] = [];
     const anomalies: Anomaly[] = [];
@@ -100,13 +105,34 @@ export class ColumnMappingNormalizer implements ObservationNormalizer {
         continue;
       }
 
+      let referenceDate: string | null = null;
+      if (dateAt >= 0) {
+        const rawDate = cells[dateAt] ?? '';
+        if (rawDate.trim() !== '') {
+          const date = readDate(rawDate);
+          if (!date.valid) {
+            blocking(
+              rowNumber,
+              d.referenceDateColumn!,
+              'invalid_reference_date',
+              date.reason,
+            );
+            continue;
+          }
+          referenceDate = date.date;
+        }
+      }
+
       for (const { column, indicatorCode, at } of valueColumns) {
         const reading = readings.get(indicatorCode) ?? { kind: 'number' };
         const raw = cells[at] ?? '';
-        const cell =
-          reading.kind === 'category'
-            ? readCategory(raw, reading.categories)
-            : readCell(raw, d.decimalSeparator);
+        const cell:
+          ReturnType<typeof readCell> | ReturnType<typeof readCategory> =
+          notApplicable.has(raw.trim())
+            ? { kind: 'absence', status: ObservationStatus.not_applicable }
+            : reading.kind === 'category'
+              ? readCategory(raw, reading.categories)
+              : readCell(raw, d.decimalSeparator);
         if (cell.kind === 'invalid') {
           blocking(rowNumber, column, 'invalid_value', cell.reason);
           continue;
@@ -123,6 +149,7 @@ export class ColumnMappingNormalizer implements ObservationNormalizer {
           status: cell.status,
           value: cell.kind === 'value' ? cell.value : null,
           category: cell.kind === 'category' ? cell.category : null,
+          referenceDate,
         });
       }
     }

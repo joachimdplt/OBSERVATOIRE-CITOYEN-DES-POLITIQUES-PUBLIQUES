@@ -217,9 +217,10 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
     await link().expect(201);
     await link().expect(409);
 
-    // Un fichier construit pour le test, au format de l'annexe : deux communes de l'Ain.
+    // Un fichier construit pour le test, au format du fichier national : la
+    // date de l'arrêté par commune, et « NC » pour une commune non classée.
     const csv = Buffer.from(
-      'Code commune;Zonage 2025\n01001;ZIP\n01053;HZ\n',
+      'Code commune;Zonage 2025;Date arrêté\n01001;ZIP;29/12/2025\n01053;NC;\n',
       'utf8',
     );
     const { job, version } = (
@@ -241,6 +242,8 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
         territory: { column: 'Code commune', level: 'commune', vintage: 2026 },
         period: { value: '2025' },
         decimalSeparator: ',',
+        referenceDateColumn: 'Date arrêté',
+        notApplicableMarkers: ['NC'],
         values: [
           {
             column: 'Zonage 2025',
@@ -261,11 +264,11 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
         )
         .expect(200)
     ).body as MapAnswer;
-    expect(map.values.map((v) => [v[0], v[3]]).sort()).toEqual([
-      ['01001', 'ZIP'],
-      ['01053', 'HZ'],
-      ['13201', 'HZ'],
-      ['84007', 'ZAC'],
+    expect(map.values.map((v) => [v[0], v[2], v[3]]).sort()).toEqual([
+      ['01001', 'documented', 'ZIP'],
+      ['01053', 'not_applicable', null],
+      ['13201', 'documented', 'HZ'],
+      ['84007', 'documented', 'ZAC'],
     ]);
 
     const producerOf = async (level: string, code: string) =>
@@ -281,6 +284,29 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
         ?.indicator.producer;
     expect(await producerOf('commune', '01001')).toBe('ARS ARA');
     expect(await producerOf('commune', '84007')).toBe('ARS PACA');
+
+    const zonageOf = async (code: string) =>
+      (
+        (
+          await request(http(app))
+            .get(`/api/public/territories/commune/${code}/values`)
+            .expect(200)
+        ).body as {
+          layers: {
+            indicator: { code: string };
+            values: { status: string; referenceDate: string | null }[];
+          }[];
+        }
+      ).layers.find((l) => l.indicator.code === 'zonage-medecins-generalistes')
+        ?.values[0];
+    expect(await zonageOf('01001')).toMatchObject({
+      status: 'documented',
+      referenceDate: '2025-12-29',
+    });
+    expect(await zonageOf('01053')).toMatchObject({
+      status: 'not_applicable',
+      referenceDate: null,
+    });
 
     const sheet = (
       await request(http(app))

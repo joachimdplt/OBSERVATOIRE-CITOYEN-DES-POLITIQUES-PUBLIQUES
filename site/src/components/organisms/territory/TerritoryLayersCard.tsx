@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { X } from 'lucide-react'
 import type { TerritoryLayer, TerritoryValues } from '../../../types/public'
+import { frenchDate } from '../../../utils/date'
 import { approximately, frenchNumber } from '../../../utils/number'
 import { readingOf } from '../../../utils/reading'
 import { ValueCell } from '../indicators/ValueCell'
@@ -80,6 +81,11 @@ export function TerritoryLayersCard({ data, name, onClose }: Props) {
                       {latest.period})
                     </span>
                   )}
+                </p>
+              )}
+              {latest?.referenceDate && (
+                <p className="text-xs text-slate-500">
+                  Date du texte : {frenchDate(latest.referenceDate)}
                 </p>
               )}
               {explanation && (

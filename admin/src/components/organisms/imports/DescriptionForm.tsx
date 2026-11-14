@@ -17,6 +17,8 @@ type Values = {
   periodColumn: string
   periodValue: string
   decimalSeparator: ',' | '.'
+  referenceDateColumn: string
+  notApplicableMarkers: string
   columnsByIndicator: Record<string, string>
 }
 
@@ -62,6 +64,8 @@ export function DescriptionForm({
       periodValue: current?.period.value ?? '',
       decimalSeparator:
         current?.decimalSeparator ?? (format === 'xlsx' ? '.' : ','),
+      referenceDateColumn: current?.referenceDateColumn ?? '',
+      notApplicableMarkers: (current?.notApplicableMarkers ?? []).join(', '),
       columnsByIndicator: Object.fromEntries(
         indicators.map((i) => [
           i.code,
@@ -87,6 +91,13 @@ export function DescriptionForm({
           ? { column: v.periodColumn }
           : { value: v.periodValue.trim() },
       decimalSeparator: v.decimalSeparator,
+      ...(v.referenceDateColumn
+        ? { referenceDateColumn: v.referenceDateColumn }
+        : {}),
+      notApplicableMarkers: v.notApplicableMarkers
+        .split(',')
+        .map((m) => m.trim())
+        .filter(Boolean),
       values: Object.entries(v.columnsByIndicator)
         .filter(([, column]) => column)
         .map(([indicatorCode, column]) => ({ indicatorCode, column })),
@@ -182,6 +193,22 @@ export function DescriptionForm({
           hint="Vide : jusqu’au bout du fichier."
           type="number"
           {...register('lastRow')}
+        />
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Select
+          label="Date du texte, par ligne"
+          hint="Facultatif. La date de l’arrêté de chaque commune, par exemple : elle s’affiche avec la valeur."
+          options={[
+            { value: '', label: '(aucune)' },
+            ...columnOptions.slice(1),
+          ]}
+          {...register('referenceDateColumn')}
+        />
+        <Field
+          label="Marques « sans objet »"
+          hint="Facultatif, séparées par des virgules. « NC » : commune non classée, ni zéro ni donnée manquante."
+          {...register('notApplicableMarkers')}
         />
       </div>
       <Notice reasons={reasons} />

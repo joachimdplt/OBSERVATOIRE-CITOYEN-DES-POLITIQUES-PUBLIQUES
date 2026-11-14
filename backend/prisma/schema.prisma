@@ -347,21 +347,25 @@ model ImportAnomaly {
 // et une version. Une absence garde son statut et n'a pas de valeur.
 
 model Observation {
-  id          String              @id @default(uuid())
-  indicatorId String
-  territoryId String
+  id            String              @id @default(uuid())
+  indicatorId   String
+  territoryId   String
   // « 2024 », « 2024-T3 », « 2024-03 », « 2025-2026 » (année scolaire).
-  period      String
-  value       Decimal?            @db.Decimal(20, 6)
+  period        String
+  value         Decimal?            @db.Decimal(20, 6)
   // Pour un indicateur de catégorie : le code de la catégorie, tel que l'arrêté l'écrit.
-  category    String?
-  status      ObservationStatus
-  versionId   String
+  category      String?
+  // La date de référence de la valeur, quand le fichier la donne : la date de
+  // l'arrêté d'une ARS pour un zonage. Une commune peut être classée par un
+  // arrêté plus ancien que sa voisine.
+  referenceDate DateTime?           @db.Date
+  status        ObservationStatus
+  versionId     String
   // La ligne du fichier d'où vient la valeur.
-  rowNumber   Int
-  indicator   IndicatorDefinition @relation(fields: [indicatorId], references: [id])
-  territory   Territory           @relation(fields: [territoryId], references: [id])
-  version     DatasetVersion      @relation(fields: [versionId], references: [id])
+  rowNumber     Int
+  indicator     IndicatorDefinition @relation(fields: [indicatorId], references: [id])
+  territory     Territory           @relation(fields: [territoryId], references: [id])
+  version       DatasetVersion      @relation(fields: [versionId], references: [id])
 
   @@unique([indicatorId, territoryId, period, versionId])
   @@index([indicatorId, versionId])

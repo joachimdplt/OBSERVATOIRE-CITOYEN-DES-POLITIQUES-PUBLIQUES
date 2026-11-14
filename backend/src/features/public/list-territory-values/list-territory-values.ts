@@ -78,6 +78,9 @@ export class ListTerritoryValuesController {
         category: o.category,
         // La ligne du fichier du producteur d'où vient la valeur.
         sourceRow: o.rowNumber,
+        // La date du texte d'où vient la valeur, quand le fichier la donne
+        // (l'arrêté de zonage de la région, par exemple).
+        referenceDate: o.referenceDate?.toISOString().slice(0, 10) ?? null,
         publication: {
           status: o.version.state,
           label: PUBLICATION_LABELS[o.version.state as PublicState],
@@ -130,6 +133,7 @@ const layerOf = (i: IndicatorView) => ({
     value: string | null;
     category: string | null;
     sourceRow: number;
+    referenceDate: string | null;
     publication: { status: string; label: string };
   }[],
 });

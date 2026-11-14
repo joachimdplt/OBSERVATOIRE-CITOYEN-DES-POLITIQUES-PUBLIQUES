@@ -24,6 +24,10 @@ export type ImportDescription = {
   territory: { column: string; level: TerritoryLevel; vintage: number }
   period: { column?: string; value?: string }
   decimalSeparator: ',' | '.'
+  /** La colonne qui donne, ligne par ligne, la date du texte d'où vient la valeur. */
+  referenceDateColumn?: string | null
+  /** Les marques du fichier qui veulent dire « sans objet » (« NC », par exemple). */
+  notApplicableMarkers?: string[]
   values: { column: string; indicatorCode: string }[]
 }
 

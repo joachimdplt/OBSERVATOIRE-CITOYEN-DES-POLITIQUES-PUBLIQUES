@@ -19,6 +19,15 @@ export type ImportDescription = {
   /** Une colonne, ou une même période pour tout le fichier. */
   period: { column: string } | { value: string };
   decimalSeparator: DecimalSeparator;
+  /** La colonne qui porte la date de référence de chaque ligne : la date de l'arrêté d'un zonage. */
+  referenceDateColumn?: string | null;
+  /**
+   * Les marques propres à ce fichier qui veulent dire « sans objet » : « NC »
+   * dans le zonage national, pour une commune classée par arrondissement ou
+   * une collectivité sans zonage. Elles deviennent une absence, jamais une
+   * catégorie ni un zéro.
+   */
+  notApplicableMarkers?: string[];
   values: { column: string; indicatorCode: string }[];
 };
 
@@ -45,6 +54,9 @@ export function checkDescription(
     if (!period.valid) errors.push(period.reason);
   }
 
+  if (description.referenceDateColumn) {
+    mustExist(description.referenceDateColumn, 'date de référence');
+  }
   if (description.values.length === 0)
     errors.push('Aucune colonne de valeurs décrite.');
   const seen = new Set<string>();
