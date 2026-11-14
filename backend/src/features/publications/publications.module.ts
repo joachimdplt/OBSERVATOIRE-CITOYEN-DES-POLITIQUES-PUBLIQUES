@@ -3,6 +3,7 @@ import { ApprovePublicationController } from './approve-publication/approve-publ
 import { CreatePublicationController } from './create-publication/create-publication';
 import { ListPublicationsController } from './list-publications/list-publications';
 import { OpenPublicationDraftController } from './open-publication-draft/open-publication-draft';
+import { SetWatchTermsController } from './set-watch-terms/set-watch-terms';
 import { PreprintPublicationController } from './preprint-publication/preprint-publication';
 import { WritePublicationDraftController } from './write-publication-draft/write-publication-draft';
 
@@ -18,6 +19,7 @@ import { WritePublicationDraftController } from './write-publication-draft/write
     PreprintPublicationController,
     ApprovePublicationController,
     OpenPublicationDraftController,
+    SetWatchTermsController,
   ],
 })
 export class PublicationsModule {}

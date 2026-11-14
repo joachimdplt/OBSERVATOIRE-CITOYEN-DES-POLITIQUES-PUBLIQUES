@@ -21,6 +21,15 @@ export class GetPublicationController {
     const publication = await this.prisma.publication.findUnique({
       where: { slug },
       include: {
+        // Les textes collectés automatiquement pour cette publication.
+        matches: {
+          where: { document: { origin: 'automatic' } },
+          include: {
+            document: {
+              include: { measures: { orderBy: { createdAt: 'asc' } } },
+            },
+          },
+        },
         versions: {
           where: { state: { in: [...PUBLIC_STATES, 'superseded'] } },
           orderBy: { number: 'desc' },
@@ -97,6 +106,26 @@ export class GetPublicationController {
           },
         })),
       })),
+      // Collectés sur les données ouvertes du Parlement, non relus : le texte,
+      // son auteur, son groupe au jour du dépôt, et ses articles mot pour mot.
+      collected: publication.matches
+        .map(({ document: d, term }) => ({
+          term,
+          kind: d.kind,
+          title: d.title,
+          number: d.number,
+          chamber: d.chamber,
+          filedAt: d.filedAt.toISOString().slice(0, 10),
+          url: d.url,
+          firstAuthor: d.firstAuthor,
+          authorGroup: d.authorGroup,
+          authorGroupSource: d.authorGroupSource,
+          articles: d.measures.map((m) => ({
+            article: m.article,
+            quote: m.quote,
+          })),
+        }))
+        .sort((a, b) => b.filedAt.localeCompare(a.filedAt)),
       // Les versions remplacées restent citables : leur numéro et leur date.
       history: publication.versions
         .filter((v) => v.id !== current.id)

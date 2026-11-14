@@ -201,4 +201,21 @@ export type PublicationSheet = PublicationLine & {
     }[]
   }[]
   history: { number: number; status: string; publishedAt: string | null }[]
+  /** Collectés sur les données ouvertes du Parlement, non relus. */
+  collected: CollectedText[]
+}
+
+/** Un texte déposé, collecté automatiquement : ses articles, mot pour mot. */
+export type CollectedText = {
+  term: string
+  kind: 'bill' | 'government_bill' | 'law' | 'amendment' | 'programme'
+  title: string
+  number: string | null
+  chamber: 'national_assembly' | 'senate' | null
+  filedAt: string
+  url: string
+  firstAuthor: string
+  authorGroup: string | null
+  authorGroupSource: string | null
+  articles: { article: string; quote: string }[]
 }

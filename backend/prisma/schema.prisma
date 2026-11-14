@@ -459,6 +459,9 @@ model Publication {
   createdAt   DateTime             @default(now())
   createdBy   User                 @relation("PublicationCreatedBy", fields: [createdById], references: [id])
   versions    PublicationVersion[]
+  /// Les termes surveillés dans les titres des textes déposés au Parlement.
+  watchTerms  String[]
+  matches     DocumentMatch[]
 
   @@map("publications")
 }
@@ -535,6 +538,12 @@ enum DocumentKind {
   programme
 }
 
+/// Qui a fait entrer un texte : l'équipe, ou le collecteur automatique.
+enum Origin {
+  team
+  automatic
+}
+
 enum Chamber {
   national_assembly
   senate
@@ -542,13 +551,13 @@ enum Chamber {
 
 /// Un texte officiel ou un programme, tel que publié par son auteur.
 model PoliticalDocument {
-  id                String       @id @default(uuid())
+  id                String          @id @default(uuid())
   kind              DocumentKind
   title             String
   /// Le numéro du texte dans sa chambre : « 966 », « 494 (2024-2025) ».
   number            String?
   chamber           Chamber?
-  filedAt           DateTime     @db.Date
+  filedAt           DateTime        @db.Date
   /// L'adresse du texte lui-même, chez l'Assemblée, le Sénat ou Légifrance.
   url               String
   /// Le premier signataire, ou « Gouvernement » pour un projet de loi.
@@ -558,9 +567,14 @@ model PoliticalDocument {
   authorGroupSource String?
   /// Où en est le texte, en mots et daté : « Adopté par l'Assemblée nationale le 7 mai 2025 ».
   progress          String?
+  /// team : saisi par l'équipe ; automatic : collecté sur les données ouvertes du Parlement.
+  origin            Origin          @default(team)
+  /// La référence du texte chez son producteur (« PIONANR5L17B0966 ») : un texte ne se collecte qu'une fois.
+  sourceRef         String?         @unique
+  matches           DocumentMatch[]
   createdById       String
-  createdAt         DateTime     @default(now())
-  createdBy         User         @relation(fields: [createdById], references: [id])
+  createdAt         DateTime        @default(now())
+  createdBy         User            @relation(fields: [createdById], references: [id])
   measures          Measure[]
 
   @@map("political_documents")
@@ -574,8 +588,11 @@ model Measure {
   article     String
   /// La citation, mot pour mot. Elle ne se réécrit jamais (voir la migration).
   quote       String
-  /// L'action, l'objet et l'horizon de la citation, sans adjectif d'appréciation.
-  label       String
+  /// L'action, l'objet et l'horizon de la citation, sans adjectif
+  /// d'appréciation. Vide pour une mesure collectée automatiquement : elle
+  /// n'affiche que son article et sa citation, jusqu'à sa relecture.
+  label       String?
+  origin      Origin            @default(team)
   createdById String
   createdAt   DateTime          @default(now())
   document    PoliticalDocument @relation(fields: [documentId], references: [id])
@@ -597,4 +614,19 @@ model SectionMeasure {
 
   @@id([sectionId, measureId])
   @@map("section_measures")
+}
+
+/// Un texte collecté pour une publication : le terme surveillé qu'il porte.
+/// Il s'affiche « collecté automatiquement, non relu » jusqu'à ce que
+/// l'équipe en tire des mesures relues.
+model DocumentMatch {
+  publicationId String
+  documentId    String
+  term          String
+  createdAt     DateTime          @default(now())
+  publication   Publication       @relation(fields: [publicationId], references: [id])
+  document      PoliticalDocument @relation(fields: [documentId], references: [id])
+
+  @@id([publicationId, documentId])
+  @@map("document_matches")
 }

@@ -10,6 +10,7 @@ import { CommuneSearch } from '../components/molecules/CommuneSearch'
 import { ValueCell } from '../components/organisms/indicators/ValueCell'
 import { MeasureComparison } from '../components/organisms/publications/MeasureComparison'
 import { MeasureList } from '../components/organisms/publications/MeasureList'
+import { CollectedTexts } from '../components/organisms/publications/CollectedTexts'
 import { pillarLabel } from '../data/pillars'
 import { getPublication, getTerritoryValues } from '../services/public-api'
 import type { TerritoryLayer } from '../types/public'
@@ -134,7 +135,7 @@ function PublicationPage() {
         </div>
       </section>
 
-      <MeasureComparison sections={p.sections} />
+      <MeasureComparison sections={p.sections} collected={p.collected} />
 
       <section className="bg-[#F4F6F8] px-6 py-16 md:px-10">
         <ol className="mx-auto max-w-[920px] space-y-8">
@@ -245,6 +246,7 @@ function PublicationPage() {
             </li>
           ))}
         </ol>
+        <CollectedTexts texts={p.collected} />
         {p.history.length > 0 && (
           <div className={`mx-auto mt-10 max-w-[920px] text-sm ${MUTED}`}>
             Versions précédentes :{' '}

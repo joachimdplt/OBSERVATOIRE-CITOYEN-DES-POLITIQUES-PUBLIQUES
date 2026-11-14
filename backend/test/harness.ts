@@ -19,10 +19,19 @@ export const http = (app: INestApplication) => app.getHttpServer() as App;
  * minute est levée par défaut : chaque test se reconnecte, et la limite est
  * vérifiée par son propre test.
  */
-export async function startApi({ throttled = false } = {}) {
+export async function startApi({
+  throttled = false,
+  providers = [],
+}: {
+  throttled?: boolean;
+  /** Des ports remplacés pour le test : une source du Parlement sans réseau. */
+  providers?: { provide: symbol | string; useValue: unknown }[];
+} = {}) {
   const builder = Test.createTestingModule({ imports: [AppModule] });
   if (!throttled)
     builder.overrideGuard(ThrottlerGuard).useValue({ canActivate: () => true });
+  for (const p of providers)
+    builder.overrideProvider(p.provide).useValue(p.useValue);
   const moduleRef = await builder.compile();
   const app = setupApp(moduleRef.createNestApplication());
   await app.init();

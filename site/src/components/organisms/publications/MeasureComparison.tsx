@@ -1,4 +1,5 @@
-import type { PublicationSheet } from '../../../types/public'
+import type { CollectedText, PublicationSheet } from '../../../types/public'
+import { frenchDate } from '../../../utils/date'
 
 type Section = PublicationSheet['sections'][number]
 type Measure = Section['measures'][number]
@@ -22,20 +23,35 @@ export const measureAnchor = (m: Measure) =>
  * chaque case donne les mesures déposées, sans note ni verdict. Une case vide
  * dit seulement qu'aucun texte n'a été collecté, pas l'absence de position.
  */
+/** Le groupe d'un texte collecté, au jour du dépôt. */
+export const collectedGroup = (t: CollectedText) =>
+  t.authorGroup ??
+  (t.firstAuthor === 'Gouvernement' ? 'Gouvernement' : 'Groupe non renseigné')
+
+/** L'ancre d'un texte collecté dans la page. */
+export const collectedAnchor = (t: CollectedText) =>
+  `texte-${t.chamber ?? 'x'}-${t.number ?? 'x'}`
+
 export function MeasureComparison({
   sections,
+  collected = [],
   href = '',
   title = 'Les textes déposés, groupe par groupe',
 }: {
   sections: Section[]
+  /** Les textes collectés automatiquement, non relus, en dernière colonne. */
+  collected?: CollectedText[]
   /** La page de l'enjeu, quand le tableau s'affiche ailleurs (sous la carte). */
   href?: string
   title?: string
 }) {
   const withMeasures = sections.filter((s) => s.measures.length > 0)
-  if (withMeasures.length === 0) return null
+  if (withMeasures.length === 0 && collected.length === 0) return null
   const groups = [
-    ...new Set(withMeasures.flatMap((s) => s.measures.map(groupOf))),
+    ...new Set([
+      ...withMeasures.flatMap((s) => s.measures.map(groupOf)),
+      ...collected.map(collectedGroup),
+    ]),
   ].sort((a, b) => a.localeCompare(b, 'fr'))
 
   return (
@@ -51,7 +67,7 @@ export function MeasureComparison({
           position.
         </p>
         <div className="mt-8 overflow-x-auto rounded-[24px] shadow-[0_0_0_1px_rgba(11,26,42,0.1)]">
-          <table className="w-full min-w-[640px] border-collapse text-left text-[0.9rem]">
+          <table className="w-full min-w-[860px] border-collapse text-left text-[0.9rem]">
             <thead>
               <tr className="bg-[#F4F6F8]">
                 <th className="w-[22%] p-4 font-extrabold text-[#0B1A2A]">
@@ -65,6 +81,14 @@ export function MeasureComparison({
                     {s.title}
                   </th>
                 ))}
+                {collected.length > 0 && (
+                  <th className="p-4 font-extrabold text-[#0B1A2A]">
+                    Autres textes déposés
+                    <span className="block text-[0.75rem] font-semibold text-[#5B6470]">
+                      collectés automatiquement, non relus
+                    </span>
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -104,6 +128,34 @@ export function MeasureComparison({
                       </td>
                     )
                   })}
+                  {collected.length > 0 && (
+                    <td className="p-4">
+                      {collected.some((t) => collectedGroup(t) === group) ? (
+                        <ul className="space-y-3">
+                          {collected
+                            .filter((t) => collectedGroup(t) === group)
+                            .map((t) => (
+                              <li key={collectedAnchor(t)}>
+                                <a
+                                  href={`${href}#${collectedAnchor(t)}`}
+                                  className="font-semibold text-[#0B1A2A] no-underline hover:underline"
+                                >
+                                  {t.title.replace(/^Proposition de loi /, '')}
+                                </a>
+                                <span className="block text-[0.78rem] text-[#5B6470]">
+                                  n° {t.number} · {frenchDate(t.filedAt)} ·{' '}
+                                  {t.firstAuthor}
+                                </span>
+                              </li>
+                            ))}
+                        </ul>
+                      ) : (
+                        <span className="text-[#5B6470]/70">
+                          aucun texte collecté
+                        </span>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
