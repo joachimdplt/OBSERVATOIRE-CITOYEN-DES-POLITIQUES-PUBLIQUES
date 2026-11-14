@@ -262,9 +262,6 @@ export function HomeParcours() {
           </li>
         ))}
       </ol>
-      <p className={`mx-auto mt-10 max-w-[52ch] text-center ${MUTED}`}>
-        {parcours.note}
-      </p>
       <div className="mt-10 flex justify-center">
         <ActionPill label={parcours.cta} />
       </div>

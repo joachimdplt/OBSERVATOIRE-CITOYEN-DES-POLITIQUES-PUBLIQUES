@@ -36,7 +36,6 @@ export const HOME = {
         soon: true,
       },
     ],
-    note: 'L’APL ne se transforme jamais en «\u00a0nombre de médecins manquants\u00a0».',
     cta: 'Suivre ce parcours',
   },
 
