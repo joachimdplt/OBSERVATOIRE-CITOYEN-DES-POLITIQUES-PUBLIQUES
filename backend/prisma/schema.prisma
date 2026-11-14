@@ -31,6 +31,7 @@ model User {
   providers  DataProvider[]
   datasets   SourceDataset[]
   indicators IndicatorDefinition[]
+  versions   DatasetVersion[]
 
   @@map("users")
 }
@@ -156,6 +157,7 @@ model SourceDataset {
   provider    DataProvider          @relation(fields: [providerId], references: [id])
   createdBy   User                  @relation(fields: [createdById], references: [id])
   indicators  IndicatorDefinition[]
+  versions    DatasetVersion[]
 
   @@unique([providerId, producerRef])
   @@map("source_datasets")
@@ -182,4 +184,79 @@ model IndicatorDefinition {
   createdBy           User          @relation(fields: [createdById], references: [id])
 
   @@map("indicator_definitions")
+}
+
+// ── Les versions d'un jeu et leur lecture ───────────────────────────────────
+// Un fichier déposé crée une version. L'ancienne n'est jamais écrasée : on
+// garde le fichier brut, son empreinte, et chaque ligne telle qu'elle a été lue.
+
+enum VersionState {
+  draft // déposée, en cours de description et de contrôle
+  in_review // soumise à relecture
+  published // visible du public
+  rejected // refusée en relecture
+  superseded // remplacée par une version publiée plus récente
+}
+
+enum SourceFormat {
+  csv
+  xlsx
+}
+
+enum ImportState {
+  uploaded // lu, en attente de description des colonnes
+}
+
+model DatasetVersion {
+  id          String        @id @default(uuid())
+  datasetId   String
+  // Le millésime annoncé par le producteur : « 2024 », « rentrée 2025 ».
+  vintage     String
+  // L'adresse exacte du fichier chez le producteur.
+  fileUrl     String
+  collectedAt DateTime
+  fileName    String
+  fileHash    String
+  fileSize    Int
+  state       VersionState  @default(draft)
+  createdById String
+  createdAt   DateTime      @default(now())
+  dataset     SourceDataset @relation(fields: [datasetId], references: [id])
+  createdBy   User          @relation(fields: [createdById], references: [id])
+  importJob   ImportJob?
+
+  // Le même fichier ne se dépose pas deux fois pour le même jeu.
+  @@unique([datasetId, fileHash])
+  @@map("dataset_versions")
+}
+
+model ImportJob {
+  id         String         @id @default(uuid())
+  versionId  String         @unique
+  format     SourceFormat
+  // Les onglets d'un classeur, et celui qui a été lu.
+  sheetNames String[]
+  sheet      String?
+  // La ligne qui porte les en-têtes, comptée à partir de 1.
+  headerRow  Int            @default(1)
+  rowCount   Int
+  state      ImportState    @default(uploaded)
+  createdAt  DateTime       @default(now())
+  version    DatasetVersion @relation(fields: [versionId], references: [id])
+  rows       RawRow[]
+
+  @@map("import_jobs")
+}
+
+/**
+ * Une ligne du fichier telle qu'elle a été lue : des cases de texte, rien d'interprété.
+ */
+model RawRow {
+  jobId     String
+  rowNumber Int
+  cells     Json
+  job       ImportJob @relation(fields: [jobId], references: [id])
+
+  @@id([jobId, rowNumber])
+  @@map("raw_rows")
 }
