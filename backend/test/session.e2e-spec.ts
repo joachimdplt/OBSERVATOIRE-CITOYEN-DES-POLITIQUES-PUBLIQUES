@@ -77,4 +77,15 @@ describe('une personne de l’équipe se connecte à l’administration', () => 
     await agent.delete('/api/admin/session').expect(204);
     await agent.get('/api/admin/session').expect(401);
   });
+
+  it('au-delà de dix essais par minute, la connexion est refusée', async () => {
+    const throttledApp = (await startApi({ throttled: true })).app;
+    const attempt = () =>
+      request(http(throttledApp))
+        .post('/api/admin/session')
+        .send({ email: 'editor@observatoire.test', password: 'faux' });
+    for (let i = 0; i < 10; i++) await attempt().expect(401);
+    await attempt().expect(429);
+    await throttledApp.close();
+  });
 });

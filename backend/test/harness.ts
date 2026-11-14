@@ -1,5 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import * as argon2 from 'argon2';
 import request from 'supertest';
 import type { App } from 'supertest/types';
@@ -10,14 +11,19 @@ import { setupApp } from '../src/setup-app';
 
 export const PASSWORD = 'mot-de-passe-de-test';
 
-/** L'API complète, branchée sur la base de test. */
 /** Le serveur HTTP de l'API, typé pour supertest. */
 export const http = (app: INestApplication) => app.getHttpServer() as App;
 
-export async function startApi() {
-  const moduleRef = await Test.createTestingModule({
-    imports: [AppModule],
-  }).compile();
+/**
+ * L'API complète, branchée sur la base de test. La limite de connexions par
+ * minute est levée par défaut : chaque test se reconnecte, et la limite est
+ * vérifiée par son propre test.
+ */
+export async function startApi({ throttled = false } = {}) {
+  const builder = Test.createTestingModule({ imports: [AppModule] });
+  if (!throttled)
+    builder.overrideGuard(ThrottlerGuard).useValue({ canActivate: () => true });
+  const moduleRef = await builder.compile();
   const app = setupApp(moduleRef.createNestApplication());
   await app.init();
   return { app, prisma: app.get(PrismaService) };

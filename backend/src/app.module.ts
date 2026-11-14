@@ -4,6 +4,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { CatalogueModule } from './features/catalogue/catalogue.module';
 import { ImportsModule } from './features/imports/imports.module';
+import { ReviewsModule } from './features/reviews/reviews.module';
 import configuration from './config/configuration';
 import { SessionModule } from './features/session/session.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -18,6 +19,7 @@ import { PublicModule } from './features/public/public.module';
     SessionModule,
     CatalogueModule,
     ImportsModule,
+    ReviewsModule,
     PublicModule,
   ],
 })

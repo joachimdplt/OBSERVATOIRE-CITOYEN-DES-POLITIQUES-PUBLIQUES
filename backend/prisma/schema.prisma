@@ -28,10 +28,13 @@ model User {
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
 
-  providers  DataProvider[]
-  datasets   SourceDataset[]
-  indicators IndicatorDefinition[]
-  versions   DatasetVersion[]
+  providers    DataProvider[]
+  datasets     SourceDataset[]
+  indicators   IndicatorDefinition[]
+  versions     DatasetVersion[]      @relation("VersionCreatedBy")
+  submitted    DatasetVersion[]      @relation("VersionSubmittedBy")
+  reviewed     DatasetVersion[]      @relation("VersionReviewedBy")
+  reviewEvents ReviewEvent[]
 
   @@map("users")
 }
@@ -193,11 +196,17 @@ model IndicatorDefinition {
 // garde le fichier brut, son empreinte, et chaque ligne telle qu'elle a été lue.
 
 enum VersionState {
-  draft // déposée, en cours de description et de contrôle
+  draft // déposée, en cours de description et de contrôle ; une version rejetée y revient
   in_review // soumise à relecture
   published // visible du public
-  rejected // refusée en relecture
   superseded // remplacée par une version publiée plus récente
+}
+
+enum ReviewAction {
+  submitted
+  approved
+  rejected
+  superseded
 }
 
 enum SourceFormat {
@@ -228,23 +237,30 @@ enum AnomalySeverity {
 }
 
 model DatasetVersion {
-  id           String        @id @default(uuid())
-  datasetId    String
+  id            String        @id @default(uuid())
+  datasetId     String
   // Le millésime annoncé par le producteur : « 2024 », « rentrée 2025 ».
-  vintage      String
+  vintage       String
   // L'adresse exacte du fichier chez le producteur.
-  fileUrl      String
-  collectedAt  DateTime
-  fileName     String
-  fileHash     String
-  fileSize     Int
-  state        VersionState  @default(draft)
-  createdById  String
-  createdAt    DateTime      @default(now())
-  dataset      SourceDataset @relation(fields: [datasetId], references: [id])
-  createdBy    User          @relation(fields: [createdById], references: [id])
-  importJob    ImportJob?
-  observations Observation[]
+  fileUrl       String
+  collectedAt   DateTime
+  fileName      String
+  fileHash      String
+  fileSize      Int
+  state         VersionState  @default(draft)
+  submittedById String?
+  submittedAt   DateTime?
+  reviewedById  String?
+  reviewedAt    DateTime?
+  publishedAt   DateTime?
+  createdById   String
+  createdAt     DateTime      @default(now())
+  dataset       SourceDataset @relation(fields: [datasetId], references: [id])
+  createdBy     User          @relation("VersionCreatedBy", fields: [createdById], references: [id])
+  submittedBy   User?         @relation("VersionSubmittedBy", fields: [submittedById], references: [id])
+  reviewedBy    User?         @relation("VersionReviewedBy", fields: [reviewedById], references: [id])
+  importJob     ImportJob?
+  observations  Observation[]
 
   // Le même fichier ne se dépose pas deux fois pour le même jeu.
   @@unique([datasetId, fileHash])
@@ -323,4 +339,26 @@ model Observation {
   @@unique([indicatorId, territoryId, period, versionId])
   @@index([indicatorId, versionId])
   @@map("observations")
+}
+
+// ── La revue ────────────────────────────────────────────────────────────────
+// Chaque soumission, approbation, rejet ou remplacement laisse une trace
+// signée : qui, quand, l'état avant, l'état après, pourquoi. Une trace ne se
+// modifie ni ne se supprime.
+
+model ReviewEvent {
+  id            String       @id @default(uuid())
+  actorId       String
+  action        ReviewAction
+  // L'objet visé : une version de jeu aujourd'hui, une mesure ou un lien demain.
+  subjectType   String
+  subjectId     String
+  before        Json
+  after         Json
+  justification String?
+  at            DateTime     @default(now())
+  actor         User         @relation(fields: [actorId], references: [id])
+
+  @@index([subjectType, subjectId])
+  @@map("review_events")
 }
