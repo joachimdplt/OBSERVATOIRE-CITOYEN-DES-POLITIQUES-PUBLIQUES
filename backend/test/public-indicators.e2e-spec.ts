@@ -279,4 +279,18 @@ describe('le public consulte un indicateur', () => {
     ).body as { layers: { indicator: { mapLayer: boolean } }[] };
     expect(layers[0].indicator.mapLayer).toBe(false);
   });
+
+  it('un visiteur trouve sa commune en tapant son nom, sans accents ni tirets', async () => {
+    const found = (
+      await visitor()
+        .get('/api/public/territories?q=abergement clem')
+        .expect(200)
+    ).body as { code: string; name: string; departmentCode: string }[];
+    expect(found[0]).toMatchObject({
+      code: '01001',
+      name: "L'Abergement-Clémenciat",
+      departmentCode: '01',
+    });
+    await visitor().get('/api/public/territories?q=a').expect(400);
+  });
 });

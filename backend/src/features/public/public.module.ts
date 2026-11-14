@@ -5,6 +5,7 @@ import { GetTerritoryController } from './get-territory/get-territory';
 import { ListTerritoryValuesController } from './list-territory-values/list-territory-values';
 import { ListIndicatorObservationsController } from './list-indicator-observations/list-indicator-observations';
 import { ListIndicatorsController } from './list-indicators/list-indicators';
+import { SearchTerritoriesController } from './search-territories/search-territories';
 
 /**
  * Ce que lit le public, sans compte. Aucune route d'écriture, aucun accès aux
@@ -13,6 +14,7 @@ import { ListIndicatorsController } from './list-indicators/list-indicators';
 @Module({
   controllers: [
     GetTerritoryController,
+    SearchTerritoriesController,
     ListTerritoryValuesController,
     ListIndicatorsController,
     GetIndicatorController,

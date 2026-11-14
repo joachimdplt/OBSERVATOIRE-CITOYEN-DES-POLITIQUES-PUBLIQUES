@@ -64,3 +64,19 @@ export const getTerritoryValues = createServerFn({ method: 'GET' })
       `/territories/${encodeURIComponent(data.level)}/${encodeURIComponent(data.code)}/values`,
     ),
   )
+
+/** Une commune ou un arrondissement trouvé par son nom. */
+export type TerritoryMatch = {
+  code: string
+  name: string
+  level: 'commune' | 'municipal_district'
+  departmentCode: string | null
+  regionCode: string | null
+}
+
+/** Les communes dont le nom commence par la saisie, puis celles qui la contiennent. */
+export const searchTerritories = createServerFn({ method: 'GET' })
+  .validator(z.object({ q: z.string().min(2) }))
+  .handler(({ data }) =>
+    get<TerritoryMatch[]>(`/territories?q=${encodeURIComponent(data.q)}`),
+  )

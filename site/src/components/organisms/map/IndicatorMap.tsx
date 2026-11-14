@@ -8,6 +8,49 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 const TILES = 'https://data.geopf.fr/tms/1.0.0/ADMIN_EXPRESS/{z}/{x}/{y}.pbf'
 const LAYERS = ['commune', 'arrondissement_municipal'] as const
 
+/** Le filtre qui ne garde que la commune choisie, ou aucune. */
+const selected = (code?: string) =>
+  ['==', ['get', 'code_insee'], code ?? ''] as never
+
+/**
+ * Cadrer la carte sur une commune : son emprise se lit dans les tuiles déjà
+ * chargées. Si elle n'y est pas encore, la carte garde son cadre.
+ */
+function frame(instance: MapLibreMap, code?: string) {
+  if (!code) return
+  let west = Infinity,
+    south = Infinity,
+    east = -Infinity,
+    north = -Infinity
+  for (const layer of LAYERS) {
+    for (const feature of instance.querySourceFeatures('admin', {
+      sourceLayer: layer,
+      filter: selected(code),
+    })) {
+      const geometry = feature.geometry
+      const rings =
+        geometry.type === 'Polygon'
+          ? geometry.coordinates
+          : geometry.type === 'MultiPolygon'
+            ? geometry.coordinates.flat()
+            : []
+      for (const ring of rings)
+        for (const [x, y] of ring) {
+          west = Math.min(west, x)
+          east = Math.max(east, x)
+          south = Math.min(south, y)
+          north = Math.max(north, y)
+        }
+    }
+  }
+  if (west === Infinity) return
+  instance.fitBounds([west, south, east, north], {
+    padding: 120,
+    maxZoom: 9.5,
+    duration: 800,
+  })
+}
+
 type Props = {
   /** La classe de chaque code INSEE : son rang, ou -1 pour une absence. */
   classes: Map<string, number>
@@ -15,6 +58,8 @@ type Props = {
   colors: readonly string[]
   /** Le cadre affiché : la France, ou une région. */
   bounds?: [number, number, number, number]
+  /** Le code INSEE de la commune choisie : la carte s'y cadre et l'entoure. */
+  focus?: string
   onSelect: (territory: {
     code: string
     name: string
@@ -30,10 +75,12 @@ export function IndicatorMap({
   classes,
   colors,
   bounds = FRANCE_BOUNDS,
+  focus,
   onSelect,
 }: Props) {
   const container = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
+  const focusRef = useRef(focus)
   const select = useRef(onSelect)
   select.current = onSelect
 
@@ -83,6 +130,14 @@ export function IndicatorMap({
               'source-layer': 'departement',
               paint: { 'line-color': '#ffffff', 'line-width': 0.8 },
             },
+            ...LAYERS.map((layer) => ({
+              id: `${layer}-choisie`,
+              type: 'line' as const,
+              source: 'admin',
+              'source-layer': layer,
+              filter: selected(focusRef.current),
+              paint: { 'line-color': '#0f172a', 'line-width': 2.5 },
+            })),
           ],
         },
       })
@@ -117,6 +172,7 @@ export function IndicatorMap({
         )
       }
       map.current = instance
+      instance.once('load', () => frame(instance, focusRef.current))
     })
     return () => {
       cancelled = true
@@ -129,6 +185,16 @@ export function IndicatorMap({
   useEffect(() => {
     map.current?.fitBounds(bounds, { padding: 16, duration: 600 })
   }, [bounds])
+
+  useEffect(() => {
+    focusRef.current = focus
+    const instance = map.current
+    if (!instance?.isStyleLoaded()) return
+    for (const layer of LAYERS)
+      instance.setFilter(`${layer}-choisie`, selected(focus))
+    // Après le cadrage sur la région, la commune choisie.
+    instance.once('idle', () => frame(instance, focus))
+  }, [focus, bounds])
 
   useEffect(() => {
     const paint = () => {

@@ -31,6 +31,8 @@ type Props = {
    */
   region?: string
   regional?: boolean
+  /** Le code de la commune choisie : la carte s'y cadre et l'entoure. */
+  focus?: string
   onPeriod: (period: string) => void
   onSelect: (territory: {
     code: string
@@ -55,6 +57,7 @@ export function MapPanel({
   period,
   region,
   regional = false,
+  focus,
   onPeriod,
   onSelect,
   toolbar,
@@ -158,6 +161,7 @@ export function MapPanel({
                 classes={classes.byCode}
                 colors={colors}
                 bounds={bounds}
+                focus={focus}
                 onSelect={onSelect}
               />
             </Suspense>

@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
 import { LayerPicker } from '../components/organisms/map/LayerPicker'
 import { MapPanel } from '../components/organisms/map/MapPanel'
+import { CommuneSearch } from '../components/molecules/CommuneSearch'
 import { RegionSelect } from '../components/molecules/RegionSelect'
 import { FRANCE } from '../data/regions'
 import { TerritoryLayersCard } from '../components/organisms/territory/TerritoryLayersCard'
@@ -129,15 +130,42 @@ function MapPage() {
           region={region}
           regional={regional}
           waiting={!region}
+          focus={filters.territory}
           toolbar={
-            <RegionSelect
-              regions={sheet.regions}
-              active={region}
-              withFrance={!regional}
-              onPick={(r) =>
-                navigate({ search: (x) => ({ ...x, region: r }), ...keep })
-              }
-            />
+            <>
+              <CommuneSearch
+                onPick={(t) =>
+                  navigate({
+                    search: (x) => ({
+                      ...x,
+                      region: t.regionCode ?? x.region,
+                      territory: t.code,
+                      level: t.level,
+                      name: t.name,
+                    }),
+                    ...keep,
+                  })
+                }
+              />
+              <RegionSelect
+                regions={sheet.regions}
+                active={region}
+                withFrance={!regional}
+                onPick={(r) =>
+                  // Une autre région ferme la fiche de la commune précédente.
+                  navigate({
+                    search: (x) => ({
+                      ...x,
+                      region: r,
+                      territory: undefined,
+                      level: undefined,
+                      name: undefined,
+                    }),
+                    ...keep,
+                  })
+                }
+              />
+            </>
           }
           onPeriod={(p) =>
             navigate({ search: (s) => ({ ...s, period: p }), ...keep })
