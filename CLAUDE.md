@@ -5,7 +5,8 @@ données) prime sur tout le reste.
 
 ## Le dépôt
 
-- `site/` : ce que lit le public, rendu côté serveur (TanStack Start), à venir.
+- `site/` : ce que lit le public, rendu côté serveur (TanStack Start) ; l'API
+  se lit par des fonctions serveur.
 - `admin/` : l'administration de l'équipe, rendue dans le navigateur
   (React, TanStack Router et Query, react-hook-form, zod) ; atoms,
   molecules, organisms ; design du suivi de parc, monochrome.

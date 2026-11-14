@@ -302,9 +302,29 @@ aucune qui rappelle un parti : la couleur ne sert qu'aux statuts.
 
 ## 3. `site/` : le public
 
-À écrire avec le premier écran public. Même organisation que le site
-d'AI Robotics : routes qui composent, `components/`, `data/` pour les textes,
-`services/` pour l'API lue côté serveur, `utils/seo.ts`.
+TanStack Start, généré par le squelette officiel. Les mêmes trois niveaux
+de composants que l'administration.
+
+```
+site/src/
+  routes/       __root.tsx · index.tsx · pillars.$pillar.tsx · indicators.$code.tsx
+  layouts/      SiteFrame : en-tête, pied de page avec licences et code source
+  components/   atoms · molecules · organisms/{home,indicators}
+  services/     public-api.ts : fonctions serveur (createServerFn), seules à lire l'API
+  data/         textes de l'accueil, piliers ; aucun chiffre statistique
+  utils/        number.ts (écriture à la française, sans arrondi) · seo.ts
+```
+
+- **L'API se lit côté serveur**, par des fonctions serveur : la page arrive
+  rendue, et l'adresse de l'API (`API_ORIGIN`) ne sort pas du serveur.
+- **`ValueCell` est la seule façon d'afficher une valeur** : elle reçoit
+  une observation, jamais un nombre, et écrit une absence en toutes lettres.
+- **Une valeur ne s'arrondit pas à l'affichage** : l'API donne la valeur
+  exacte, `frenchNumber` ne fait que l'écrire à la française.
+- **Les filtres vivent dans l'URL** (`?territory=&period=&offset=`) : un lien
+  partagé rouvre la même vue.
+- **Le pied de page donne l'adresse du code source** (AGPL-3.0, section 13)
+  et la licence du contenu.
 
 - **Chaque bloc de l'accueil occupe un écran plein.** Une page sombre ne
   finit jamais sur un bloc clair.

@@ -15,7 +15,7 @@ Le lancement se fait jeu de données vérifié par jeu de données vérifié.
 ## Le dépôt
 
 ```
-site/      ce que lit le public, rendu côté serveur (à venir)
+site/      ce que lit le public, rendu côté serveur
            TanStack Start · Tailwind v4
 admin/     l'administration de l'équipe, rendue dans le navigateur
            React 19 · TanStack Router · TanStack Query · react-hook-form · zod · Tailwind v4
@@ -61,7 +61,12 @@ cd admin && npm install
 npm run dev                       # http://localhost:3000, /api relayé vers le port 3001
 ```
 
-Le site public (`site/`, port 3002) n'est pas encore généré.
+Le site public, une fois l'API lancée :
+
+```bash
+cd site && npm install
+npm run dev                       # http://localhost:3002, rendu côté serveur
+```
 
 ## Documentation
 
