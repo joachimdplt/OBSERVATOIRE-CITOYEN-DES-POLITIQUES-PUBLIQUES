@@ -20,7 +20,8 @@
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev && prisma generate",
     "territories:import": "tsx src/scripts/import-territories.ts",
-    "user:create": "tsx src/scripts/create-user.ts"
+    "user:create": "tsx src/scripts/create-user.ts",
+    "collect:parliament": "tsx src/scripts/collect-parliament.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
