@@ -128,22 +128,22 @@ export class ValidateImportJobController {
     }
     const territoryId = new Map(territories.map((t) => [t.code, t.id]));
 
-    const unknownReported = new Set<number>();
+    // Une ligne d'un territoire absent du COG bloque, sauf si elle ne dit que
+    // « sans objet » : les collectivités du Pacifique, marquées « NC » dans le
+    // fichier national des zonages, n'apportent aucune valeur à perdre.
+    const unknown = new Map<number, { code: string; onlyNA: boolean }>();
     const seen = new Map<string, number>();
     const observations: Prisma.ObservationCreateManyInput[] = [];
     for (const c of candidates) {
       const tId = territoryId.get(c.territory.code);
       if (!tId) {
-        if (!unknownReported.has(c.rowNumber)) {
-          unknownReported.add(c.rowNumber);
-          anomalies.push({
-            rowNumber: c.rowNumber,
-            column: description.territory.column,
-            kind: 'unknown_territory',
-            severity: AnomalySeverity.blocking,
-            message: `Le code « ${c.territory.code} » n'existe pas dans le COG ${description.territory.vintage}.`,
-          });
-        }
+        const row = unknown.get(c.rowNumber);
+        unknown.set(c.rowNumber, {
+          code: c.territory.code,
+          onlyNA:
+            (row?.onlyNA ?? true) &&
+            c.status === ObservationStatus.not_applicable,
+        });
         continue;
       }
       const key = `${c.indicatorCode}|${c.territory.code}|${c.period}`;
@@ -169,6 +169,17 @@ export class ValidateImportJobController {
         referenceDate: c.referenceDate ? new Date(c.referenceDate) : null,
         versionId: job.versionId,
         rowNumber: c.rowNumber,
+      });
+    }
+    for (const [rowNumber, { code, onlyNA }] of unknown) {
+      anomalies.push({
+        rowNumber,
+        column: description.territory.column,
+        kind: 'unknown_territory',
+        severity: onlyNA ? AnomalySeverity.info : AnomalySeverity.blocking,
+        message: onlyNA
+          ? `Le code « ${code} » n'existe pas dans le COG ${description.territory.vintage} ; la ligne ne dit que « sans objet », elle est laissée de côté.`
+          : `Le code « ${code} » n'existe pas dans le COG ${description.territory.vintage}.`,
       });
     }
 

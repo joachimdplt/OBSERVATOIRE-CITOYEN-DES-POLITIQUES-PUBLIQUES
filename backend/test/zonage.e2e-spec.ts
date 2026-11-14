@@ -220,7 +220,7 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
     // Un fichier construit pour le test, au format du fichier national : la
     // date de l'arrêté par commune, et « NC » pour une commune non classée.
     const csv = Buffer.from(
-      'Code commune;Zonage 2025;Date arrêté\n01001;ZIP;29/12/2025\n01053;NC;\n',
+      'Code commune;Zonage 2025;Date arrêté\n01001;ZIP;29/12/2025\n01053;NC;\n98611;NC;\n',
       'utf8',
     );
     const { job, version } = (
@@ -252,7 +252,22 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
         ],
       })
       .expect(200);
-    await founder.post(`/api/admin/import-jobs/${job.id}/validate`).expect(200);
+    const checked = (
+      await founder
+        .post(`/api/admin/import-jobs/${job.id}/validate`)
+        .expect(200)
+    ).body as Report & {
+      anomalies: { rowNumber: number; kind: string; severity: string }[];
+    };
+    // Wallis-et-Futuna (98611) n'est pas dans le COG des communes ; « NC » seul ne bloque pas.
+    expect(checked.state).toBe('validated');
+    expect(checked.anomalies).toContainEqual(
+      expect.objectContaining({
+        rowNumber: 4,
+        kind: 'unknown_territory',
+        severity: 'info',
+      }),
+    );
     await founder
       .post(`/api/admin/versions/${version.id}/preprint`)
       .expect(200);
