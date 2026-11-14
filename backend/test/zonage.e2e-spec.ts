@@ -172,8 +172,8 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
         .expect(200)
     ).body as MapAnswer;
     expect(map.values.sort()).toEqual([
-      ['13201', null, 'documented', 'HZ'],
-      ['84007', null, 'documented', 'ZAC'],
+      ['13201', null, 'documented', 'HZ', '93'],
+      ['84007', null, 'documented', 'ZAC', '93'],
     ]);
   });
 
