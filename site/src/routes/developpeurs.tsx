@@ -54,7 +54,7 @@ function Title({ text, lead }: { text: string; lead?: string }) {
  * lire ses données par l'API publique.
  */
 function Developers() {
-  const { hero, architecture, chemin, api, licences } = DEVELOPERS
+  const { hero, architecture, chemin, api, regles, licences } = DEVELOPERS
   return (
     <>
       <section className="bg-white px-6 pt-24 pb-16 md:px-10">
@@ -175,6 +175,23 @@ function Developers() {
       </Block>
 
       <Block>
+        <Title text={regles.title} lead={regles.lead} />
+        <ul className="mt-8 max-w-[820px]">
+          {regles.items.map((rule) => (
+            <li
+              key={rule.label}
+              className="flex flex-col gap-1 border-b border-[#0B1A2A]/10 py-4 sm:flex-row sm:justify-between sm:gap-6"
+            >
+              <span className="font-extrabold text-[#0B1A2A]">
+                {rule.label}
+              </span>
+              <span className={`sm:text-right ${MUTED}`}>{rule.text}</span>
+            </li>
+          ))}
+        </ul>
+      </Block>
+
+      <Block soft>
         <Title text={licences.title} />
         <ul className="mt-8 max-w-[760px]">
           {licences.items.map((l) => (

@@ -7,7 +7,6 @@ import {
   HomeHero,
   HomeParcours,
   HomePiliers,
-  HomeRegles,
 } from '../components/organisms/home/HomeBlocks'
 import { HOME } from '../data/home'
 import { listIndicators } from '../services/public-api'
@@ -28,8 +27,8 @@ export const Route = createFileRoute('/')({
 
 /**
  * L'accueil dans l'ordre du cahier des charges : le principe directeur, les
- * douze piliers, le parcours de référence, les fonctionnalités, les règles de
- * données, la contribution.
+ * douze piliers, le parcours de référence, les fonctionnalités, la
+ * contribution.
  */
 function Home() {
   const { indicators } = Route.useLoaderData()
@@ -39,7 +38,6 @@ function Home() {
       <HomePiliers indicators={indicators} />
       <HomeParcours />
       <HomeFiches />
-      <HomeRegles />
       <HomeContribuer />
       <HomeFin />
     </>

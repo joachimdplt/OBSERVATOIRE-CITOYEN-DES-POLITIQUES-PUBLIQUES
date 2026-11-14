@@ -36,7 +36,7 @@ import type { IndicatorLine, Pillar } from '../../../types/public'
  * titres Inter 800 avec un passage surligné, pastilles, grands arrondis,
  * dernier écran sombre), et dans l'ordre du cahier des charges : le principe
  * directeur, les douze piliers, le parcours de référence, les
- * fonctionnalités, les règles de données. Monochrome : aucune couleur ne
+ * fonctionnalités, la contribution. Monochrome : aucune couleur ne
  * rappelle un parti.
  */
 
@@ -300,37 +300,12 @@ export function HomeFiches() {
   )
 }
 
-/** Les règles de données non négociables, une par ligne. */
-export function HomeRegles() {
-  const { regles } = HOME
-  return (
-    <Screen className="bg-white">
-      <Step title={regles.title} />
-      <ul className="mx-auto mt-14 max-w-[820px]">
-        {regles.items.map((rule) => (
-          <li
-            key={rule.label}
-            className="flex flex-col gap-1 border-b border-[#0B1A2A]/10 py-5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"
-          >
-            <span className="text-[1.05rem] font-extrabold text-[#0B1A2A]">
-              {rule.label}
-            </span>
-            <span className={`text-[1.05rem] sm:text-right ${MUTED}`}>
-              {rule.text}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </Screen>
-  )
-}
-
 const WAY_ICONS = [Flag, BookOpen, ShieldCheck, Code2]
 
 export function HomeContribuer() {
   const { contribuer } = HOME
   return (
-    <Screen id="contribuer" className="bg-[#F4F6F8]">
+    <Screen id="contribuer" className="bg-white">
       <Step title={contribuer.title} lead={contribuer.lead} />
       <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {contribuer.ways.map((way, i) => (

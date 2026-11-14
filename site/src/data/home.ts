@@ -65,29 +65,6 @@ export const HOME = {
     ],
   },
 
-  regles: {
-    title: 'Règles de données [[non négociables]]',
-    items: [
-      { label: 'Donnée absente', text: '« non documenté », jamais zéro' },
-      {
-        label: 'Échelles incompatibles',
-        text: 'affichées séparément, la différence expliquée',
-      },
-      {
-        label: 'Besoin chiffré',
-        text: 'seulement si un organisme publie la mesure et sa méthode',
-      },
-      {
-        label: 'Comparaison',
-        text: 'aucun classement automatique des partis',
-      },
-      {
-        label: 'Correction',
-        text: 'une nouvelle version, l’historique visible',
-      },
-    ],
-  },
-
   contribuer: {
     title: 'Contribuer, [[sous son nom]]',
     lead: 'Les contributions sont séparées de la validation : une autre personne relit avant publication.',

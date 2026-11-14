@@ -152,6 +152,30 @@ export const DEVELOPERS = {
     ],
   },
 
+  regles: {
+    title: 'Règles [[de données]]',
+    lead: 'Elles s’appliquent à chaque source et à chaque parti.',
+    items: [
+      { label: 'Donnée absente', text: '« non documenté », jamais zéro' },
+      {
+        label: 'Échelles incompatibles',
+        text: 'affichées séparément, la différence expliquée',
+      },
+      {
+        label: 'Besoin chiffré',
+        text: 'seulement si un organisme publie la mesure et sa méthode',
+      },
+      {
+        label: 'Comparaison',
+        text: 'aucun classement automatique des partis',
+      },
+      {
+        label: 'Correction',
+        text: 'une nouvelle version, l’historique visible',
+      },
+    ],
+  },
+
   licences: {
     title: 'Licences',
     items: [
