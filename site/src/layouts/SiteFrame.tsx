@@ -11,11 +11,17 @@ export function SiteFrame({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
-          <Link to="/" className="text-sm font-semibold tracking-tight">
+        <div className="mx-auto flex min-h-14 max-w-5xl items-center justify-between gap-4 px-6 py-2">
+          <Link
+            to="/"
+            className="shrink-0 text-sm font-semibold tracking-tight"
+          >
             Observatoire citoyen
           </Link>
-          <nav className="flex items-center gap-5 text-sm text-slate-600">
+          <nav className="flex flex-wrap items-center justify-end gap-x-5 gap-y-1 text-sm text-slate-600">
+            <Link to="/" className="hover:text-slate-900">
+              Articles
+            </Link>
             <Link to="/carte" className="hover:text-slate-900">
               Carte
             </Link>

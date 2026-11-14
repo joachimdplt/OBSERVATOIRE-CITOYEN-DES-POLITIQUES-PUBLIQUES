@@ -1,0 +1,98 @@
+import { Link } from '@tanstack/react-router'
+import { ArrowRight } from 'lucide-react'
+import { Highlight } from '../../atoms/Highlight'
+import { HOME } from '../../../data/home'
+import { pillarLabel } from '../../../data/pillars'
+import type { PublicationSheet } from '../../../types/public'
+import { frenchDate } from '../../../utils/date'
+import { groupOf } from '../publications/MeasureComparison'
+
+const MUTED = 'text-[#5B6470]'
+
+/**
+ * La une : le nom et le principe de l'observatoire, puis ses articles, le
+ * plus récent en premier. Chaque article dit son pilier, sa date, son état de
+ * relecture, son chapô et ce qu'il contient.
+ */
+export function HomeFront({ articles }: { articles: PublicationSheet[] }) {
+  const { hero, articles: copy } = HOME
+  return (
+    <section className="bg-white px-6 pt-16 pb-20 md:px-10">
+      <div className="mx-auto max-w-[1080px]">
+        <h1 className="text-[clamp(2.2rem,5vw,3.8rem)] leading-[1.08] font-extrabold tracking-[-0.03em] whitespace-pre-line text-[#0B1A2A]">
+          <Highlight text={hero.title} />
+        </h1>
+        <p
+          className={`mt-5 max-w-[60ch] text-[1.15rem] leading-relaxed ${MUTED}`}
+        >
+          {hero.lead}
+        </p>
+
+        <h2 className="mt-16 text-[1.4rem] font-extrabold tracking-[-0.02em] text-[#0B1A2A]">
+          {copy.title}
+        </h2>
+        {articles.length === 0 ? (
+          <p className={`mt-4 ${MUTED}`}>{copy.empty}</p>
+        ) : (
+          <ul className="mt-6 space-y-5">
+            {articles.map((a) => {
+              const measures = a.sections.flatMap((s) => s.measures)
+              const groups = new Set(measures.map(groupOf))
+              const indicators = new Set(
+                a.sections.flatMap((s) => s.indicators.map((i) => i.code)),
+              )
+              return (
+                <li key={a.slug}>
+                  <Link
+                    to="/enjeux/$slug"
+                    params={{ slug: a.slug }}
+                    className="group block rounded-[28px] bg-[#F4F6F8] p-6 no-underline transition-colors hover:bg-[#EDF0F3] md:p-9"
+                  >
+                    <p className={`text-sm font-semibold ${MUTED}`}>
+                      {pillarLabel(a.pillar)}
+                      {a.publishedAt
+                        ? ` · ${frenchDate(a.publishedAt.slice(0, 10))}`
+                        : ''}
+                      {a.authoredBy ? ` · par ${a.authoredBy}` : ''}
+                    </p>
+                    <p className="mt-3 text-[clamp(1.6rem,3vw,2.4rem)] leading-tight font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
+                      {a.title}
+                    </p>
+                    <p
+                      className={`mt-4 max-w-[70ch] text-[1.05rem] leading-relaxed ${MUTED}`}
+                    >
+                      {a.summary}
+                    </p>
+                    <p className="mt-5 flex flex-wrap gap-2 text-[0.85rem] font-semibold text-[#0B1A2A]">
+                      <span className="rounded-full bg-white px-3 py-1">
+                        {a.sections.length} parties
+                      </span>
+                      <span className="rounded-full bg-white px-3 py-1">
+                        {indicators.size} indicateurs officiels
+                      </span>
+                      {measures.length > 0 && (
+                        <span className="rounded-full bg-white px-3 py-1">
+                          {measures.length} mesures de {groups.size} groupes
+                        </span>
+                      )}
+                      <span className="rounded-full px-3 py-1 ring-1 ring-[#0B1A2A]/15">
+                        {a.statusLabel}
+                      </span>
+                    </p>
+                    <span className="mt-6 inline-flex items-center gap-2 font-extrabold text-[#0B1A2A]">
+                      {copy.read}
+                      <ArrowRight
+                        size={17}
+                        className="transition-transform group-hover:translate-x-0.5"
+                      />
+                    </span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
+    </section>
+  )
+}

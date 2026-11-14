@@ -1,67 +1,27 @@
 import { SOURCE_CODE, newIssue } from './project'
 
 /**
- * Les textes de l'accueil, repris du cahier des charges (docs/01-mvp.md) dans
- * son ordre : le principe directeur, les douze piliers, le parcours de
- * référence, les fonctionnalités, les règles de données. Chaque élément dit
- * s'il est en ligne ou à venir.
+ * Les textes de l'accueil, la une de l'observatoire : son principe, puis ses
+ * articles publiés, les douze piliers et la contribution. Repris du cahier
+ * des charges (docs/01-mvp.md), sobres et factuels.
  */
 export const HOME = {
   hero: {
     title: 'Observatoire citoyen\ndes [[politiques publiques]]',
     lead: 'Partir des statistiques publiques disponibles, les rendre lisibles et les relier aux mesures politiques.',
-    cta: 'Explorer les indicateurs',
+    cta: 'Explorer la carte',
+  },
+
+  articles: {
+    title: 'Articles',
+    empty: 'Aucun article publié pour l’instant.',
+    read: 'Lire l’article',
   },
 
   piliers: {
     title: 'Douze [[piliers]]',
     lead: 'Chaque pilier s’ouvre avec ses premiers enjeux publiés.',
     soon: 'À venir',
-  },
-
-  parcours: {
-    title: 'Du sujet [[à votre commune]]',
-    lead: 'Le premier parcours en ligne, tel que le décrit le cahier des charges.',
-    steps: [
-      { label: 'Santé', soon: false },
-      { label: 'Accès aux médecins', soon: false },
-      { label: 'Votre commune', soon: false },
-      {
-        label: 'L’APL, son millésime, sa définition, sa source DREES',
-        soon: false,
-      },
-      {
-        label: 'Les propositions des partis sur l’accès aux soins',
-        soon: true,
-      },
-    ],
-    cta: 'Suivre ce parcours',
-  },
-
-  fiches: {
-    title: 'Indicateurs et [[mesures politiques]]',
-    items: [
-      {
-        title: 'Fiche indicateur',
-        text: 'Définition, champ, méthode, millésime, liens originaux, limites et statut de relecture.',
-        soon: false,
-      },
-      {
-        title: 'Carte',
-        text: 'Par commune ou par département, quand le jeu de données et les limites géographiques le permettent.',
-        soon: false,
-      },
-      {
-        title: 'Fiche mesure politique',
-        text: 'Citation exacte, parti, document, date, territoire, horizon et montants déclarés.',
-        soon: true,
-      },
-      {
-        title: 'Comparateur',
-        text: 'Situation observée et propositions des partis côte à côte, sans score ni verdict.',
-        soon: true,
-      },
-    ],
   },
 
   contribuer: {

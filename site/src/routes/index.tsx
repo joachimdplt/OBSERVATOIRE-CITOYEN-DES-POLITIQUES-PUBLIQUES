@@ -2,20 +2,27 @@ import { createFileRoute } from '@tanstack/react-router'
 import { plain } from '../components/atoms/Highlight'
 import {
   HomeContribuer,
-  HomeFiches,
   HomeFin,
-  HomeHero,
-  HomeParcours,
   HomePiliers,
 } from '../components/organisms/home/HomeBlocks'
+import { HomeFront } from '../components/organisms/home/HomeFront'
 import { HOME } from '../data/home'
-import { listPublications } from '../services/public-api'
+import { getPublication, listPublications } from '../services/public-api'
+import type { PublicationSheet } from '../types/public'
 import { seo } from '../utils/seo'
 
 export const Route = createFileRoute('/')({
-  loader: async () => ({
-    publications: (await listPublications()) ?? [],
-  }),
+  loader: async () => {
+    const publications = (await listPublications()) ?? []
+    const articles = (
+      await Promise.all(
+        publications.map((p) => getPublication({ data: { slug: p.slug } })),
+      )
+    )
+      .filter((a): a is PublicationSheet => a !== null)
+      .sort((a, b) => (b.publishedAt ?? '').localeCompare(a.publishedAt ?? ''))
+    return { publications, articles }
+  },
   head: () => ({
     meta: seo({
       title: 'Accueil',
@@ -25,21 +32,13 @@ export const Route = createFileRoute('/')({
   component: Home,
 })
 
-/**
- * L'accueil dans l'ordre du cahier des charges : le principe directeur, les
- * douze piliers, le parcours de référence, les fonctionnalités, la
- * contribution.
- */
+/** La une : le principe, les articles publiés, les piliers, la contribution. */
 function Home() {
-  const { publications } = Route.useLoaderData()
+  const { publications, articles } = Route.useLoaderData()
   return (
     <>
-      <HomeHero />
+      <HomeFront articles={articles} />
       <HomePiliers publications={publications} />
-      <HomeParcours
-        slug={publications.find((x) => x.pillar === 'health')?.slug}
-      />
-      <HomeFiches />
       <HomeContribuer />
       <HomeFin />
     </>

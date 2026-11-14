@@ -6,8 +6,6 @@ import {
   Briefcase,
   ChevronRight,
   Code2,
-  Columns2,
-  FileText,
   Flag,
   GraduationCap,
   HandHeart,
@@ -15,9 +13,7 @@ import {
   House,
   Landmark,
   Leaf,
-  Map,
   Palette,
-  Quote,
   Scale,
   ShieldCheck,
   TrainFront,
@@ -35,8 +31,7 @@ import type { Pillar, PublicationLine } from '../../../types/public'
  * L'accueil dans le langage d'airobotics (ouverture centrée, écrans pleins,
  * titres Inter 800 avec un passage surligné, pastilles, grands arrondis,
  * dernier écran sombre), et dans l'ordre du cahier des charges : le principe
- * directeur, les douze piliers, le parcours de référence, les
- * fonctionnalités, la contribution. Monochrome : aucune couleur ne
+ * directeur et les articles publiés, les douze piliers, la contribution. Monochrome : aucune couleur ne
  * rappelle un parti.
  */
 
@@ -136,44 +131,6 @@ function Bubble({
   )
 }
 
-/** « En ligne » ou « À venir », sans couleur de statut. */
-function Status({ soon }: { soon: boolean }) {
-  return (
-    <span
-      className={`inline-flex h-6 items-center rounded-full px-2.5 text-[0.75rem] font-bold ${
-        soon
-          ? 'text-[#5B6470] ring-1 ring-[#0B1A2A]/15'
-          : 'bg-[#0B1A2A] text-white'
-      }`}
-    >
-      {soon ? 'À venir' : 'En ligne'}
-    </span>
-  )
-}
-
-export function HomeHero() {
-  const { hero } = HOME
-  return (
-    <Screen first className="bg-white">
-      <div className="mx-auto flex max-w-[1080px] flex-col items-center text-center">
-        <h1
-          className={`${DISPLAY} text-[clamp(2.4rem,5.6vw,4.4rem)] leading-[1.08] whitespace-pre-line`}
-        >
-          <Highlight text={hero.title} />
-        </h1>
-        <p
-          className={`mt-7 max-w-[46ch] text-[1.15rem] leading-relaxed md:text-[1.3rem] ${MUTED}`}
-        >
-          {hero.lead}
-        </p>
-        <div className="mt-10">
-          <ActionPill label={hero.cta} />
-        </div>
-      </div>
-    </Screen>
-  )
-}
-
 const PILLAR_ICONS: Record<Pillar, LucideIcon> = {
   agriculture_food: Wheat,
   health: HeartPulse,
@@ -241,76 +198,6 @@ export function HomePiliers({
           )
         })}
       </ul>
-    </Screen>
-  )
-}
-
-/** Le parcours de référence du cahier des charges, étape par étape. */
-export function HomeParcours({ slug }: { slug?: string }) {
-  const { parcours } = HOME
-  return (
-    <Screen className="bg-white">
-      <Step title={parcours.title} lead={parcours.lead} />
-      <ol className="mx-auto mt-14 flex max-w-[980px] flex-wrap items-center justify-center gap-x-2 gap-y-3">
-        {parcours.steps.map((step, i) => (
-          <li key={step.label} className="flex items-center gap-2">
-            <span
-              className={`inline-flex min-h-11 items-center gap-2 rounded-full px-5 py-2 text-[1rem] font-bold ${
-                step.soon
-                  ? 'text-[#5B6470] ring-1 ring-[#0B1A2A]/15'
-                  : 'bg-[#0B1A2A] text-white'
-              }`}
-            >
-              {step.label}
-              {step.soon && (
-                <span className="text-[0.75rem] font-semibold">· à venir</span>
-              )}
-            </span>
-            {i < parcours.steps.length - 1 && (
-              <ChevronRight
-                size={20}
-                strokeWidth={2.5}
-                className="text-[#0B1A2A]/40"
-                aria-hidden
-              />
-            )}
-          </li>
-        ))}
-      </ol>
-      <div className="mt-10 flex justify-center">
-        <ActionPill label={parcours.cta} slug={slug} />
-      </div>
-    </Screen>
-  )
-}
-
-const FICHE_ICONS = [FileText, Map, Quote, Columns2]
-
-/** Les fonctionnalités publiques du cahier des charges, en ligne ou à venir. */
-export function HomeFiches() {
-  const { fiches } = HOME
-  return (
-    <Screen className="bg-[#F4F6F8]">
-      <Step title={fiches.title} />
-      <div className="mt-14 grid gap-5 sm:grid-cols-2">
-        {fiches.items.map((item, i) => (
-          <div
-            key={item.title}
-            className="flex gap-5 rounded-[28px] bg-white p-6 shadow-[0_0_0_1px_rgba(11,26,42,0.1)] md:p-8"
-          >
-            <Bubble icon={FICHE_ICONS[i]} muted={item.soon} />
-            <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-3">
-                <p className={`${DISPLAY} text-[1.3rem]`}>{item.title}</p>
-                <Status soon={item.soon} />
-              </div>
-              <p className={`text-[1rem] leading-relaxed ${MUTED}`}>
-                {item.text}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
     </Screen>
   )
 }
