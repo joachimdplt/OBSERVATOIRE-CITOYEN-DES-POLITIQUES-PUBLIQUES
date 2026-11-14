@@ -1,0 +1,32 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── L'équipe ────────────────────────────────────────────────────────────────
+// Le public n'a pas de compte. Seule l'équipe se connecte, pour importer,
+// relire et publier.
+
+enum Role {
+  editor // déclare, importe, décrit, soumet
+  reviewer // relit et tranche, jamais son propre travail
+  admin // tout, et les comptes
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role
+  // Un compte retiré ne se connecte plus, mais ses traces restent signées.
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@map("users")
+}

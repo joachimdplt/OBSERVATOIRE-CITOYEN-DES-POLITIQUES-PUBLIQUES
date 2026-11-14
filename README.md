@@ -50,8 +50,22 @@ l'application sert une consultation.
 
 ## Démarrer
 
-Aucune application n'est encore générée. Ports prévus : API 3001,
-`client/` 3000, `site/` 3002.
+L'API, avec PostgreSQL 17 en local :
+
+```bash
+cd backend
+cp .env.example .env              # puis renseigner SESSION_SECRET
+createdb observatoire && createdb observatoire_shadow && createdb observatoire_test
+npm install
+npx prisma migrate dev            # applique les migrations
+npm run user:create -- vous@exemple.fr "Prénom Nom" admin
+npm run start:dev                 # http://localhost:3001/api
+npm test                          # domaine et architecture
+npm run test:e2e                  # de bout en bout, sur observatoire_test
+```
+
+Les fronts ne sont pas encore générés : `client/` sur le port 3000, `site/`
+sur le port 3002.
 
 ## Documentation
 
