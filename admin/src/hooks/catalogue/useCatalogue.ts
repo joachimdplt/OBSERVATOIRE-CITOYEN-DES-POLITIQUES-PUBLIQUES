@@ -1,12 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   addIndicatorSource,
+  amendCategories,
   createDataset,
   createIndicator,
   createProvider,
   fetchCatalogue,
   retireIndicatorSource,
 } from '../../api/catalogue.api'
+import type { Category } from '../../types/catalogue'
 import { queryKeys } from '../queryKeys'
 
 export function useCatalogue() {
@@ -29,6 +31,11 @@ export const useCreateIndicator = () => useDeclare(createIndicator)
 export const useLinkIndicator = () =>
   useDeclare(({ code, datasetId }: { code: string; datasetId: string }) =>
     addIndicatorSource(code, datasetId),
+  )
+
+export const useAmendCategories = () =>
+  useDeclare(({ code, categories }: { code: string; categories: Category[] }) =>
+    amendCategories(code, categories),
   )
 
 export const useRetireSource = () =>

@@ -7,6 +7,7 @@ import { Notice } from '../../atoms/Notice'
 import { Select } from '../../atoms/Select'
 import { TextArea } from '../../atoms/TextArea'
 import { PILLAR_LABELS } from '../../../data/labels'
+import { parseCategories } from '../../../utils/categories'
 import type {
   Aggregation,
   NewIndicator,
@@ -51,17 +52,6 @@ type Values = NewIndicator & {
   kind: 'number' | 'category'
   categoriesText: string
 }
-
-/** « ZIP = Zone d’intervention prioritaire », une catégorie par ligne. */
-const parseCategories = (text: string) =>
-  text
-    .split('\n')
-    .map((line) => line.split('='))
-    .filter(([code]) => code.trim() !== '')
-    .map(([code, ...label]) => ({
-      code: code.trim(),
-      label: label.join('=').trim(),
-    }))
 
 export function IndicatorForm({
   datasetId,

@@ -33,6 +33,17 @@ export type Indicator = DeclaredBy & {
   allowedAggregations: Aggregation[]
   method: string
   limits: string
+  kind: 'number' | 'category'
+  categories: Category[] | null
+}
+
+/** Une catégorie d'une liste fermée, avec ses autres écritures et son sens par région. */
+export type Category = {
+  code: string
+  label: string
+  explanation?: string
+  aliases?: string[]
+  regions?: Record<string, { label?: string; explanation?: string }>
 }
 
 export type Dataset = DeclaredBy & {
@@ -63,8 +74,11 @@ export type NewDataset = Pick<
   Dataset,
   'producerRef' | 'title' | 'url' | 'license' | 'methodology' | 'frequency'
 > & { providerId: string }
-export type NewIndicator = Omit<Indicator, 'id' | 'createdBy'> & {
+export type NewIndicator = Omit<
+  Indicator,
+  'id' | 'createdBy' | 'kind' | 'categories'
+> & {
   datasetId: string
   kind?: 'number' | 'category'
-  categories?: { code: string; label: string }[]
+  categories?: Category[]
 }

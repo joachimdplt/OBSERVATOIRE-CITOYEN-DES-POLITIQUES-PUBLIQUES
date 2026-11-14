@@ -6,7 +6,31 @@ export type Category = {
   label: string;
   /** Ce que la catégorie veut dire, en mots simples, repris du texte officiel. */
   explanation?: string;
+  /**
+   * Les autres codes sous lesquels un fichier écrit la même catégorie : le
+   * fichier national écrit « 1_ZIP » ce que l'arrêté régional écrit « ZIP ».
+   * La valeur se range sous le code de l'indicateur.
+   */
+  aliases?: string[];
+  /**
+   * Le sens propre à une région, par code de région : la ZAR de Bretagne
+   * renforce la ZAC, celle d'Occitanie ne vaut ni ZIP ni ZAC. Le libellé et
+   * l'explication de la région remplacent ceux de la catégorie.
+   */
+  regions?: Record<string, { label?: string; explanation?: string }>;
 };
+
+/** Le libellé et l'explication d'une catégorie dans une région donnée. */
+export function categoryReadingIn(
+  category: Category,
+  regionCode: string | null,
+): { label: string; explanation?: string } {
+  const regional = regionCode ? category.regions?.[regionCode] : undefined;
+  return {
+    label: regional?.label ?? category.label,
+    explanation: regional?.explanation ?? category.explanation,
+  };
+}
 
 export type CategoryReading =
   | {
@@ -30,11 +54,14 @@ export function readCategory(
   const code = raw.trim();
   if (code === '')
     return { kind: 'absence', status: ObservationStatus.not_documented };
-  if (categories.some((c) => c.code === code)) {
+  const found = categories.find(
+    (c) => c.code === code || (c.aliases ?? []).includes(code),
+  );
+  if (found) {
     return {
       kind: 'category',
       status: ObservationStatus.documented,
-      category: code,
+      category: found.code,
     };
   }
   return {
@@ -50,10 +77,54 @@ export function checkCategories(categories: Category[]): string[] {
     errors.push('Une liste de catégories en compte au moins deux.');
   const codes = categories.map((c) => c.code.trim());
   if (codes.some((c) => c === '')) errors.push('Chaque catégorie a un code.');
-  if (new Set(codes).size !== codes.length)
-    errors.push('Un code de catégorie ne figure qu’une fois.');
+  const written = categories.flatMap((c) => [
+    c.code.trim(),
+    ...(c.aliases ?? []).map((a) => a.trim()),
+  ]);
+  if (new Set(written).size !== written.length)
+    errors.push('Un code de catégorie ou un alias ne figure qu’une fois.');
+  if (written.some((c) => c === ''))
+    errors.push('Un alias vide ne désigne rien.');
+  for (const c of categories) {
+    for (const [region, reading] of Object.entries(c.regions ?? {})) {
+      if (!/^\d{2}$/.test(region))
+        errors.push(
+          `« ${region} » n'est pas un code de région du COG (deux chiffres).`,
+        );
+      if (!reading.label?.trim() && !reading.explanation?.trim())
+        errors.push(
+          `La lecture de ${c.code} pour la région ${region} est vide.`,
+        );
+    }
+  }
   if (categories.some((c) => c.label.trim() === '')) {
     errors.push('Chaque catégorie a son libellé officiel.');
+  }
+  return errors;
+}
+
+/**
+ * Les erreurs d'une modification de la liste : une catégorie s'ajoute ou se
+ * complète (alias, sens régional), elle ne se retire, ne se recode ni ne se
+ * renomme jamais, parce que des valeurs publiées portent son code et son
+ * libellé officiel.
+ */
+export function checkCategoryAmendment(
+  before: Category[],
+  after: Category[],
+): string[] {
+  const errors = checkCategories(after);
+  for (const old of before) {
+    const now = after.find((c) => c.code === old.code);
+    if (!now) {
+      errors.push(`La catégorie ${old.code} ne se retire pas.`);
+      continue;
+    }
+    if (now.label !== old.label)
+      errors.push(`Le libellé officiel de ${old.code} ne change pas.`);
+    for (const alias of old.aliases ?? [])
+      if (!(now.aliases ?? []).includes(alias))
+        errors.push(`L'alias ${alias} de ${old.code} ne se retire pas.`);
   }
   return errors;
 }

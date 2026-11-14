@@ -8,6 +8,7 @@ import { DepositForm } from '../../components/organisms/imports/DepositForm'
 import { VersionList } from '../../components/organisms/imports/VersionList'
 import {
   useCatalogue,
+  useAmendCategories,
   useLinkIndicator,
   useRetireSource,
 } from '../../hooks/catalogue/useCatalogue'
@@ -23,6 +24,7 @@ function DatasetPage() {
   const catalogue = useCatalogue().data
   const link = useLinkIndicator()
   const retire = useRetireSource()
+  const amend = useAmendCategories()
   const dataset = catalogue
     ?.flatMap((p) => p.datasets.map((d) => ({ ...d, provider: p.acronym })))
     .find((d) => d.id === datasetId)
@@ -59,6 +61,12 @@ function DatasetPage() {
             onRetire={(code, reason) =>
               retire.mutate({ code, datasetId, reason })
             }
+            amending={{
+              pending: amend.isPending,
+              reasons: amend.error ? reasonsOf(amend.error) : [],
+              onSubmit: (code, categories) =>
+                amend.mutate({ code, categories }),
+            }}
           />
           <LinkIndicatorForm
             candidates={allIndicators.filter((i) => !fed.has(i.code))}

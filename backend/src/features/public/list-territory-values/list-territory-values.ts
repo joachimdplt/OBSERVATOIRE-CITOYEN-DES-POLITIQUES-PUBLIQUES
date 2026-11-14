@@ -5,6 +5,7 @@ import {
   Param,
   ParseEnumPipe,
 } from '@nestjs/common';
+import { type Category, categoryReadingIn } from '../../../domain/category';
 import {
   PUBLIC_STATES,
   PUBLICATION_LABELS,
@@ -31,7 +32,13 @@ export class ListTerritoryValuesController {
     const territories = await this.prisma.territory.findMany({
       where: { level, code: code.toUpperCase() },
       orderBy: { vintage: 'desc' },
-      select: { id: true, name: true, code: true, level: true },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        level: true,
+        regionCode: true,
+      },
     });
     if (territories.length === 0)
       throw new NotFoundException('Territoire inconnu');
@@ -76,7 +83,9 @@ export class ListTerritoryValuesController {
       // Une valeur d'une source retirée ne nourrit plus l'indicateur.
       if (!o.indicator.sources.some((s) => s.datasetId === o.version.datasetId))
         continue;
-      const layer = layers.get(o.indicator.code) ?? layerOf(o.indicator);
+      const layer =
+        layers.get(o.indicator.code) ??
+        layerOf(o.indicator, territories[0].regionCode);
       // La source de la valeur : la DREES, ou l'ARS de la région de la commune.
       layer.indicator.producers.add(o.version.dataset.provider.acronym);
       layer.values.push({
@@ -122,14 +131,19 @@ type IndicatorView = {
   readingTemplate: string | null;
 };
 
-const layerOf = (i: IndicatorView) => ({
+// Une catégorie se lit dans le sens de la région du territoire.
+const layerOf = (i: IndicatorView, regionCode: string | null) => ({
   indicator: {
     code: i.code,
     label: i.label,
     unit: i.unit,
     pillar: i.pillar,
     kind: i.kind,
-    categories: i.categories,
+    categories:
+      (i.categories as Category[] | null)?.map((c) => ({
+        code: c.code,
+        ...categoryReadingIn(c, regionCode),
+      })) ?? null,
     limits: i.limits,
     question: i.question,
     readingTemplate: i.readingTemplate,

@@ -425,4 +425,91 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
       await prisma.indicatorSource.count({ where: { datasetId: ara.id } }),
     ).toBe(2);
   });
+
+  it('la liste se complète d’un alias et d’une catégorie au sens régional, sans rien retirer', async () => {
+    const amend = (categories: unknown[]) =>
+      founder
+        .put('/api/admin/indicators/zonage-medecins-generalistes/categories')
+        .send({ categories });
+    await amend(CATEGORIES.slice(1)).expect(400);
+    await amend([
+      { ...CATEGORIES[0], label: 'Zone prioritaire' },
+      ...CATEGORIES.slice(1),
+    ]).expect(400);
+    const NATIONAL = [
+      { ...CATEGORIES[0], aliases: ['1_ZIP'] },
+      { ...CATEGORIES[1], aliases: ['2_ZAC'] },
+      { ...CATEGORIES[2], aliases: ['3_HZ'] },
+      {
+        code: 'ZAR',
+        label: 'Zone d’accompagnement régional',
+        aliases: ['4_ZAR'],
+        // Construit pour le test : le sens que la région 84 donnerait à la ZAR.
+        regions: { '84': { label: 'Zone d’appui régional' } },
+      },
+    ];
+    await amend(NATIONAL).expect(200);
+
+    const ara = await prisma.sourceDataset.findFirstOrThrow({
+      where: { producerRef: 'zonage-medecins-ara' },
+    });
+    const csv = Buffer.from(
+      'com_code;zmed_niveau;zmed_date_arrete\n01015;4_ZAR;08/12/2025\n01053;1_ZIP;08/12/2025\n',
+      'utf8',
+    );
+    const { job, version } = (
+      await founder
+        .post(`/api/admin/datasets/${ara.id}/versions`)
+        .field('vintage', '2026')
+        .field('fileUrl', 'https://www.data.gouv.fr/zonages.csv')
+        .field('collectedAt', '2026-11-14')
+        .attach('file', csv, 'zonages.csv')
+        .expect(201)
+    ).body as Uploaded;
+    await founder
+      .put(`/api/admin/import-jobs/${job.id}/description`)
+      .send({
+        headerRow: 1,
+        territory: { column: 'com_code', level: 'commune', vintage: 2026 },
+        period: { value: '2026' },
+        decimalSeparator: ',',
+        referenceDateColumn: 'zmed_date_arrete',
+        values: [
+          {
+            column: 'zmed_niveau',
+            indicatorCode: 'zonage-medecins-generalistes',
+          },
+        ],
+      })
+      .expect(200);
+    const report = (
+      await founder
+        .post(`/api/admin/import-jobs/${job.id}/validate`)
+        .expect(200)
+    ).body as Report;
+    expect(report.observations).toMatchObject({ documented: 2 });
+    await founder
+      .post(`/api/admin/versions/${version.id}/preprint`)
+      .expect(200);
+
+    const zonage = (
+      (
+        await request(http(app))
+          .get('/api/public/territories/commune/01015/values')
+          .expect(200)
+      ).body as {
+        layers: {
+          indicator: {
+            code: string;
+            categories: { code: string; label: string }[];
+          };
+          values: { category: string }[];
+        }[];
+      }
+    ).layers.find((l) => l.indicator.code === 'zonage-medecins-generalistes');
+    expect(zonage?.values.map((v) => v.category)).toEqual(['ZAR']);
+    expect(
+      zonage?.indicator.categories.find((c) => c.code === 'ZAR')?.label,
+    ).toBe('Zone d’appui régional');
+  });
 });

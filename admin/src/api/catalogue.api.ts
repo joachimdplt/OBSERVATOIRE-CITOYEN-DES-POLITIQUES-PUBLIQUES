@@ -1,5 +1,6 @@
 import { apiClient } from './client'
 import type {
+  Category,
   NewDataset,
   NewIndicator,
   NewProvider,
@@ -52,5 +53,13 @@ export async function retireIndicatorSource(
   await apiClient.post(
     `/admin/indicators/${encodeURIComponent(code)}/sources/${datasetId}/retire`,
     { reason },
+  )
+}
+
+/** Compléter la liste de catégories d'un indicateur : rien ne s'y retire. */
+export async function amendCategories(code: string, categories: Category[]) {
+  await apiClient.put(
+    `/admin/indicators/${encodeURIComponent(code)}/categories`,
+    { categories },
   )
 }

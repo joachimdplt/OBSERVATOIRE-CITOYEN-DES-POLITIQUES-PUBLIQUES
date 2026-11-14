@@ -2,13 +2,20 @@ import { useState } from 'react'
 import { Button } from '../../atoms/Button'
 import { Notice } from '../../atoms/Notice'
 import { TextArea } from '../../atoms/TextArea'
-import type { Indicator } from '../../../types/catalogue'
+import type { Category, Indicator } from '../../../types/catalogue'
+import { CategoryAmendForm } from './CategoryAmendForm'
 
 type Props = {
   indicators: Indicator[]
   onRetire: (code: string, reason: string) => void
   pending: boolean
   reasons: string[]
+  /** Compléter la liste d'un indicateur de catégorie. */
+  amending: {
+    onSubmit: (code: string, categories: Category[]) => void
+    pending: boolean
+    reasons: string[]
+  }
 }
 
 /**
@@ -21,8 +28,10 @@ export function FedIndicatorList({
   onRetire,
   pending,
   reasons,
+  amending,
 }: Props) {
   const [retiring, setRetiring] = useState<string | null>(null)
+  const [editing, setEditing] = useState<string | null>(null)
   const [reason, setReason] = useState('')
   if (indicators.length === 0)
     return (
@@ -36,18 +45,34 @@ export function FedIndicatorList({
             <span>
               {i.label} <code className="text-xs text-slate-500">{i.code}</code>
             </span>
-            {retiring !== i.code && (
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setRetiring(i.code)
-                  setReason('')
-                }}
-              >
-                Retirer
-              </Button>
-            )}
+            <span className="flex gap-1">
+              {i.kind === 'category' && editing !== i.code && (
+                <Button variant="ghost" onClick={() => setEditing(i.code)}>
+                  Catégories
+                </Button>
+              )}
+              {retiring !== i.code && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setRetiring(i.code)
+                    setReason('')
+                  }}
+                >
+                  Retirer
+                </Button>
+              )}
+            </span>
           </div>
+          {editing === i.code && i.categories && (
+            <CategoryAmendForm
+              categories={i.categories}
+              pending={amending.pending}
+              reasons={amending.reasons}
+              onCancel={() => setEditing(null)}
+              onSubmit={(categories) => amending.onSubmit(i.code, categories)}
+            />
+          )}
           {retiring === i.code && (
             <div className="space-y-3 rounded-lg bg-slate-50 p-4">
               <TextArea

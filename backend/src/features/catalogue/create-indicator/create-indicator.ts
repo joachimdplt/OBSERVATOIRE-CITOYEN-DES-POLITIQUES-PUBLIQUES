@@ -32,13 +32,8 @@ import {
   Pillar,
 } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { CategoryDto, cleanCategory } from '../category.dto';
 import { isUniqueViolation } from '../../../prisma/unique-violation';
-
-class CategoryDto {
-  @IsString() @IsNotEmpty() code!: string;
-  @IsString() @IsNotEmpty() label!: string;
-  @IsOptional() @IsString() explanation?: string;
-}
 
 export class CreateIndicatorDto {
   /** La lecture en mots simples, reprise du producteur. */
@@ -136,13 +131,7 @@ export class CreateIndicatorController {
           kind,
           categories:
             kind === IndicatorKind.category
-              ? (dto.categories ?? []).map((c) => ({
-                  code: c.code.trim(),
-                  label: c.label.trim(),
-                  ...(c.explanation?.trim()
-                    ? { explanation: c.explanation.trim() }
-                    : {}),
-                }))
+              ? (dto.categories ?? []).map(cleanCategory)
               : undefined,
           method: dto.method.trim(),
           limits: dto.limits.trim(),
