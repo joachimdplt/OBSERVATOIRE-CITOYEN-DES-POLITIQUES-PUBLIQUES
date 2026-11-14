@@ -73,6 +73,7 @@ export class ListTerritoryValuesController {
             limits: true,
             question: true,
             readingTemplate: true,
+            mapLayer: true,
           },
         },
       },
@@ -129,6 +130,7 @@ type IndicatorView = {
   limits: string;
   question: string | null;
   readingTemplate: string | null;
+  mapLayer: boolean;
 };
 
 // Une catégorie se lit dans le sens de la région du territoire.
@@ -147,6 +149,8 @@ const layerOf = (i: IndicatorView, regionCode: string | null) => ({
     limits: i.limits,
     question: i.question,
     readingTemplate: i.readingTemplate,
+    // Faux : un élément de contexte, lu après les couches de la carte.
+    mapLayer: i.mapLayer,
     producers: new Set<string>(),
   },
   values: [] as {

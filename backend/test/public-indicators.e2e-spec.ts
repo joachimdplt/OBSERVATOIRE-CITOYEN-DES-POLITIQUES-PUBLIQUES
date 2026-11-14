@@ -262,4 +262,21 @@ describe('le public consulte un indicateur', () => {
       .get('/api/public/territories/commune/99999/values')
       .expect(404);
   });
+
+  it('un indicateur de contexte se lit dans la fiche d’une commune, pas comme une couche de carte', async () => {
+    await preprinted('2024', '3,3');
+    await founder
+      .patch(`/api/admin/indicators/${CODE}/reading`)
+      .send({ mapLayer: false })
+      .expect(200);
+    const [line] = (await visitor().get('/api/public/indicators').expect(200))
+      .body as (Line & { mapLayer: boolean })[];
+    expect(line.mapLayer).toBe(false);
+    const { layers } = (
+      await visitor()
+        .get('/api/public/territories/commune/01001/values')
+        .expect(200)
+    ).body as { layers: { indicator: { mapLayer: boolean } }[] };
+    expect(layers[0].indicator.mapLayer).toBe(false);
+  });
 });

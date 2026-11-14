@@ -38,6 +38,8 @@ export type IndicatorLine = {
   unit: string
   kind: IndicatorKind
   question: string | null
+  /** Faux : un élément de contexte, lu dans la fiche d'une commune et pas sur la carte. */
+  mapLayer: boolean
   producer: string
   vintage: string
   vintages: string[]
@@ -133,6 +135,7 @@ export type TerritoryLayer = {
     limits: string
     question: string | null
     readingTemplate: string | null
+    mapLayer: boolean
     producer: string
   }
   values: (Omit<Observation, 'territory' | 'vintage'> & {

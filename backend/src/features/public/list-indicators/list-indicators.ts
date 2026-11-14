@@ -63,6 +63,7 @@ export class ListIndicatorsController {
         unit: i.unit,
         kind: i.kind,
         comparisonScale: i.comparisonScale,
+        mapLayer: i.mapLayer,
         question: i.question,
         // Un producteur pour l'APL ; une ARS par région pour le zonage.
         producer: [

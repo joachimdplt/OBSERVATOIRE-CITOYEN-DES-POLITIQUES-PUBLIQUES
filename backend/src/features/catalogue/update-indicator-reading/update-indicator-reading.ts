@@ -7,7 +7,13 @@ import {
   Patch,
   UseGuards,
 } from '@nestjs/common';
-import { IsEnum, IsObject, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsObject,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { Requires, SessionGuard } from '../../../auth/session.guard';
 import type { Category } from '../../../domain/category';
 import { checkReadingTemplate } from '../../../domain/reading';
@@ -23,6 +29,8 @@ export class UpdateIndicatorReadingDto {
   @IsOptional() @IsObject() categoryExplanations?: Record<string, string>;
   /** Se compare en France, ou dans sa région seulement. */
   @IsOptional() @IsEnum(ComparisonScale) comparisonScale?: ComparisonScale;
+  /** Faux : l'indicateur se lit dans la fiche d'une commune, pas sur la carte. */
+  @IsOptional() @IsBoolean() mapLayer?: boolean;
 }
 
 /**
@@ -76,6 +84,7 @@ export class UpdateIndicatorReadingController {
         scaleLow: text(dto.scaleLow),
         scaleHigh: text(dto.scaleHigh),
         comparisonScale: dto.comparisonScale,
+        mapLayer: dto.mapLayer,
         ...(dto.categoryExplanations && categories
           ? {
               categories: categories.map((c) => ({

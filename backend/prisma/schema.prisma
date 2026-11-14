@@ -198,6 +198,9 @@ model IndicatorDefinition {
   unit                String
   kind                IndicatorKind     @default(number)
   comparisonScale     ComparisonScale   @default(national)
+  /// Une couche de la carte, ou un élément de contexte lu seulement dans la
+  /// fiche d'une commune (la population par âge, derrière l'APL).
+  mapLayer            Boolean           @default(true)
   // Pour une catégorie : la liste fermée [{ code, label }], dans l'ordre de l'arrêté.
   categories          Json?
   pillar              Pillar

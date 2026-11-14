@@ -28,8 +28,13 @@ export const Route = createFileRoute('/carte')({
     level: s.level,
   }),
   loader: async ({ deps }) => {
-    const layers = (await listIndicators({ data: {} })) ?? []
-    const code = deps.layer ?? layers.at(0)?.code
+    // Seules les couches de carte s'y choisissent ; la population par âge se
+    // lit dans la fiche d'une commune.
+    const layers = ((await listIndicators({ data: {} })) ?? []).filter(
+      (l) => l.mapLayer,
+    )
+    const code =
+      layers.find((l) => l.code === deps.layer)?.code ?? layers.at(0)?.code
     const sheet = code ? await getIndicator({ data: { code } }) : null
     const territory =
       deps.territory && deps.level
