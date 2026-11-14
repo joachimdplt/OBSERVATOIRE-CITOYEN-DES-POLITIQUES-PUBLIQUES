@@ -319,8 +319,15 @@ site/src/
   rendue, et l'adresse de l'API (`API_ORIGIN`) ne sort pas du serveur.
 - **`ValueCell` est la seule façon d'afficher une valeur** : elle reçoit
   une observation, jamais un nombre, et écrit une absence en toutes lettres.
-- **Une valeur ne s'arrondit pas à l'affichage** : l'API donne la valeur
-  exacte, `frenchNumber` ne fait que l'écrire à la française.
+- **Un ordre de grandeur se lit d'abord, la valeur exacte reste visible**
+  (décidé le 14 novembre 2026) : « environ 2,3 » en gros, « 2,298 » à côté.
+  `approximately` arrondit pour lire ; `frenchNumber` écrit la valeur exacte.
+  Un arrondi n'apparaît jamais seul, et ne sert jamais de base à un calcul.
+- **Chaque chiffre affiche son année.** Les éléments qui expliquent un
+  indicateur suivent les années que le producteur a lui-même utilisées (l'APL
+  2024 : médecins de 2024, population de 2022). Une année sans publication
+  s'écrit « pas publié pour cette année », jamais avec la valeur d'une autre
+  année.
 - **Les filtres vivent dans l'URL** (`?territory=&period=&offset=`) : un lien
   partagé rouvre la même vue.
 - **Le pied de page donne l'adresse du code source** (AGPL-3.0, section 13)

@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { X } from 'lucide-react'
 import type { TerritoryLayer, TerritoryValues } from '../../../types/public'
-import { frenchNumber } from '../../../utils/number'
+import { approximately, frenchNumber } from '../../../utils/number'
 import { readingOf } from '../../../utils/reading'
 import { ValueCell } from '../indicators/ValueCell'
 
@@ -16,7 +16,7 @@ function sentenceOf({ indicator, values }: TerritoryLayer, territory: string) {
       ? (indicator.categories?.find((c) => c.code === latest.category)?.label ??
         latest.category)
       : latest.value !== null
-        ? frenchNumber(latest.value)
+        ? `environ ${approximately(latest.value)}`
         : null
   return value ? readingOf(indicator.readingTemplate, territory, value) : null
 }
@@ -73,6 +73,13 @@ export function TerritoryLayersCard({ data, name, onClose }: Props) {
               {sentence && (
                 <p className="text-sm leading-relaxed text-slate-900">
                   {sentence}
+                  {latest?.value != null && (
+                    <span className="text-slate-500">
+                      {' '}
+                      (valeur exacte : {frenchNumber(latest.value)},{' '}
+                      {latest.period})
+                    </span>
+                  )}
                 </p>
               )}
               {explanation && (
