@@ -6,5 +6,6 @@ export const queryKeys = {
   importJob: (id: string, headerRow?: number) =>
     ['import-jobs', id, { headerRow }] as const,
   reviewQueue: ['review-queue'] as const,
+  publications: ['publications'] as const,
   history: (versionId: string) => ['versions', versionId, 'history'] as const,
 }

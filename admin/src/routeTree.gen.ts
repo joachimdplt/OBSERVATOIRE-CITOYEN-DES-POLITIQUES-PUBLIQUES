@@ -18,6 +18,8 @@ import { Route as AdminDatasetsNewRouteImport } from './routes/_admin/datasets.n
 import { Route as AdminImportsJobIdRouteImport } from './routes/_admin/imports.$jobId'
 import { Route as AdminIndicatorsNewRouteImport } from './routes/_admin/indicators.new'
 import { Route as AdminProvidersNewRouteImport } from './routes/_admin/providers.new'
+import { Route as AdminPublicationsIndexRouteImport } from './routes/_admin/publications.index'
+import { Route as AdminPublicationsSlugRouteImport } from './routes/_admin/publications.$slug'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/_admin',
@@ -63,6 +65,16 @@ const AdminProvidersNewRoute = AdminProvidersNewRouteImport.update({
   path: '/providers/new',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminPublicationsIndexRoute = AdminPublicationsIndexRouteImport.update({
+  id: '/publications/',
+  path: '/publications/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPublicationsSlugRoute = AdminPublicationsSlugRouteImport.update({
+  id: '/publications/$slug',
+  path: '/publications/$slug',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AdminIndexRoute
@@ -73,6 +85,8 @@ export interface FileRoutesByFullPath {
   '/imports/$jobId': typeof AdminImportsJobIdRoute
   '/indicators/new': typeof AdminIndicatorsNewRoute
   '/providers/new': typeof AdminProvidersNewRoute
+  '/publications/$slug': typeof AdminPublicationsSlugRoute
+  '/publications/': typeof AdminPublicationsIndexRoute
 }
 export interface FileRoutesByTo {
   '/signin': typeof SigninRoute
@@ -83,6 +97,8 @@ export interface FileRoutesByTo {
   '/imports/$jobId': typeof AdminImportsJobIdRoute
   '/indicators/new': typeof AdminIndicatorsNewRoute
   '/providers/new': typeof AdminProvidersNewRoute
+  '/publications/$slug': typeof AdminPublicationsSlugRoute
+  '/publications': typeof AdminPublicationsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,6 +111,8 @@ export interface FileRoutesById {
   '/_admin/imports/$jobId': typeof AdminImportsJobIdRoute
   '/_admin/indicators/new': typeof AdminIndicatorsNewRoute
   '/_admin/providers/new': typeof AdminProvidersNewRoute
+  '/_admin/publications/$slug': typeof AdminPublicationsSlugRoute
+  '/_admin/publications/': typeof AdminPublicationsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,6 +125,8 @@ export interface FileRouteTypes {
     | '/imports/$jobId'
     | '/indicators/new'
     | '/providers/new'
+    | '/publications/$slug'
+    | '/publications/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/signin'
@@ -117,6 +137,8 @@ export interface FileRouteTypes {
     | '/imports/$jobId'
     | '/indicators/new'
     | '/providers/new'
+    | '/publications/$slug'
+    | '/publications'
   id:
     | '__root__'
     | '/_admin'
@@ -128,6 +150,8 @@ export interface FileRouteTypes {
     | '/_admin/imports/$jobId'
     | '/_admin/indicators/new'
     | '/_admin/providers/new'
+    | '/_admin/publications/$slug'
+    | '/_admin/publications/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -200,6 +224,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProvidersNewRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/publications/': {
+      id: '/_admin/publications/'
+      path: '/publications'
+      fullPath: '/publications/'
+      preLoaderRoute: typeof AdminPublicationsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/publications/$slug': {
+      id: '/_admin/publications/$slug'
+      path: '/publications/$slug'
+      fullPath: '/publications/$slug'
+      preLoaderRoute: typeof AdminPublicationsSlugRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
@@ -211,6 +249,8 @@ interface AdminRouteChildren {
   AdminImportsJobIdRoute: typeof AdminImportsJobIdRoute
   AdminIndicatorsNewRoute: typeof AdminIndicatorsNewRoute
   AdminProvidersNewRoute: typeof AdminProvidersNewRoute
+  AdminPublicationsSlugRoute: typeof AdminPublicationsSlugRoute
+  AdminPublicationsIndexRoute: typeof AdminPublicationsIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -221,6 +261,8 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminImportsJobIdRoute: AdminImportsJobIdRoute,
   AdminIndicatorsNewRoute: AdminIndicatorsNewRoute,
   AdminProvidersNewRoute: AdminProvidersNewRoute,
+  AdminPublicationsSlugRoute: AdminPublicationsSlugRoute,
+  AdminPublicationsIndexRoute: AdminPublicationsIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

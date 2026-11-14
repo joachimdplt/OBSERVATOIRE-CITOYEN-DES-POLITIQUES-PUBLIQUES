@@ -30,6 +30,13 @@ export function AdminLayout({ member, onSignOut }: Props) {
             >
               Catalogue
             </Link>
+            <Link
+              to="/publications"
+              className="text-slate-600 hover:text-slate-900"
+              activeProps={{ className: 'font-medium text-slate-900' }}
+            >
+              Publications
+            </Link>
             {can(member.role, 'review') && (
               <Link
                 to="/reviews"
