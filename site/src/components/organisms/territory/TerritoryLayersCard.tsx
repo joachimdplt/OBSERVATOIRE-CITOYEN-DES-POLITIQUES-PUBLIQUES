@@ -33,14 +33,17 @@ function groupsOf(layers: TerritoryLayer[]): TerritoryLayer[][] {
     const key = layer.indicator.question ?? layer.indicator.code
     groups.set(key, [...(groups.get(key) ?? []), layer])
   }
-  // Les couches de la carte d'abord, puis le contexte qui aide à les lire.
+  // Les couches de la carte d'abord, puis le contexte qui aide à les lire :
+  // un fait seul (le classement de l'ARS) avant un détail en plusieurs
+  // lignes (la population par âge).
   return [...groups.values()]
     .map((g) =>
       g.sort((a, b) => a.indicator.code.localeCompare(b.indicator.code)),
     )
     .sort(
       (a, b) =>
-        Number(b[0].indicator.mapLayer) - Number(a[0].indicator.mapLayer),
+        Number(b[0].indicator.mapLayer) - Number(a[0].indicator.mapLayer) ||
+        a.length - b.length,
     )
 }
 
