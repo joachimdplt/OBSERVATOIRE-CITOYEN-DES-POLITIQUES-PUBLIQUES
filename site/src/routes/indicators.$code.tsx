@@ -12,7 +12,7 @@ import { seo } from '../utils/seo'
 const search = z.object({
   territory: z.string().optional(),
   period: z.string().optional(),
-  offset: z.number().int().min(0).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
 })
 
 export const Route = createFileRoute('/indicators/$code')({
