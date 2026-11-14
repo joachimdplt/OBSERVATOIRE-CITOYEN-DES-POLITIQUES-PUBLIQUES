@@ -198,12 +198,14 @@ model IndicatorDefinition {
 enum VersionState {
   draft // déposée, en cours de description et de contrôle ; une version rejetée y revient
   in_review // soumise à relecture
+  preprint // publiée par son seul auteur, étiquetée « prépublication », en attente de relecture
   published // visible du public
   superseded // remplacée par une version publiée plus récente
 }
 
 enum ReviewAction {
   submitted
+  preprinted
   approved
   rejected
   superseded

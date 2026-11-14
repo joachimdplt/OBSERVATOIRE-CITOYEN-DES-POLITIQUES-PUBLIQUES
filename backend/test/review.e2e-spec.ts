@@ -1,12 +1,9 @@
 import { INestApplication } from '@nestjs/common';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import TestAgent from 'supertest/lib/agent';
-import { readCog } from '../src/adapters/cog/read-cog';
-import { loadCogVintage } from '../src/features/territories/load-cog-vintage/load-cog-vintage';
 import { Role } from '../src/generated/prisma/enums';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { createMember, emptyDatabase, signedIn, startApi } from './harness';
+import { aplFile, seedApl, validatedVersion as validated } from './scenario';
 
 type Uploaded = { version: { id: string }; job: { id: string } };
 type Version = { id: string; state: string };
@@ -18,19 +15,6 @@ type QueueLine = {
   submittedBy: { name: string };
   observations: Record<string, number>;
 };
-
-const COG = join(__dirname, 'fixtures/cog-2026');
-const cog = (name: string) => ({
-  url: name,
-  content: readFileSync(join(COG, name), 'utf8'),
-});
-
-/** Valeurs inventées pour le test. */
-const apl = (value: string) =>
-  Buffer.from(
-    ['Code commune;APL', `01001;${value}`, '2A004;', '97101;s'].join('\n'),
-    'utf8',
-  );
 
 describe('une version se soumet, puis une autre personne l’approuve ou la rejette', () => {
   let app: INestApplication;
@@ -45,19 +29,6 @@ describe('une version se soumet, puis une autre personne l’approuve ou la reje
   });
   beforeEach(async () => {
     await emptyDatabase(prisma);
-    const files = [
-      'v_region_2026.csv',
-      'v_departement_2026.csv',
-      'v_commune_2026.csv',
-    ].map(cog);
-    const [regions, departments, communes] = files.map((f) => f.content);
-    await loadCogVintage(
-      prisma,
-      2026,
-      files,
-      readCog({ regions, departments, communes }),
-    );
-
     const author = await createMember(
       prisma,
       Role.editor,
@@ -69,79 +40,12 @@ describe('une version se soumet, puis une autre personne l’approuve ou la reje
     reviewer = await signedIn(app, 'bob@observatoire.test');
     secondReviewer = await signedIn(app, 'carol@observatoire.test');
 
-    const createdById = author.id;
-    const provider = await prisma.dataProvider.create({
-      data: {
-        name: 'DREES',
-        acronym: 'DREES',
-        kind: 'statistical_service',
-        officialUrl: 'https://drees.solidarites-sante.gouv.fr',
-        createdById,
-      },
-    });
-    datasetId = (
-      await prisma.sourceDataset.create({
-        data: {
-          providerId: provider.id,
-          producerRef: 'apl',
-          title: 'APL',
-          url: 'https://data.drees.solidarites-sante.gouv.fr/apl',
-          license: 'Licence Ouverte v2.0',
-          methodology: 'Méthode concertée',
-          frequency: 'annual',
-          createdById,
-        },
-      })
-    ).id;
-    await prisma.indicatorDefinition.create({
-      data: {
-        code: 'apl-medecins-generalistes',
-        datasetId,
-        label: 'APL aux médecins généralistes',
-        definition: 'Consultations accessibles par habitant standardisé.',
-        scope: 'Toutes communes.',
-        unit: 'consultations par habitant standardisé',
-        pillar: 'health',
-        allowedAggregations: [],
-        method: 'DREES',
-        limits: 'Pas un nombre de médecins manquants.',
-        createdById,
-      },
-    });
+    datasetId = await seedApl(prisma, author.id);
   });
   afterAll(() => app?.close());
 
-  /** Un fichier déposé, décrit et contrôlé sans anomalie bloquante, par l'autrice. */
-  const validatedVersion = async (
-    vintage: string,
-    value: string,
-    agent = editor,
-  ) => {
-    const { version, job } = (
-      await agent
-        .post(`/api/admin/datasets/${datasetId}/versions`)
-        .field('vintage', vintage)
-        .field(
-          'fileUrl',
-          `https://data.drees.solidarites-sante.gouv.fr/apl-${vintage}.csv`,
-        )
-        .field('collectedAt', '2026-11-14')
-        .attach('file', apl(value), `apl-${vintage}.csv`)
-        .expect(201)
-    ).body as Uploaded;
-    await agent
-      .put(`/api/admin/import-jobs/${job.id}/description`)
-      .send({
-        headerRow: 1,
-        territory: { column: 'Code commune', level: 'commune', vintage: 2026 },
-        period: { value: vintage },
-        decimalSeparator: ',',
-        values: [{ column: 'APL', indicatorCode: 'apl-medecins-generalistes' }],
-      })
-      .expect(200);
-    await agent.post(`/api/admin/import-jobs/${job.id}/validate`).expect(200);
-    return { versionId: version.id, jobId: job.id };
-  };
+  const validatedVersion = (vintage: string, value: string, agent = editor) =>
+    validated(agent, datasetId, vintage, value);
   const history = async (versionId: string) =>
     (await editor.get(`/api/admin/versions/${versionId}/history`).expect(200))
       .body as History;
@@ -283,7 +187,7 @@ describe('une version se soumet, puis une autre personne l’approuve ou la reje
           'https://data.drees.solidarites-sante.gouv.fr/apl.csv',
         )
         .field('collectedAt', '2026-11-14')
-        .attach('file', apl('9,9'), 'apl.csv')
+        .attach('file', aplFile('9,9'), 'apl.csv')
         .expect(201)
     ).body as Uploaded;
     await editor.post(`/api/admin/versions/${version.id}/submit`).expect(400);

@@ -48,7 +48,12 @@ export class RejectDatasetVersionController {
       where: { id },
     });
     if (!version) throw new NotFoundException('Version inconnue');
-    const decision = canDecide(version.state, version.submittedById, user.id);
+    const decision = canDecide(
+      'reject',
+      version.state,
+      version.submittedById,
+      user.id,
+    );
     if (!decision.allowed) throw new ForbiddenException(decision.reason);
 
     return this.prisma.$transaction(async (tx) => {

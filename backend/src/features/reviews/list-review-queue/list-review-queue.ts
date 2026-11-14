@@ -4,8 +4,8 @@ import { VersionState } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 /**
- * Une personne qui relit voit les versions qui attendent une décision : le
- * jeu, le millésime, qui a soumis et quand, l'adresse du fichier d'origine,
+ * Une personne qui relit voit les versions qui attendent une décision,
+ * soumises ou prépubliées : le jeu, le millésime, qui a soumis et quand, l'adresse du fichier d'origine,
  * et ce que le contrôle a compté.
  */
 @Controller('admin/review-queue')
@@ -17,7 +17,7 @@ export class ListReviewQueueController {
   @Get()
   async list() {
     const versions = await this.prisma.datasetVersion.findMany({
-      where: { state: VersionState.in_review },
+      where: { state: { in: [VersionState.in_review, VersionState.preprint] } },
       orderBy: { submittedAt: 'asc' },
       include: {
         dataset: {
@@ -36,6 +36,7 @@ export class ListReviewQueueController {
       id: v.id,
       dataset: `${v.dataset.provider.acronym} · ${v.dataset.title}`,
       vintage: v.vintage,
+      state: v.state,
       fileName: v.fileName,
       fileUrl: v.fileUrl,
       submittedBy: v.submittedBy,

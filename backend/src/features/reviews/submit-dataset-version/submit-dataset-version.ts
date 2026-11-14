@@ -1,9 +1,6 @@
 import {
-  BadRequestException,
-  ConflictException,
   Controller,
   HttpCode,
-  NotFoundException,
   Param,
   ParseUUIDPipe,
   Post,
@@ -14,12 +11,9 @@ import {
   type TeamMember,
 } from '../../../auth/current-user.decorator';
 import { Requires, SessionGuard } from '../../../auth/session.guard';
-import {
-  ImportState,
-  ReviewAction,
-  VersionState,
-} from '../../../generated/prisma/enums';
+import { ReviewAction, VersionState } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { loadReadyDraft } from '../ready-draft';
 import { recordVersionEvent } from '../review-event';
 
 /**
@@ -38,22 +32,7 @@ export class SubmitDatasetVersionController {
     @CurrentUser() user: TeamMember,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    const version = await this.prisma.datasetVersion.findUnique({
-      where: { id },
-      include: { importJob: true, _count: { select: { observations: true } } },
-    });
-    if (!version) throw new NotFoundException('Version inconnue');
-    if (version.state !== VersionState.draft) {
-      throw new ConflictException('Seul un brouillon se soumet.');
-    }
-    if (
-      version.importJob?.state !== ImportState.validated ||
-      version._count.observations === 0
-    ) {
-      throw new BadRequestException(
-        'Contrôlez le fichier sans anomalie bloquante avant de le soumettre.',
-      );
-    }
+    const version = await loadReadyDraft(this.prisma, id);
 
     return this.prisma.$transaction(async (tx) => {
       const after = await tx.datasetVersion.update({

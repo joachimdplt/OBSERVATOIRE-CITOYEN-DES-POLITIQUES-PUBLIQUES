@@ -44,7 +44,8 @@ formation (section 1.5), le tiret long et les tournures « Ce qui… »,
 Elles priment sur toute autre règle de ce document. Une violation fausse ce
 que l'observatoire affirme, et rien ne se rattrape après publication. Les
 sections 1.1 à 1.4 protègent l'exactitude des chiffres, les sections 1.5 à
-1.9 protègent l'observatoire face aux formations politiques.
+1.9 protègent l'observatoire face aux formations politiques, la section 1.10
+décrit le modèle éditorial.
 
 | Cas | Comportement |
 |---|---|
@@ -91,11 +92,16 @@ revue. Il n'établit aucune équivalence financière.
 
 | Règle | Comment |
 |---|---|
-| Une version de jeu publiée ne se modifie plus | trigger : une correction crée une nouvelle version |
-| Un fichier brut n'est jamais écrasé | `DatasetVersion.hash` unique par jeu |
+| Une absence n'a jamais de valeur | `CHECK observation_value_matches_status` |
+| Un fichier déposé et ses lignes lues ne se réécrivent pas | triggers `raw_rows_never_rewritten`, `dataset_version_file_never_rewritten` |
+| Le même fichier ne se dépose pas deux fois pour un jeu | unique `(datasetId, fileHash)` |
 | Une observation est unique pour (indicateur, territoire, période, version) | index unique |
-| Toute publication laisse une trace | `ReviewEvent` écrit dans la même transaction |
-| Un représentant ne valide pas ses propres pièces | contrainte vérifiée à l'approbation, testée |
+| Les observations d'une version qui n'est plus un brouillon ne bougent plus | trigger `observations_frozen_outside_draft` |
+| Seules les transitions du circuit existent ; une version publiée ne change plus, sauf pour être remplacée | trigger `dataset_version_transition` |
+| Publier demande une autre personne que celle qui a soumis ou prépublié | même trigger (quatre yeux) |
+| Une seule version visible du public par jeu | unique partiel `dataset_versions_one_public` |
+| Une trace de revue ne se modifie ni ne se supprime | trigger `review_events_never_rewritten` |
+| Un territoire chargé ne se réécrit pas | trigger `territories_never_rewritten` |
 
 Les règles dont la violation fausserait une provenance sont en base. Les
 règles de calcul et d'affichage sont dans `domain/`.
@@ -208,6 +214,57 @@ collectées, et à quels indicateurs elles sont reliées.
 - **Avant le lancement public**, la méthode et ces règles sont relues par un
   avocat en droit de la presse. La date et les remarques de cette relecture
   sont consignées ici.
+
+### 1.10 Le modèle éditorial : une revue en accès ouvert
+
+Décidé le 14 novembre 2026 : contribuer comme sur Wikipédia, relire comme
+une revue scientifique.
+
+**Le circuit d'une version**
+
+```
+draft ──► in_review ──► published ──► superseded
+  │           │             ▲
+  │           └──► draft    │   (révisions demandées)
+  └──► preprint ────────────┘
+          └──► superseded
+```
+
+- **Relecture avant publication, pour tout.** Rien n'est `published` sans
+  une autre personne que celle qui a soumis.
+- **Prépublication** (`preprint`), comme arXiv : publiée par son seul
+  auteur, visible du public avec l'étiquette « Prépublication : vérifiée par
+  son seul auteur, en attente de relecture ». Pendant le lancement, seule
+  l'administration prépublie (capacité `preprint`), et seulement des
+  statistiques. **Une mesure politique ne se prépublie jamais.**
+- **Relecture ouverte** : les décisions et, à venir, les rapports de
+  relecture sont publics, signés.
+- **À venir** : un éditeur par pilier qui désigne les relecteurs ; quatre
+  décisions (acceptée, révisions mineures, révisions majeures, refusée) ;
+  erratum et rétractation.
+- **Nombre de relecteurs** : un pour une statistique ; deux pour une mesure
+  politique ou un lien mesure ↔ indicateur, dont au moins un sans
+  engagement déclaré.
+
+**Les personnes**
+
+- **Vrai nom pour tous**, visible du public ; le courriel ne se montre
+  jamais.
+- **Engagements déclarés** (adhésion, mandat, candidature, emploi auprès
+  d'un parti ou d'un élu), affichés sur les contributions et les rapports.
+  On ne trie pas les gens : on contraint ce qu'un relecteur décide seul
+  (section 1.5) et le lecteur juge.
+- **Effacement (RGPD)** : l'historique reste entier, le nom affiché devient
+  « contributeur anonymisé ».
+
+**Les licences**
+
+- **Contenu de l'observatoire : CC BY-SA 4.0** (fiches, définitions,
+  descriptions, liens, résumés, rapports, historique).
+- **Données des producteurs** : leur licence, affichée à côté.
+- **Citations des partis** : droit de courte citation, l'auteur reste le
+  parti.
+- **Code : AGPL-3.0.**
 
 ---
 
@@ -491,13 +548,17 @@ rien.
 
 ### 5.3 Les rôles
 
-| Rôle | Voit | Écrit |
+| Rôle | Capacités | Écrit |
 |---|---|---|
-| visiteur | tout objet publié | rien |
-| `editor` | tout | imports, mesures, liens, en brouillon |
-| `reviewer` | tout | approuve ou rejette, jamais son propre travail |
-| `admin` | tout | comptes et rôles |
-| `party_representative` | les pièces de sa formation | dépose des pièces, ne valide rien |
+| visiteur | aucune | rien ; lit ce qui est publié ou prépublié |
+| `editor` | `edit` | déclare, dépose, décrit, contrôle, soumet ; deviendra `contributor` à l'ouverture des inscriptions |
+| `reviewer` | `edit`, `review` | en plus : approuve ou rejette, jamais son propre travail |
+| `admin` | `edit`, `review`, `preprint`, `manage_accounts` | en plus : prépublie, gère les comptes |
+| éditeur de pilier (à venir) | | désigne les relecteurs de son pilier |
+| `party_representative` (à venir) | | dépose des pièces, demande une rectification, ne relit jamais |
+
+`editor` est le rôle de code d'un contributeur : il ne désigne pas l'éditeur
+de pilier, qui est une fonction éditoriale.
 
 ---
 

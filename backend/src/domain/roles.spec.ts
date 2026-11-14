@@ -15,4 +15,10 @@ describe('les droits de l’équipe', () => {
   it('l’administration fait tout', () => {
     expect(can(Role.admin, 'manage_accounts')).toBe(true);
   });
+
+  it('seule l’administration prépublie', () => {
+    expect(can(Role.admin, 'preprint')).toBe(true);
+    expect(can(Role.reviewer, 'preprint')).toBe(false);
+    expect(can(Role.editor, 'preprint')).toBe(false);
+  });
 });
