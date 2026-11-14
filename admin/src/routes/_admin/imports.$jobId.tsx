@@ -8,12 +8,21 @@ import { PageHeader } from '../../components/atoms/PageHeader'
 import { ControlReport } from '../../components/organisms/imports/ControlReport'
 import { DescriptionForm } from '../../components/organisms/imports/DescriptionForm'
 import { ImportPreview } from '../../components/organisms/imports/ImportPreview'
+import { PublishActions } from '../../components/organisms/reviews/PublishActions'
+import { VersionHistory } from '../../components/organisms/reviews/VersionHistory'
+import { can } from '../../domain/roles'
 import { useCatalogue } from '../../hooks/catalogue/useCatalogue'
 import {
   useDescribe,
   useImportJob,
   useValidate,
 } from '../../hooks/imports/useImports'
+import {
+  usePreprint,
+  useSubmit,
+  useVersionHistory,
+} from '../../hooks/reviews/useReviews'
+import { useSession } from '../../hooks/session/useSession'
 import { reasonsOf } from '../../utils/api-error'
 
 export const Route = createFileRoute('/_admin/imports/$jobId')({
@@ -30,6 +39,10 @@ function ImportPage() {
       .find((d) => d.id === job?.version.dataset.id)?.indicators ?? []
   const describe = useDescribe(jobId)
   const validate = useValidate(jobId)
+  const { data: member } = useSession()
+  const submit = useSubmit()
+  const preprint = usePreprint()
+  const history = useVersionHistory(job?.version.id)
   if (!job) return <p className="text-sm text-slate-500">Chargement…</p>
   const editable = job.version.state === 'draft'
 
@@ -92,6 +105,24 @@ function ImportPage() {
       >
         <Notice reasons={validate.error ? reasonsOf(validate.error) : []} />
         <ControlReport job={job} />
+      </Card>
+      <Card title="Publication">
+        <div className="space-y-5">
+          {editable && job.state === 'validated' && member && (
+            <PublishActions
+              canPreprint={can(member.role, 'preprint')}
+              pending={submit.isPending || preprint.isPending}
+              onSubmit={() => submit.mutate(job.version.id)}
+              onPreprint={() => preprint.mutate(job.version.id)}
+            />
+          )}
+          <Notice
+            reasons={[submit.error, preprint.error]
+              .filter(Boolean)
+              .flatMap(reasonsOf)}
+          />
+          <VersionHistory events={history.data?.events ?? []} />
+        </div>
       </Card>
     </>
   )
