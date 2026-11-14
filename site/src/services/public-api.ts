@@ -2,6 +2,8 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import type { MapValue } from '../domain/classes'
 import type {
+  PublicationLine,
+  PublicationSheet,
   TerritoryValues,
   IndicatorLine,
   IndicatorSheet,
@@ -79,4 +81,16 @@ export const searchTerritories = createServerFn({ method: 'GET' })
   .validator(z.object({ q: z.string().min(2) }))
   .handler(({ data }) =>
     get<TerritoryMatch[]>(`/territories?q=${encodeURIComponent(data.q)}`),
+  )
+
+/** Les publications lisibles : les enjeux publiés ou prépubliés. */
+export const listPublications = createServerFn({ method: 'GET' }).handler(() =>
+  get<PublicationLine[]>('/publications'),
+)
+
+/** Une publication, ses maillons et les indicateurs choisis. */
+export const getPublication = createServerFn({ method: 'GET' })
+  .validator(z.object({ slug: z.string() }))
+  .handler(({ data }) =>
+    get<PublicationSheet>(`/publications/${encodeURIComponent(data.slug)}`),
   )

@@ -9,12 +9,12 @@ import {
   HomePiliers,
 } from '../components/organisms/home/HomeBlocks'
 import { HOME } from '../data/home'
-import { listIndicators } from '../services/public-api'
+import { listPublications } from '../services/public-api'
 import { seo } from '../utils/seo'
 
 export const Route = createFileRoute('/')({
   loader: async () => ({
-    indicators: (await listIndicators({ data: {} })) ?? [],
+    publications: (await listPublications()) ?? [],
   }),
   head: () => ({
     meta: seo({
@@ -31,12 +31,14 @@ export const Route = createFileRoute('/')({
  * contribution.
  */
 function Home() {
-  const { indicators } = Route.useLoaderData()
+  const { publications } = Route.useLoaderData()
   return (
     <>
       <HomeHero />
-      <HomePiliers indicators={indicators} />
-      <HomeParcours />
+      <HomePiliers publications={publications} />
+      <HomeParcours
+        slug={publications.find((x) => x.pillar === 'health')?.slug}
+      />
       <HomeFiches />
       <HomeContribuer />
       <HomeFin />

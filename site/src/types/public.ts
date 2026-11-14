@@ -153,3 +153,33 @@ export type TerritoryValues = {
   territory: { code: string; level: string; name: string }
   layers: TerritoryLayer[]
 }
+
+/** Une publication lisible : un enjeu, ses maillons et les indicateurs choisis. */
+export type PublicationLine = {
+  slug: string
+  pillar: Pillar
+  title: string
+  summary: string
+  number: number
+  status: PublicStatus
+  statusLabel: string
+  publishedAt: string | null
+}
+
+export type PublicationSheet = PublicationLine & {
+  authoredBy: string | null
+  reviewedBy: string | null
+  sections: {
+    title: string
+    text: string
+    indicators: {
+      code: string
+      label: string
+      unit: string
+      kind: IndicatorKind
+      mapLayer: boolean
+      justification: string
+    }[]
+  }[]
+  history: { number: number; status: string; publishedAt: string | null }[]
+}

@@ -15,8 +15,7 @@ export const HOME = {
 
   piliers: {
     title: 'Douze [[piliers]]',
-    lead: 'Chaque pilier s’ouvre au rythme des jeux de données vérifiés.',
-    online: (n: number) => `${n} indicateur${n > 1 ? 's' : ''} en ligne`,
+    lead: 'Chaque pilier s’ouvre avec ses premiers enjeux publiés.',
     soon: 'À venir',
   },
 

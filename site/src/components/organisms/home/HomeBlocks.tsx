@@ -29,7 +29,7 @@ import type { ReactNode } from 'react'
 import { Highlight } from '../../atoms/Highlight'
 import { PILLARS } from '../../../data/pillars'
 import { HOME } from '../../../data/home'
-import type { IndicatorLine, Pillar } from '../../../types/public'
+import type { Pillar, PublicationLine } from '../../../types/public'
 
 /*
  * L'accueil dans le langage d'airobotics (ouverture centrée, écrans pleins,
@@ -91,13 +91,19 @@ function Step({ title, lead }: { title: string; lead?: string }) {
 function ActionPill({
   label,
   dark = false,
+  slug,
 }: {
   label: string
   dark?: boolean
+  /** Un enjeu publié à ouvrir ; la carte sinon. */
+  slug?: string
 }) {
+  const target = slug
+    ? ({ to: '/enjeux/$slug', params: { slug } } as const)
+    : ({ to: '/carte' } as const)
   return (
     <Link
-      to="/carte"
+      {...target}
       className={`inline-flex h-14 items-center gap-3 rounded-full px-7 text-[1.05rem] font-extrabold no-underline transition-opacity hover:opacity-90 ${
         dark ? 'bg-white text-[#0B1A2A]' : 'bg-[#0B1A2A] text-white'
       }`}
@@ -183,44 +189,53 @@ const PILLAR_ICONS: Record<Pillar, LucideIcon> = {
   culture_sports_associations: Palette,
 }
 
-/** Les douze piliers du cahier des charges ; ceux qui ont des indicateurs publiés s'ouvrent. */
-export function HomePiliers({ indicators }: { indicators: IndicatorLine[] }) {
+/** Les douze piliers du cahier des charges ; chacun mène à ses enjeux publiés. */
+export function HomePiliers({
+  publications,
+}: {
+  publications: PublicationLine[]
+}) {
   const { piliers } = HOME
   return (
     <Screen className="bg-[#F4F6F8]">
       <Step title={piliers.title} lead={piliers.lead} />
       <ul className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {PILLARS.map((p) => {
-          const count = indicators.filter((i) => i.pillar === p.id).length
-          const content = (
-            <>
-              <Bubble icon={PILLAR_ICONS[p.id]} muted={count === 0} />
+          const own = publications.filter((x) => x.pillar === p.id)
+          const open = own.length > 0
+          return (
+            <li
+              key={p.id}
+              className={`flex h-full flex-col rounded-[24px] p-5 ${
+                open
+                  ? 'bg-white shadow-[0_0_0_1px_rgba(11,26,42,0.1)]'
+                  : 'bg-white/60'
+              }`}
+            >
+              <Bubble icon={PILLAR_ICONS[p.id]} muted={!open} />
               <p
                 className={`mt-4 text-[1.05rem] leading-snug font-extrabold ${
-                  count === 0 ? 'text-[#0B1A2A]/50' : 'text-[#0B1A2A]'
+                  open ? 'text-[#0B1A2A]' : 'text-[#0B1A2A]/50'
                 }`}
               >
                 {p.label}
               </p>
-              <p className={`mt-1 text-[0.88rem] ${MUTED}`}>
-                {count > 0 ? piliers.online(count) : piliers.soon}
-              </p>
-            </>
-          )
-          return (
-            <li key={p.id}>
-              {count > 0 ? (
-                <Link
-                  to="/pillars/$pillar"
-                  params={{ pillar: p.id }}
-                  className="flex h-full flex-col rounded-[24px] bg-white p-5 no-underline shadow-[0_0_0_1px_rgba(11,26,42,0.1)] transition-shadow hover:shadow-[0_0_0_1px_rgba(11,26,42,0.35)]"
-                >
-                  {content}
-                </Link>
+              {open ? (
+                <ul className="mt-2 space-y-1">
+                  {own.map((x) => (
+                    <li key={x.slug}>
+                      <Link
+                        to="/enjeux/$slug"
+                        params={{ slug: x.slug }}
+                        className="inline-flex items-center gap-1 text-[0.9rem] font-bold text-[#0B1A2A] no-underline hover:underline"
+                      >
+                        {x.title} <ChevronRight size={14} strokeWidth={2.75} />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               ) : (
-                <div className="flex h-full flex-col rounded-[24px] bg-white/60 p-5">
-                  {content}
-                </div>
+                <p className={`mt-1 text-[0.88rem] ${MUTED}`}>{piliers.soon}</p>
               )}
             </li>
           )
@@ -231,7 +246,7 @@ export function HomePiliers({ indicators }: { indicators: IndicatorLine[] }) {
 }
 
 /** Le parcours de référence du cahier des charges, étape par étape. */
-export function HomeParcours() {
+export function HomeParcours({ slug }: { slug?: string }) {
   const { parcours } = HOME
   return (
     <Screen className="bg-white">
@@ -263,7 +278,7 @@ export function HomeParcours() {
         ))}
       </ol>
       <div className="mt-10 flex justify-center">
-        <ActionPill label={parcours.cta} />
+        <ActionPill label={parcours.cta} slug={slug} />
       </div>
     </Screen>
   )
