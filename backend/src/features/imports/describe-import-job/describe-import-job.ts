@@ -53,6 +53,7 @@ class ValueColumnDto {
 
 export class DescribeImportJobDto {
   @IsInt() @Min(1) headerRow!: number;
+  @IsOptional() @IsInt() @Min(2) firstRow?: number;
   @IsOptional() @IsInt() @Min(2) lastRow?: number;
   @ValidateNested()
   @Type(() => TerritoryColumnDto)
@@ -89,6 +90,7 @@ export class DescribeImportJobController {
 
     const description: ImportDescription = {
       headerRow: dto.headerRow,
+      firstRow: dto.firstRow ?? null,
       lastRow: dto.lastRow ?? null,
       territory: dto.territory,
       period:

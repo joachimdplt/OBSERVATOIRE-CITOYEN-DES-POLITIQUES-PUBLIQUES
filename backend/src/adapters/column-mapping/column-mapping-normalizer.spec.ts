@@ -4,6 +4,7 @@ import { ColumnMappingNormalizer } from './column-mapping-normalizer';
 const HEADER = ['Code commune', 'Commune', 'APL', 'Population'];
 const DESCRIPTION: ImportDescription = {
   headerRow: 1,
+  firstRow: null,
   lastRow: null,
   territory: { column: 'Code commune', level: 'commune', vintage: 2026 },
   period: { value: '2024' },

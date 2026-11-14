@@ -8,6 +8,7 @@ import type { Indicator } from '../../../types/catalogue'
 import type { ImportDescription, TerritoryLevel } from '../../../types/imports'
 
 type Values = {
+  firstRow: string
   lastRow: string
   territoryColumn: string
   level: TerritoryLevel
@@ -51,6 +52,7 @@ export function DescriptionForm({
   ]
   const { register, handleSubmit, watch } = useForm<Values>({
     defaultValues: {
+      firstRow: current?.firstRow ? String(current.firstRow) : '',
       lastRow: current?.lastRow ? String(current.lastRow) : '',
       territoryColumn: current?.territory.column ?? '',
       level: current?.territory.level ?? 'commune',
@@ -73,6 +75,7 @@ export function DescriptionForm({
   const submit = (v: Values) =>
     onSubmit({
       headerRow,
+      ...(v.firstRow ? { firstRow: Number(v.firstRow) } : {}),
       ...(v.lastRow ? { lastRow: Number(v.lastRow) } : {}),
       territory: {
         column: v.territoryColumn,
@@ -159,7 +162,7 @@ export function DescriptionForm({
           />
         ))}
       </fieldset>
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-3">
         <Select
           label="Séparateur décimal"
           options={[
@@ -167,6 +170,12 @@ export function DescriptionForm({
             { value: '.', label: 'Point : 3.3 (tableur, fichier anglais)' },
           ]}
           {...register('decimalSeparator')}
+        />
+        <Field
+          label="Première ligne de données"
+          hint="Vide : celle qui suit les en-têtes. La DREES met une ligne d’unités entre les deux."
+          type="number"
+          {...register('firstRow')}
         />
         <Field
           label="Dernière ligne à lire"

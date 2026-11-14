@@ -29,14 +29,18 @@ export class XlsxImporter implements SourceDatasetImporter {
       );
     }
 
+    // Chaque ligne du tableur, vides comprises : le numéro d'une ligne lue
+    // est celui que le producteur voit dans son fichier, et la provenance
+    // d'une valeur le cite.
     const rows: string[][] = [];
-    worksheet.eachRow({ includeEmpty: false }, (row) => {
+    for (let r = 1; r <= worksheet.rowCount; r++) {
+      const row = worksheet.getRow(r);
       const cells: string[] = [];
       for (let col = 1; col <= worksheet.columnCount; col++) {
         cells.push(cellText(row.getCell(col).value));
       }
       rows.push(cells);
-    });
+    }
     return { sheetNames, sheet: worksheet.name, rows };
   }
 }

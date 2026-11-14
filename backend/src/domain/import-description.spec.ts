@@ -5,6 +5,7 @@ const description = (
   overrides: Partial<ImportDescription> = {},
 ): ImportDescription => ({
   headerRow: 1,
+  firstRow: null,
   lastRow: null,
   territory: { column: 'Code commune', level: 'commune', vintage: 2026 },
   period: { column: 'Année' },
@@ -48,6 +49,15 @@ describe('la description des colonnes', () => {
       ],
     });
     expect(checkDescription(twice, HEADER)).toHaveLength(2);
+  });
+
+  it('accepte une ligne d’unités entre les en-têtes et les données', () => {
+    expect(
+      checkDescription(description({ headerRow: 1, firstRow: 3 }), HEADER),
+    ).toEqual([]);
+    expect(
+      checkDescription(description({ headerRow: 3, firstRow: 2 }), HEADER),
+    ).toHaveLength(1);
   });
 
   it('refuse une dernière ligne avant les en-têtes', () => {

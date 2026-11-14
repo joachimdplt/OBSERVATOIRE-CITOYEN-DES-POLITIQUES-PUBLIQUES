@@ -36,4 +36,15 @@ describe('la lecture d’un classeur', () => {
       new XlsxImporter().read(await workbook(), 'APL 2023'),
     ).rejects.toThrow(/Notes, APL 2024/);
   });
+
+  it('garde les lignes vides : la ligne 3 lue est la ligne 3 du classeur', async () => {
+    const book = new ExcelJS.Workbook();
+    const sheet = book.addWorksheet('APL');
+    sheet.getRow(1).values = ['Titre'];
+    sheet.getRow(3).values = ['code', 'apl'];
+    const table = await new XlsxImporter().read(
+      Buffer.from(await book.xlsx.writeBuffer()),
+    );
+    expect(table.rows[2]).toEqual(['code', 'apl']);
+  });
 });

@@ -21,7 +21,8 @@ export class CsvImporter implements SourceDatasetImporter {
       delimiter: delimiterOf(text),
       bom: true,
       relax_column_count: true,
-      skip_empty_lines: true,
+      // Les lignes vides restent : le numéro d'une ligne lue est celui du fichier.
+      skip_empty_lines: false,
     });
     return Promise.resolve({ sheetNames: [], sheet: null, rows });
   }

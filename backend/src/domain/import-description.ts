@@ -8,6 +8,11 @@ import { readPeriod } from './period';
  */
 export type ImportDescription = {
   headerRow: number;
+  /**
+   * La première ligne de données, quand elle ne suit pas les en-têtes : la
+   * DREES met une ligne d'unités entre les deux. Vide : la ligne suivante.
+   */
+  firstRow: number | null;
   /** La dernière ligne à lire, pour laisser de côté les notes de bas de tableau. */
   lastRow: number | null;
   territory: { column: string; level: TerritoryLevel; vintage: number };
@@ -56,11 +61,20 @@ export function checkDescription(
     );
   }
 
-  if (
-    description.lastRow !== null &&
-    description.lastRow <= description.headerRow
-  ) {
-    errors.push('La dernière ligne lue doit venir après la ligne d’en-têtes.');
+  const first = firstDataRow(description);
+  if (first <= description.headerRow) {
+    errors.push(
+      'La première ligne de données doit venir après la ligne d’en-têtes.',
+    );
+  }
+  if (description.lastRow !== null && description.lastRow < first) {
+    errors.push(
+      'La dernière ligne lue doit venir après la première ligne de données.',
+    );
   }
   return errors;
 }
+
+/** La première ligne lue comme donnée : celle déclarée, ou celle qui suit les en-têtes. */
+export const firstDataRow = (d: ImportDescription) =>
+  d.firstRow ?? d.headerRow + 1;

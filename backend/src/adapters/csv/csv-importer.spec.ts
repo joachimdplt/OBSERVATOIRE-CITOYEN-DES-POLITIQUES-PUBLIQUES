@@ -47,4 +47,9 @@ describe('la lecture d’un CSV', () => {
       ['01003', 'nd'],
     ]);
   });
+
+  it('garde les lignes vides : la ligne 3 lue est la ligne 3 du fichier', async () => {
+    const rows = await read(Buffer.from('titre;\n\ncode;valeur\n01001;3,3\n'));
+    expect(rows[2]).toEqual(['code', 'valeur']);
+  });
 });

@@ -9,12 +9,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Requires, SessionGuard } from '../../../auth/session.guard';
-import type { ImportDescription } from '../../../domain/import-description';
+import {
+  firstDataRow,
+  type ImportDescription,
+} from '../../../domain/import-description';
 import type { Prisma } from '../../../generated/prisma/client';
 import {
   AnomalySeverity,
   ImportState,
   ObservationStatus,
+  TerritoryLevel,
 } from '../../../generated/prisma/enums';
 import {
   OBSERVATION_NORMALIZER,
@@ -63,7 +67,7 @@ export class ValidateImportJobController {
       where: {
         jobId: id,
         rowNumber: {
-          gt: description.headerRow,
+          gte: firstDataRow(description),
           ...(description.lastRow ? { lte: description.lastRow } : {}),
         },
       },
@@ -75,15 +79,34 @@ export class ValidateImportJobController {
       description,
     );
 
-    // Les territoires connus du millésime déclaré.
+    // Les territoires connus du millésime déclaré. Une colonne de communes se
+    // lit aussi parmi les arrondissements municipaux : la DREES donne Paris,
+    // Lyon et Marseille par arrondissement, et un code INSEE de commune ne
+    // désigne jamais un arrondissement.
+    const levels =
+      description.territory.level === TerritoryLevel.commune
+        ? [TerritoryLevel.commune, TerritoryLevel.municipal_district]
+        : [description.territory.level];
     const territories = await this.prisma.territory.findMany({
       where: {
-        level: description.territory.level,
+        level: { in: levels },
         vintage: description.territory.vintage,
         code: { in: [...new Set(candidates.map((c) => c.territory.code))] },
       },
-      select: { id: true, code: true },
+      select: { id: true, code: true, level: true },
     });
+    const districts = territories.filter(
+      (t) => t.level === TerritoryLevel.municipal_district,
+    ).length;
+    if (districts > 0) {
+      anomalies.push({
+        rowNumber: null,
+        column: description.territory.column,
+        kind: 'municipal_districts',
+        severity: AnomalySeverity.info,
+        message: `${districts} code(s) d'arrondissement municipal (Paris, Lyon, Marseille) lus à leur niveau, pas à celui de la commune.`,
+      });
+    }
     const territoryId = new Map(territories.map((t) => [t.code, t.id]));
 
     const indicators = await this.prisma.indicatorDefinition.findMany({

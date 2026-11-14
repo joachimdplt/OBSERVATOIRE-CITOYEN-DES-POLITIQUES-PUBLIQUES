@@ -19,6 +19,7 @@ export type VersionLine = {
 
 export type ImportDescription = {
   headerRow: number
+  firstRow?: number
   lastRow?: number
   territory: { column: string; level: TerritoryLevel; vintage: number }
   period: { column?: string; value?: string }
