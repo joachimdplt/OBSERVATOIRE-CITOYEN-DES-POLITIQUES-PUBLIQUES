@@ -2,7 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import {
   CONTENT_LICENSE,
   PUBLIC_STATES,
-  PUBLICATION_LABELS,
+  DATA_LABELS,
   SOURCE_CODE,
   type PublicState,
 } from '../../domain/publication';
@@ -61,7 +61,7 @@ export function provenanceOf(version: PublicVersion) {
   const state = version.state as PublicState;
   return {
     status: state,
-    statusLabel: PUBLICATION_LABELS[state],
+    statusLabel: DATA_LABELS[state],
     producer: {
       name: dataset.provider.name,
       acronym: dataset.provider.acronym,

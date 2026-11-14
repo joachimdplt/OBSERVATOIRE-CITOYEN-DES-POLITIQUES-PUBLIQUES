@@ -35,7 +35,11 @@ export function IndicatorList({ indicators }: { indicators: IndicatorLine[] }) {
             <span className="flex shrink-0 items-center gap-3">
               <PublicationBadge
                 status={i.status}
-                label={i.status === 'published' ? 'Publiée' : 'Prépublication'}
+                label={
+                  i.status === 'published'
+                    ? 'Vérifiée par deux personnes'
+                    : 'Vérifiée par son auteur'
+                }
               />
               <ChevronRight size={16} className="text-slate-300" />
             </span>

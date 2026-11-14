@@ -7,11 +7,11 @@ type Props = {
   onPick: (code: string) => void
 }
 
-/** Les couches qui posent la même question forment une entrée, dans l'ordre de leur code. */
+/** Une entrée par couche, sous son nom officiel. */
 function groupsOf(layers: IndicatorLine[]): IndicatorLine[][] {
   const groups = new Map<string, IndicatorLine[]>()
   for (const l of layers) {
-    const key = l.question ?? l.code
+    const key = l.code
     groups.set(key, [...(groups.get(key) ?? []), l])
   }
   return [...groups.values()].map((g) =>
@@ -49,9 +49,7 @@ export function LayerPicker({ layers, active, onPick }: Props) {
                     onChange={() => onPick(l.code)}
                   />
                   <span className="space-y-0.5">
-                    <span className="block font-medium">
-                      {l.question ?? l.label}
-                    </span>
+                    <span className="block font-medium">{l.label}</span>
                     <span
                       className={`block text-xs ${selected ? 'text-slate-300' : 'text-slate-500'}`}
                     >
@@ -59,7 +57,9 @@ export function LayerPicker({ layers, active, onPick }: Props) {
                       {l.vintages.length > 1
                         ? `${l.vintages.length} années`
                         : l.vintage}
-                      {l.status === 'preprint' ? ' · prépublication' : ''}
+                      {l.status === 'preprint'
+                        ? ' · vérifiée par son auteur'
+                        : ''}
                     </span>
                   </span>
                 </label>

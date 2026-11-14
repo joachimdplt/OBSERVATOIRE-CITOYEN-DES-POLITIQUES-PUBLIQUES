@@ -10,6 +10,17 @@ export const PUBLICATION_LABELS = {
 
 export type PublicState = keyof typeof PUBLICATION_LABELS;
 
+/**
+ * Ce que le public lit sur une version de données. Un fichier déposé n'est
+ * pas une publication : c'est un matériau, vérifié contre le fichier du
+ * producteur, d'abord par son auteur, puis par une seconde personne.
+ */
+export const DATA_LABELS: Record<PublicState, string> = {
+  [VersionState.preprint]:
+    'Vérifiée par son auteur, en attente d’une seconde vérification',
+  [VersionState.published]: 'Vérifiée par deux personnes',
+};
+
 /** Les états qu'une personne sans compte peut lire. Un brouillon ou une version en relecture n'en sont pas. */
 export const PUBLIC_STATES: PublicState[] = [
   VersionState.published,

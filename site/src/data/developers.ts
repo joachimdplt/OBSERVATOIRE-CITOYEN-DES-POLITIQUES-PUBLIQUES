@@ -80,7 +80,7 @@ export const DEVELOPERS = {
       {
         path: '/api/public/indicators',
         query: 'pillar',
-        text: 'Les indicateurs publiés, avec leur question, leur producteur, leurs millésimes et leur état de relecture.',
+        text: 'Les indicateurs publiés, avec leur producteur, leurs millésimes et leur état de vérification.',
       },
       {
         path: '/api/public/indicators/{code}',

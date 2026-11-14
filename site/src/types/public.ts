@@ -140,6 +140,8 @@ export type TerritoryLayer = {
   }
   /** Le territoire des valeurs : la commune elle-même, ou son département. */
   scope: { level: string; code: string; name: string }
+  /** Le jeu de données d'où vient la couche. */
+  dataset: { id: string; title: string }
   values: (Omit<Observation, 'territory' | 'vintage'> & {
     /** La date du texte d'où vient la valeur (AAAA-MM-JJ), si le fichier la donne. */
     referenceDate: string | null

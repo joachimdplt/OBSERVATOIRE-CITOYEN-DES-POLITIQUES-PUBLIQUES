@@ -6,7 +6,7 @@ import { ValueCell } from '../indicators/ValueCell'
 type Props = { layers: TerritoryLayer[] }
 
 /**
- * Plusieurs couches qui répondent à la même question, lues ensemble : la
+ * Plusieurs couches d'un même jeu de données, lues ensemble : la
  * population par tranche d'âge, une ligne par tranche. Chaque nombre est
  * celui du producteur ; l'ordre de grandeur s'écrit à côté, la valeur exacte
  * reste visible. Aucune part n'est calculée.
@@ -22,7 +22,7 @@ export function LayerGroupSection({ layers }: Props) {
   return (
     <section className="space-y-2 border-t border-slate-100 pt-4">
       <p className="text-xs font-medium text-slate-500">
-        {first.indicator.question}
+        {first.dataset.title}
         {period ? ` (${period})` : ''}
       </p>
       {department && (
@@ -70,7 +70,7 @@ export function LayerGroupSection({ layers }: Props) {
         {first.indicator.producer}
         {units.size === 1 ? ` · ${first.indicator.unit}` : ''}
         {first.values.some((v) => v.publication.status === 'preprint')
-          ? ' · prépublication'
+          ? ' · vérifiée par son auteur'
           : ''}{' '}
         ·{' '}
         <Link

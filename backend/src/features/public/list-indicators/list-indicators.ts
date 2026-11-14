@@ -1,7 +1,7 @@
 import { Controller, Get, ParseEnumPipe, Query } from '@nestjs/common';
 import {
   PUBLIC_STATES,
-  PUBLICATION_LABELS,
+  DATA_LABELS,
   type PublicState,
 } from '../../../domain/publication';
 import { Pillar } from '../../../generated/prisma/enums';
@@ -76,7 +76,7 @@ export class ListIndicatorsController {
         vintage: versions[0].vintage,
         vintages: [...new Set(versions.map((v) => v.vintage))],
         status: state,
-        statusLabel: PUBLICATION_LABELS[state],
+        statusLabel: DATA_LABELS[state],
       };
     });
   }

@@ -24,13 +24,13 @@ function sentenceOf({ indicator, values }: TerritoryLayer, territory: string) {
 }
 
 /**
- * Les couches rangées par question : celles qui posent la même (la population
+ * Les couches rangées par jeu de données : celles d'un même jeu (la population
  * de chaque tranche d'âge) se lisent ensemble, dans l'ordre de leur code.
  */
 function groupsOf(layers: TerritoryLayer[]): TerritoryLayer[][] {
   const groups = new Map<string, TerritoryLayer[]>()
   for (const layer of layers) {
-    const key = layer.indicator.question ?? layer.indicator.code
+    const key = layer.dataset.id
     groups.set(key, [...(groups.get(key) ?? []), layer])
   }
   // Les couches de la carte d'abord, puis le contexte qui aide à les lire :
@@ -99,7 +99,7 @@ export function TerritoryLayersCard({ data, name, onClose }: Props) {
               className="space-y-2 border-t border-slate-100 pt-4"
             >
               <p className="text-xs font-medium text-slate-500">
-                {indicator.question ?? indicator.label}
+                {indicator.label}
               </p>
               {sentence && (
                 <p className="text-sm leading-relaxed text-slate-900">
@@ -151,7 +151,7 @@ export function TerritoryLayersCard({ data, name, onClose }: Props) {
                 {indicator.producer} · ligne{values.length > 1 ? 's' : ''} du
                 fichier : {values.map((v) => v.sourceRow).join(', ')}
                 {values.some((v) => v.publication.status === 'preprint')
-                  ? ' · prépublication'
+                  ? ' · vérifiée par son auteur'
                   : ''}{' '}
                 ·{' '}
                 <Link

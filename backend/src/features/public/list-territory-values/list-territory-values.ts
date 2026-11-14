@@ -8,7 +8,7 @@ import {
 import { type Category, categoryReadingIn } from '../../../domain/category';
 import {
   PUBLIC_STATES,
-  PUBLICATION_LABELS,
+  DATA_LABELS,
   type PublicState,
 } from '../../../domain/publication';
 import { TerritoryLevel } from '../../../generated/prisma/enums';
@@ -70,7 +70,13 @@ export class ListTerritoryValuesController {
             state: true,
             vintage: true,
             datasetId: true,
-            dataset: { select: { provider: { select: { acronym: true } } } },
+            dataset: {
+              select: {
+                id: true,
+                title: true,
+                provider: { select: { acronym: true } },
+              },
+            },
           },
         },
         indicator: {
@@ -101,7 +107,10 @@ export class ListTerritoryValuesController {
         continue;
       const layer =
         layers.get(o.indicator.code) ??
-        layerOf(o.indicator, territories[0].regionCode, o.territory);
+        layerOf(o.indicator, territories[0].regionCode, o.territory, {
+          id: o.version.dataset.id,
+          title: o.version.dataset.title,
+        });
       // La source de la valeur : la DREES, ou l'ARS de la région de la commune.
       layer.indicator.producers.add(o.version.dataset.provider.acronym);
       layer.values.push({
@@ -116,7 +125,7 @@ export class ListTerritoryValuesController {
         referenceDate: o.referenceDate?.toISOString().slice(0, 10) ?? null,
         publication: {
           status: o.version.state,
-          label: PUBLICATION_LABELS[o.version.state as PublicState],
+          label: DATA_LABELS[o.version.state as PublicState],
         },
       });
       layers.set(o.indicator.code, layer);
@@ -126,9 +135,15 @@ export class ListTerritoryValuesController {
     return {
       territory: { code: code.toUpperCase(), level: territoryLevel, name },
       layers: [...layers.values()].map(
-        ({ indicator: { producers, ...indicator }, values, scope }) => ({
+        ({
+          indicator: { producers, ...indicator },
+          values,
+          scope,
+          dataset,
+        }) => ({
           indicator: { ...indicator, producer: [...producers].join(', ') },
           scope,
+          dataset,
           values,
         }),
       ),
@@ -155,8 +170,12 @@ const layerOf = (
   regionCode: string | null,
   // Le territoire des valeurs : la commune, ou son département.
   scope: { level: string; code: string; name: string },
+  // Le jeu de données d'où vient la couche : les tranches d'âge d'un même
+  // jeu se lisent ensemble, sous son titre.
+  dataset: { id: string; title: string },
 ) => ({
   scope,
+  dataset,
   indicator: {
     code: i.code,
     label: i.label,

@@ -110,7 +110,7 @@ describe('le public consulte un indicateur', () => {
       code: CODE,
       status: 'preprint',
       statusLabel:
-        'Prépublication : vérifiée par son seul auteur, en attente de relecture',
+        'Vérifiée par son auteur, en attente d’une seconde vérification',
       vintage: '2024',
     });
   });
@@ -198,7 +198,7 @@ describe('le public consulte un indicateur', () => {
     ).body as Sheet;
     expect(sheet.provenance[0]).toMatchObject({
       status: 'published',
-      statusLabel: 'Publiée : relue par une autre personne que son auteur',
+      statusLabel: 'Vérifiée par deux personnes',
       version: { authoredBy: 'Compte admin', reviewedBy: 'Compte reviewer' },
     });
   });
