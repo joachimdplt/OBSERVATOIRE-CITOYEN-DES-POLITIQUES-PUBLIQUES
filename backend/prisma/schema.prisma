@@ -28,15 +28,19 @@ model User {
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
 
-  providers        DataProvider[]
-  datasets         SourceDataset[]
-  indicators       IndicatorDefinition[]
-  indicatorSources IndicatorSource[]     @relation("SourceCreatedBy")
-  retiredSources   IndicatorSource[]     @relation("SourceRetiredBy")
-  versions         DatasetVersion[]      @relation("VersionCreatedBy")
-  submitted        DatasetVersion[]      @relation("VersionSubmittedBy")
-  reviewed         DatasetVersion[]      @relation("VersionReviewedBy")
-  reviewEvents     ReviewEvent[]
+  providers            DataProvider[]
+  datasets             SourceDataset[]
+  indicators           IndicatorDefinition[]
+  indicatorSources     IndicatorSource[]     @relation("SourceCreatedBy")
+  retiredSources       IndicatorSource[]     @relation("SourceRetiredBy")
+  versions             DatasetVersion[]      @relation("VersionCreatedBy")
+  submitted            DatasetVersion[]      @relation("VersionSubmittedBy")
+  reviewed             DatasetVersion[]      @relation("VersionReviewedBy")
+  reviewEvents         ReviewEvent[]
+  publications         Publication[]         @relation("PublicationCreatedBy")
+  publicationVersions  PublicationVersion[]  @relation("PublicationVersionCreatedBy")
+  publicationSubmitted PublicationVersion[]  @relation("PublicationVersionSubmittedBy")
+  publicationReviewed  PublicationVersion[]  @relation("PublicationVersionReviewedBy")
 
   @@map("users")
 }
@@ -188,19 +192,19 @@ model SourceDataset {
 }
 
 model IndicatorDefinition {
-  id                  String            @id @default(uuid())
-  code                String            @unique
+  id                  String             @id @default(uuid())
+  code                String             @unique
   label               String
   definition          String
   // Le champ couvert : « écoliers du premier degré », pas « tous les élèves ».
   scope               String
   // L'unité telle que le producteur l'écrit.
   unit                String
-  kind                IndicatorKind     @default(number)
-  comparisonScale     ComparisonScale   @default(national)
+  kind                IndicatorKind      @default(number)
+  comparisonScale     ComparisonScale    @default(national)
   /// Une couche de la carte, ou un élément de contexte lu seulement dans la
   /// fiche d'une commune (la population par âge, derrière l'APL).
-  mapLayer            Boolean           @default(true)
+  mapLayer            Boolean            @default(true)
   // Pour une catégorie : la liste fermée [{ code, label }], dans l'ordre de l'arrêté.
   categories          Json?
   pillar              Pillar
@@ -217,11 +221,12 @@ model IndicatorDefinition {
   scaleLow            String?
   scaleHigh           String?
   createdById         String
-  createdAt           DateTime          @default(now())
+  createdAt           DateTime           @default(now())
   // Les jeux qui alimentent l'indicateur : un seul pour l'APL de la DREES,
   // un par ARS pour le zonage des médecins.
   sources             IndicatorSource[]
-  createdBy           User              @relation(fields: [createdById], references: [id])
+  sections            SectionIndicator[]
+  createdBy           User               @relation(fields: [createdById], references: [id])
   observations        Observation[]
 
   @@map("indicator_definitions")
@@ -435,4 +440,82 @@ model IndicatorSource {
 
   @@index([indicatorId, datasetId])
   @@map("indicator_sources")
+}
+
+// ── Les publications : les enjeux que l'observatoire publie ─────────────────
+// Un jeu de données est un matériau, vérifié contre le fichier du producteur.
+// Une publication est un enjeu (l'accès aux médecins), lu maillon par
+// maillon avec les indicateurs choisis pour chacun. C'est elle qui passe la
+// relecture, comme un article de revue, et qui porte une signature.
+
+/// Un enjeu publié. Son adresse (slug) est publique et ne se renomme pas.
+model Publication {
+  id          String               @id @default(uuid())
+  slug        String               @unique
+  pillar      Pillar
+  createdById String
+  createdAt   DateTime             @default(now())
+  createdBy   User                 @relation("PublicationCreatedBy", fields: [createdById], references: [id])
+  versions    PublicationVersion[]
+
+  @@map("publications")
+}
+
+/// Une version d'une publication : son texte et ses maillons. Hors brouillon,
+/// elle ne change plus (voir la migration) ; une correction est une nouvelle
+/// version.
+model PublicationVersion {
+  id            String               @id @default(uuid())
+  publicationId String
+  number        Int
+  state         VersionState         @default(draft)
+  /// Un titre factuel, sans question ni accroche : « Accès aux médecins
+  /// généralistes ».
+  title         String
+  /// Le chapô : ce que l'enjeu couvre, décrit sans appréciation.
+  summary       String
+  createdById   String
+  createdAt     DateTime             @default(now())
+  submittedById String?
+  submittedAt   DateTime?
+  reviewedById  String?
+  reviewedAt    DateTime?
+  publishedAt   DateTime?
+  publication   Publication          @relation(fields: [publicationId], references: [id])
+  createdBy     User                 @relation("PublicationVersionCreatedBy", fields: [createdById], references: [id])
+  submittedBy   User?                @relation("PublicationVersionSubmittedBy", fields: [submittedById], references: [id])
+  reviewedBy    User?                @relation("PublicationVersionReviewedBy", fields: [reviewedById], references: [id])
+  sections      PublicationSection[]
+
+  @@unique([publicationId, number])
+  @@map("publication_versions")
+}
+
+/// Un maillon de l'enjeu : « Partir », « S'installer ». Son texte explique
+/// ce que le maillon recouvre, sans chiffre qui ne vienne d'un indicateur.
+model PublicationSection {
+  id         String             @id @default(uuid())
+  versionId  String
+  position   Int
+  title      String
+  text       String
+  version    PublicationVersion @relation(fields: [versionId], references: [id])
+  indicators SectionIndicator[]
+
+  @@unique([versionId, position])
+  @@map("publication_sections")
+}
+
+/// Un indicateur choisi pour un maillon, avec la raison de ce choix : un
+/// lien se justifie et passe en revue avec la publication.
+model SectionIndicator {
+  sectionId     String
+  indicatorId   String
+  position      Int
+  justification String
+  section       PublicationSection  @relation(fields: [sectionId], references: [id])
+  indicator     IndicatorDefinition @relation(fields: [indicatorId], references: [id])
+
+  @@id([sectionId, indicatorId])
+  @@map("section_indicators")
 }

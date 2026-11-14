@@ -1,0 +1,87 @@
+import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
+import {
+  PUBLIC_STATES,
+  PUBLICATION_LABELS,
+  type PublicState,
+} from '../../../domain/publication';
+import { PrismaService } from '../../../prisma/prisma.service';
+
+/**
+ * Un visiteur lit une publication : son titre, son chapô, ses maillons et,
+ * pour chacun, les indicateurs choisis avec la raison de leur choix. Elle est
+ * signée de son auteur et, une fois relue, de sa relectrice ou de son
+ * relecteur ; les versions précédentes restent listées.
+ */
+@Controller('public/publications')
+export class GetPublicationController {
+  constructor(private prisma: PrismaService) {}
+
+  @Get(':slug')
+  async get(@Param('slug') slug: string) {
+    const publication = await this.prisma.publication.findUnique({
+      where: { slug },
+      include: {
+        versions: {
+          where: { state: { in: [...PUBLIC_STATES, 'superseded'] } },
+          orderBy: { number: 'desc' },
+          include: {
+            submittedBy: { select: { name: true } },
+            reviewedBy: { select: { name: true } },
+            sections: {
+              orderBy: { position: 'asc' },
+              include: {
+                indicators: {
+                  orderBy: { position: 'asc' },
+                  include: {
+                    indicator: {
+                      select: {
+                        code: true,
+                        label: true,
+                        unit: true,
+                        kind: true,
+                        mapLayer: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    const current = publication?.versions.find((v) =>
+      (PUBLIC_STATES as string[]).includes(v.state),
+    );
+    if (!publication || !current)
+      throw new NotFoundException('Publication inconnue');
+    return {
+      slug: publication.slug,
+      pillar: publication.pillar,
+      title: current.title,
+      summary: current.summary,
+      number: current.number,
+      status: current.state,
+      statusLabel: PUBLICATION_LABELS[current.state as PublicState],
+      publishedAt: current.publishedAt,
+      authoredBy: current.submittedBy?.name ?? null,
+      reviewedBy: current.reviewedBy?.name ?? null,
+      sections: current.sections.map((s) => ({
+        title: s.title,
+        text: s.text,
+        indicators: s.indicators.map((x) => ({
+          ...x.indicator,
+          justification: x.justification,
+        })),
+      })),
+      // Les versions remplacées restent citables : leur numéro et leur date.
+      history: publication.versions
+        .filter((v) => v.id !== current.id)
+        .map((v) => ({
+          number: v.number,
+          status: v.state,
+          publishedAt: v.publishedAt,
+        })),
+    };
+  }
+}

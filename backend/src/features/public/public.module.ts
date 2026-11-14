@@ -5,6 +5,8 @@ import { GetTerritoryController } from './get-territory/get-territory';
 import { ListTerritoryValuesController } from './list-territory-values/list-territory-values';
 import { ListIndicatorObservationsController } from './list-indicator-observations/list-indicator-observations';
 import { ListIndicatorsController } from './list-indicators/list-indicators';
+import { ListPublicationsPublicController } from './list-publications/list-publications';
+import { GetPublicationController } from './get-publication/get-publication';
 import { SearchTerritoriesController } from './search-territories/search-territories';
 
 /**
@@ -17,6 +19,8 @@ import { SearchTerritoriesController } from './search-territories/search-territo
     SearchTerritoriesController,
     ListTerritoryValuesController,
     ListIndicatorsController,
+    ListPublicationsPublicController,
+    GetPublicationController,
     GetIndicatorController,
     GetIndicatorMapController,
     ListIndicatorObservationsController,
