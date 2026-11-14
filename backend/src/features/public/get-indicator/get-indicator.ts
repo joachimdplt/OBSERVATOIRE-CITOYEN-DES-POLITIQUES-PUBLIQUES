@@ -1,6 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { loadPublicIndicator, provenanceOf } from '../public-indicator';
+import { loadPublicIndicator, provenancesOf } from '../public-indicator';
 
 /**
  * Un visiteur ouvre la fiche d'un indicateur : ce qu'il mesure, sur quel
@@ -15,9 +15,12 @@ export class GetIndicatorController {
   @Get(':code')
   async get(@Param('code') code: string) {
     const loaded = await loadPublicIndicator(this.prisma, code);
-    const { indicator, version } = loaded;
+    const { indicator, versions } = loaded;
 
-    const where = { indicatorId: indicator.id, versionId: version.id };
+    const where = {
+      indicatorId: indicator.id,
+      versionId: { in: versions.map((v) => v.id) },
+    };
     const [periods, levels] = await Promise.all([
       this.prisma.observation.findMany({
         where,
@@ -44,7 +47,7 @@ export class GetIndicatorController {
       allowedAggregations: indicator.allowedAggregations,
       periods: periods.map((p) => p.period),
       territoryLevels: levels.map((l) => l.level),
-      provenance: provenanceOf(loaded),
+      provenance: provenancesOf(loaded),
     };
   }
 }

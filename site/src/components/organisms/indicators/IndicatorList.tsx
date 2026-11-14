@@ -26,7 +26,10 @@ export function IndicatorList({ indicators }: { indicators: IndicatorLine[] }) {
                 {i.label}
               </span>
               <span className="block text-xs text-slate-500">
-                {pillarLabel(i.pillar)} · {i.producer} · millésime {i.vintage}
+                {pillarLabel(i.pillar)} · {i.producer} ·{' '}
+                {i.vintages.length > 1
+                  ? `millésimes ${i.vintages[i.vintages.length - 1]} à ${i.vintages[0]}`
+                  : `millésime ${i.vintage}`}
               </span>
             </span>
             <span className="flex shrink-0 items-center gap-3">

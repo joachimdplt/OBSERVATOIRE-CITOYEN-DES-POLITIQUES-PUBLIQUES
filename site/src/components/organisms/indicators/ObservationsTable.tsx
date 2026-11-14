@@ -17,6 +17,7 @@ export function ObservationsTable({
             <th className="px-5 py-3 font-medium">Territoire</th>
             <th className="px-5 py-3 font-medium">Code</th>
             <th className="px-5 py-3 font-medium">Période</th>
+            <th className="px-5 py-3 font-medium">Millésime</th>
             <th className="px-5 py-3 text-right font-medium">
               Valeur ({unit})
             </th>
@@ -33,6 +34,9 @@ export function ObservationsTable({
                 {o.territory.code}
               </td>
               <td className="px-5 py-2.5 tabular-nums">{o.period}</td>
+              <td className="px-5 py-2.5 tabular-nums text-slate-500">
+                {o.vintage}
+              </td>
               <td className="px-5 py-2.5 text-right">
                 <ValueCell observation={o} />
               </td>

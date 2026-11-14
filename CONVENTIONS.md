@@ -94,12 +94,12 @@ revue. Il n'établit aucune équivalence financière.
 |---|---|
 | Une absence n'a jamais de valeur | `CHECK observation_value_matches_status` |
 | Un fichier déposé et ses lignes lues ne se réécrivent pas | triggers `raw_rows_never_rewritten`, `dataset_version_file_never_rewritten` |
-| Le même fichier ne se dépose pas deux fois pour un jeu | unique `(datasetId, fileHash)` |
+| Le même fichier ne se dépose pas deux fois pour un même millésime | unique `(datasetId, fileHash, vintage)` |
 | Une observation est unique pour (indicateur, territoire, période, version) | index unique |
 | Les observations d'une version qui n'est plus un brouillon ne bougent plus | trigger `observations_frozen_outside_draft` |
 | Seules les transitions du circuit existent ; une version publiée ne change plus, sauf pour être remplacée | trigger `dataset_version_transition` |
 | Publier demande une autre personne que celle qui a soumis ou prépublié | même trigger (quatre yeux) |
-| Une seule version visible du public par jeu | unique partiel `dataset_versions_one_public` |
+| Une seule version visible du public par millésime d'un jeu ; les millésimes se lisent ensemble | unique partiel `dataset_versions_one_public_per_vintage` |
 | Une trace de revue ne se modifie ni ne se supprime | trigger `review_events_never_rewritten` |
 | Un territoire chargé ne se réécrit pas | trigger `territories_never_rewritten` |
 

@@ -33,13 +33,14 @@ type Line = {
   status: string;
   statusLabel: string;
   vintage: string;
+  vintages: string[];
 };
 type Sheet = {
   code: string;
   limits: string;
   periods: string[];
   territoryLevels: string[];
-  provenance: Provenance;
+  provenance: Provenance[];
 };
 type Values = {
   total: number;
@@ -49,8 +50,9 @@ type Values = {
     status: string;
     value: string | null;
     sourceRow: number;
+    vintage: string;
   }[];
-  provenance: Provenance;
+  provenance: Provenance[];
 };
 
 const CODE = 'apl-medecins-generalistes';
@@ -123,7 +125,8 @@ describe('le public consulte un indicateur', () => {
       periods: ['2024'],
       territoryLevels: ['commune'],
     });
-    expect(sheet.provenance).toMatchObject({
+    expect(sheet.provenance).toHaveLength(1);
+    expect(sheet.provenance[0]).toMatchObject({
       producer: { acronym: 'DREES' },
       version: {
         vintage: '2024',
@@ -193,25 +196,30 @@ describe('le public consulte un indicateur', () => {
     const sheet = (
       await visitor().get(`/api/public/indicators/${CODE}`).expect(200)
     ).body as Sheet;
-    expect(sheet.provenance).toMatchObject({
+    expect(sheet.provenance[0]).toMatchObject({
       status: 'published',
       statusLabel: 'Publiée : relue par une autre personne que son auteur',
       version: { authoredBy: 'Compte admin', reviewedBy: 'Compte reviewer' },
     });
   });
 
-  it('le public lit la version la plus récente, pas celle qu’elle a remplacée', async () => {
+  it('les millésimes se lisent ensemble, l’évolution reste visible ; une version remplacée ne se lit plus', async () => {
+    await preprinted('2023', '3,1');
+    await preprinted('2024', '3,2');
     await preprinted('2024', '3,3');
-    await preprinted('2025', '3,4');
     const { observations, provenance } = (
       await visitor()
         .get(`/api/public/indicators/${CODE}/observations?territory=01001`)
         .expect(200)
     ).body as Values;
-    expect(provenance.version.vintage).toBe('2025');
-    expect(observations.map((o) => [o.period, o.value])).toEqual([
-      ['2025', '3.4'],
+    expect(provenance.map((p) => p.version.vintage)).toEqual(['2024', '2023']);
+    expect(observations.map((o) => [o.period, o.value, o.vintage])).toEqual([
+      ['2023', '3.1', '2023'],
+      ['2024', '3.3', '2024'],
     ]);
+    const [line] = (await visitor().get('/api/public/indicators').expect(200))
+      .body as Line[];
+    expect(line).toMatchObject({ vintage: '2024', vintages: ['2024', '2023'] });
   });
 
   it('aucune adresse de courriel ne sort par l’API publique', async () => {

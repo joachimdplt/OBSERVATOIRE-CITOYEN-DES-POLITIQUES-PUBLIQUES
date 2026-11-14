@@ -3,8 +3,9 @@ import { ReviewAction, VersionState } from '../../generated/prisma/enums';
 import { recordVersionEvent } from './review-event';
 
 /**
- * La version que le public voit pour un jeu, publiée ou prépubliée, passe à
- * « remplacée » quand une autre la remplace. Elle n'est pas effacée, et sa
+ * La version que le public voit pour un millésime d'un jeu, publiée ou
+ * prépubliée, passe à « remplacée » quand une autre du même millésime la
+ * remplace. Les autres millésimes restent visibles. Elle n'est pas effacée, et sa
  * trace dit par quoi elle a été remplacée.
  */
 export async function supersedePublicVersion(
@@ -15,6 +16,7 @@ export async function supersedePublicVersion(
   const current = await tx.datasetVersion.findFirst({
     where: {
       datasetId: replacement.datasetId,
+      vintage: replacement.vintage,
       state: { in: [VersionState.published, VersionState.preprint] },
       id: { not: replacement.id },
     },

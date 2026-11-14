@@ -43,7 +43,7 @@ export const Route = createFileRoute('/indicators/$code')({
 function IndicatorPage() {
   const { sheet, page } = Route.useLoaderData()
   const filters = Route.useSearch()
-  const { provenance } = sheet
+  const [latest] = sheet.provenance
   const next =
     page.offset + page.limit < page.total ? page.offset + page.limit : null
   const previous =
@@ -53,16 +53,14 @@ function IndicatorPage() {
     <main className="mx-auto max-w-5xl space-y-8 px-6 py-12">
       <header className="space-y-3">
         <p className="text-xs text-slate-500">
-          {pillarLabel(sheet.pillar)} · {provenance.producer.acronym} ·
-          millésime {provenance.version.vintage}
+          {pillarLabel(sheet.pillar)} · {latest.producer.acronym} ·{' '}
+          {sheet.provenance.length > 1 ? 'millésimes' : 'millésime'}{' '}
+          {sheet.provenance.map((p) => p.version.vintage).join(', ')}
         </p>
         <h1 className="text-3xl font-semibold tracking-tight text-balance">
           {sheet.label}
         </h1>
-        <PublicationBadge
-          status={provenance.status}
-          label={provenance.statusLabel}
-        />
+        <PublicationBadge status={latest.status} label={latest.statusLabel} />
       </header>
 
       <Card title="L’indicateur">
@@ -142,7 +140,9 @@ function IndicatorPage() {
         </nav>
       </section>
 
-      <ProvenancePanel provenance={provenance} />
+      {sheet.provenance.map((p) => (
+        <ProvenancePanel key={p.version.vintage} provenance={p} />
+      ))}
     </main>
   )
 }

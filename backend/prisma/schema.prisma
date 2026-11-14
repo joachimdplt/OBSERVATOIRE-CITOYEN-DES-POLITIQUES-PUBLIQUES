@@ -264,8 +264,9 @@ model DatasetVersion {
   importJob     ImportJob?
   observations  Observation[]
 
-  // Le même fichier ne se dépose pas deux fois pour le même jeu.
-  @@unique([datasetId, fileHash])
+  // Le même fichier ne se dépose pas deux fois pour le même millésime d'un jeu ; un
+  // classeur à plusieurs onglets peut porter plusieurs millésimes.
+  @@unique([datasetId, fileHash, vintage])
   @@map("dataset_versions")
 }
 

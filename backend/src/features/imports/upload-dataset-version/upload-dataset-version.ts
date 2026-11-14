@@ -97,11 +97,17 @@ export class UploadDatasetVersionController {
 
     const fileHash = this.store.fingerprint(file.buffer);
     const already = await this.prisma.datasetVersion.findUnique({
-      where: { datasetId_fileHash: { datasetId, fileHash } },
+      where: {
+        datasetId_fileHash_vintage: {
+          datasetId,
+          fileHash,
+          vintage: dto.vintage.trim(),
+        },
+      },
     });
     if (already) {
       throw new ConflictException(
-        `Ce fichier est déjà déposé pour ce jeu : version « ${already.vintage} » du ${already.createdAt.toLocaleDateString('fr-FR')}.`,
+        `Ce fichier est déjà déposé pour le millésime « ${already.vintage} » de ce jeu, le ${already.createdAt.toLocaleDateString('fr-FR')}.`,
       );
     }
 

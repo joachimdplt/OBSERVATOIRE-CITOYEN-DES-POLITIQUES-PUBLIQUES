@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { TerritoryLevel } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { loadPublicIndicator, provenanceOf } from '../public-indicator';
+import { loadPublicIndicator, provenancesOf } from '../public-indicator';
 
 const MAX_PAGE = 1000;
 
@@ -38,7 +38,7 @@ export class ListIndicatorObservationsController {
     const loaded = await loadPublicIndicator(this.prisma, code);
     const where = {
       indicatorId: loaded.indicator.id,
-      versionId: loaded.version.id,
+      versionId: { in: loaded.versions.map((v) => v.id) },
       ...(period ? { period } : {}),
       ...(level || territory
         ? {
@@ -58,6 +58,7 @@ export class ListIndicatorObservationsController {
         skip: Math.max(offset, 0),
         take,
         include: {
+          version: { select: { vintage: true, state: true } },
           territory: {
             select: { level: true, code: true, name: true, vintage: true },
           },
@@ -80,8 +81,10 @@ export class ListIndicatorObservationsController {
         status: o.status,
         value: o.value?.toString() ?? null,
         sourceRow: o.rowNumber,
+        // Le millésime d'où vient la valeur ; sa provenance est dans `provenance`.
+        vintage: o.version.vintage,
       })),
-      provenance: provenanceOf(loaded),
+      provenance: provenancesOf(loaded),
     };
   }
 }

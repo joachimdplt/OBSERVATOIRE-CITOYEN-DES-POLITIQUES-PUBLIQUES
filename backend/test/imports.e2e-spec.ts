@@ -143,10 +143,15 @@ describe('l’équipe dépose le fichier d’un producteur', () => {
     expect(versions.map((v) => v.vintage)).toEqual(['2025', '2024']);
   });
 
-  it('le même fichier ne se dépose pas deux fois', async () => {
+  it('le même fichier ne se dépose pas deux fois pour un même millésime', async () => {
     await upload(CSV_2024, 'apl-2024.csv').expect(201);
-    const res = await upload(CSV_2024, 'copie.csv', 'autre').expect(409);
+    const res = await upload(CSV_2024, 'copie.csv').expect(409);
     expect((res.body as { message: string }).message).toMatch(/déjà déposé/);
+  });
+
+  it('un classeur à plusieurs onglets porte plusieurs millésimes, une version chacun', async () => {
+    await upload(CSV_2024, 'apl.csv', '2024').expect(201);
+    await upload(CSV_2024, 'apl.csv', '2023').expect(201);
   });
 
   it('un classeur se lit à l’onglet demandé, et la liste des onglets est gardée', async () => {

@@ -148,7 +148,7 @@ describe('une version se soumet, puis une autre personne l’approuve ou la reje
     ]);
   });
 
-  it('publier une nouvelle version remplace l’ancienne sans l’effacer', async () => {
+  it('publier une nouvelle version d’un millésime remplace l’ancienne sans l’effacer', async () => {
     const first = await validatedVersion('2024', '3,3');
     await editor
       .post(`/api/admin/versions/${first.versionId}/submit`)
@@ -158,7 +158,7 @@ describe('une version se soumet, puis une autre personne l’approuve ou la reje
       .send({})
       .expect(200);
 
-    const second = await validatedVersion('2025', '3,4');
+    const second = await validatedVersion('2024', '3,4');
     await editor
       .post(`/api/admin/versions/${second.versionId}/submit`)
       .expect(200);

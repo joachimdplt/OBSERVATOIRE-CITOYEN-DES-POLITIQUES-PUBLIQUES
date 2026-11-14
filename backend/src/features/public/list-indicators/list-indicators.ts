@@ -49,6 +49,7 @@ export class ListIndicatorsController {
         unit: i.unit,
         producer: i.dataset.provider.acronym,
         vintage: version.vintage,
+        vintages: i.dataset.versions.map((v) => v.vintage),
         status: state,
         statusLabel: PUBLICATION_LABELS[state],
       };

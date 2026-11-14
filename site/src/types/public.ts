@@ -24,6 +24,7 @@ export type IndicatorLine = {
   unit: string
   producer: string
   vintage: string
+  vintages: string[]
   status: PublicStatus
   statusLabel: string
 }
@@ -66,7 +67,8 @@ export type IndicatorSheet = {
   allowedAggregations: ('sum' | 'mean')[]
   periods: string[]
   territoryLevels: string[]
-  provenance: Provenance
+  /** Une provenance par millésime visible, le plus récent en premier. */
+  provenance: Provenance[]
 }
 
 export type Observation = {
@@ -75,6 +77,7 @@ export type Observation = {
   status: ObservationStatus
   value: string | null
   sourceRow: number
+  vintage: string
 }
 
 export type ObservationPage = {

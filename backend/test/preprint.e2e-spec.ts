@@ -131,7 +131,9 @@ describe('l’administration publie seule, en prépublication', () => {
     expect(await stateOf(versionId)).toBe('published');
   });
 
-  it('une prépublication remplace la version que voyait le public, sans l’effacer', async () => {
+  it('une prépublication remplace la version du même millésime, sans l’effacer ; les autres millésimes restent', async () => {
+    const other = await validatedVersion(founder, datasetId, '2023', '3,1');
+    await preprint(other.versionId).expect(200);
     const first = await validatedVersion(founder, datasetId, '2024', '3,3');
     await preprint(first.versionId).expect(200);
     await reviewer
@@ -139,16 +141,17 @@ describe('l’administration publie seule, en prépublication', () => {
       .send({})
       .expect(200);
 
-    const second = await validatedVersion(founder, datasetId, '2025', '3,4');
+    const second = await validatedVersion(founder, datasetId, '2024', '3,4');
     await preprint(second.versionId).expect(200);
 
     expect(await stateOf(first.versionId)).toBe('superseded');
     expect(await stateOf(second.versionId)).toBe('preprint');
+    expect(await stateOf(other.versionId)).toBe('preprint');
     expect(
       await prisma.datasetVersion.count({
         where: { datasetId, state: { in: ['published', 'preprint'] } },
       }),
-    ).toBe(1);
+    ).toBe(2);
   });
 
   it('une prépublication est figée : ni ses observations ni son état ne reviennent en arrière', async () => {

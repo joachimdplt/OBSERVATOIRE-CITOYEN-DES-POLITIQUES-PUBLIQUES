@@ -9,9 +9,10 @@ import {
 import type { PrismaService } from '../../prisma/prisma.service';
 
 /**
- * Un indicateur tel que le public peut le lire : sa définition, et la version
- * de son jeu visible du public, publiée ou prépubliée. Sans version visible,
- * l'indicateur n'existe pas pour le public : un brouillon ne se devine pas.
+ * Un indicateur tel que le public peut le lire : sa définition, et les
+ * versions de son jeu visibles du public, une par millésime, publiée ou
+ * prépubliée. Sans aucune version visible, l'indicateur n'existe pas pour le
+ * public : un brouillon ne se devine pas.
  */
 export async function loadPublicIndicator(prisma: PrismaService, code: string) {
   const indicator = await prisma.indicatorDefinition.findUnique({
@@ -22,6 +23,7 @@ export async function loadPublicIndicator(prisma: PrismaService, code: string) {
           provider: true,
           versions: {
             where: { state: { in: PUBLIC_STATES } },
+            orderBy: { vintage: 'desc' },
             include: {
               submittedBy: { select: { name: true } },
               reviewedBy: { select: { name: true } },
@@ -31,19 +33,21 @@ export async function loadPublicIndicator(prisma: PrismaService, code: string) {
       },
     },
   });
-  const version = indicator?.dataset.versions[0];
-  if (!indicator || !version) throw new NotFoundException('Indicateur inconnu');
-  return { indicator, version };
+  if (!indicator || indicator.dataset.versions.length === 0) {
+    throw new NotFoundException('Indicateur inconnu');
+  }
+  return { indicator, versions: indicator.dataset.versions };
 }
 
 type Loaded = Awaited<ReturnType<typeof loadPublicIndicator>>;
+type PublicVersion = Loaded['versions'][number];
 
 /**
- * La provenance qui accompagne chaque valeur montrée au public : le
- * producteur, le jeu, le fichier d'origine, l'état de relecture avec ses
+ * La provenance d'un millésime, jointe à chaque valeur montrée au public :
+ * le producteur, le jeu, le fichier d'origine, l'état de relecture avec ses
  * signataires, et les licences.
  */
-export function provenanceOf({ indicator, version }: Loaded) {
+export function provenanceOf({ indicator }: Loaded, version: PublicVersion) {
   const { dataset } = indicator;
   const state = version.state as PublicState;
   return {
@@ -76,3 +80,7 @@ export function provenanceOf({ indicator, version }: Loaded) {
     },
   };
 }
+
+/** La provenance de chaque millésime visible, le plus récent en premier. */
+export const provenancesOf = (loaded: Loaded) =>
+  loaded.versions.map((v) => provenanceOf(loaded, v));

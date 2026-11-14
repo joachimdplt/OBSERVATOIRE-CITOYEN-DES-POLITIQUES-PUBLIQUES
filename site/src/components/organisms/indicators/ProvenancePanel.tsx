@@ -10,7 +10,7 @@ const day = (iso: string | null) =>
 /** D'où viennent les chiffres : producteur, fichier, relecture, licences. Sous chaque fiche. */
 export function ProvenancePanel({ provenance: p }: { provenance: Provenance }) {
   return (
-    <Card title="Provenance">
+    <Card title={`Provenance du millésime ${p.version.vintage}`}>
       <dl className="grid gap-5 sm:grid-cols-2">
         <Term label="Producteur">
           <a
