@@ -8,6 +8,8 @@ export type TerritoryLevel =
 export type VersionLine = {
   id: string
   vintage: string
+  /** L'onglet lu, pour un classeur ; vide pour un CSV. */
+  sheet: string
   state: VersionState
   fileName: string
   fileHash: string

@@ -138,6 +138,8 @@ export type TerritoryLayer = {
     mapLayer: boolean
     producer: string
   }
+  /** Le territoire des valeurs : la commune elle-même, ou son département. */
+  scope: { level: string; code: string; name: string }
   values: (Omit<Observation, 'territory' | 'vintage'> & {
     /** La date du texte d'où vient la valeur (AAAA-MM-JJ), si le fichier la donne. */
     referenceDate: string | null

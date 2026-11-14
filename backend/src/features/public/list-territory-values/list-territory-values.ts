@@ -38,18 +38,33 @@ export class ListTerritoryValuesController {
         code: true,
         level: true,
         regionCode: true,
+        departmentCode: true,
       },
     });
     if (territories.length === 0)
       throw new NotFoundException('Territoire inconnu');
+    // Ce qui ne se publie que par département (l'âge des médecins) se lit
+    // aussi dans la fiche de la commune, avec le nom du département.
+    const departmentCode = territories[0].departmentCode;
+    const departments =
+      departmentCode && level !== TerritoryLevel.department
+        ? await this.prisma.territory.findMany({
+            where: { level: TerritoryLevel.department, code: departmentCode },
+            orderBy: { vintage: 'desc' },
+            select: { id: true, name: true, code: true },
+          })
+        : [];
 
     const observations = await this.prisma.observation.findMany({
       where: {
-        territoryId: { in: territories.map((t) => t.id) },
+        territoryId: {
+          in: [...territories, ...departments].map((t) => t.id),
+        },
         version: { state: { in: PUBLIC_STATES } },
       },
       orderBy: { period: 'asc' },
       include: {
+        territory: { select: { level: true, code: true, name: true } },
         version: {
           select: {
             state: true,
@@ -86,7 +101,7 @@ export class ListTerritoryValuesController {
         continue;
       const layer =
         layers.get(o.indicator.code) ??
-        layerOf(o.indicator, territories[0].regionCode);
+        layerOf(o.indicator, territories[0].regionCode, o.territory);
       // La source de la valeur : la DREES, ou l'ARS de la région de la commune.
       layer.indicator.producers.add(o.version.dataset.provider.acronym);
       layer.values.push({
@@ -111,8 +126,9 @@ export class ListTerritoryValuesController {
     return {
       territory: { code: code.toUpperCase(), level: territoryLevel, name },
       layers: [...layers.values()].map(
-        ({ indicator: { producers, ...indicator }, values }) => ({
+        ({ indicator: { producers, ...indicator }, values, scope }) => ({
           indicator: { ...indicator, producer: [...producers].join(', ') },
+          scope,
           values,
         }),
       ),
@@ -134,7 +150,13 @@ type IndicatorView = {
 };
 
 // Une catégorie se lit dans le sens de la région du territoire.
-const layerOf = (i: IndicatorView, regionCode: string | null) => ({
+const layerOf = (
+  i: IndicatorView,
+  regionCode: string | null,
+  // Le territoire des valeurs : la commune, ou son département.
+  scope: { level: string; code: string; name: string },
+) => ({
+  scope,
   indicator: {
     code: i.code,
     label: i.label,

@@ -163,4 +163,21 @@ describe('l’âge des médecins généralistes, par département', () => {
     ).body as Report;
     expect(report.observations).toMatchObject({ documented: 1 });
   });
+
+  it('les deux onglets prépubliés restent visibles ensemble : l’un ne remplace pas l’autre', async () => {
+    const drafts = await prisma.datasetVersion.findMany({
+      where: { datasetId, vintage: '2026' },
+    });
+    for (const v of drafts)
+      await founder.post(`/api/admin/versions/${v.id}/preprint`).expect(200);
+    const states = await prisma.datasetVersion.findMany({
+      where: { datasetId, vintage: '2026' },
+      select: { sheet: true, state: true },
+      orderBy: { sheet: 'asc' },
+    });
+    expect(states).toEqual([
+      { sheet: 'Ages moyens', state: 'preprint' },
+      { sheet: 'Effectifs', state: 'preprint' },
+    ]);
+  });
 });

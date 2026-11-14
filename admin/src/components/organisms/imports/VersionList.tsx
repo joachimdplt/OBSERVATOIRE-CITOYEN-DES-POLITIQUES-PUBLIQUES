@@ -23,7 +23,10 @@ export function VersionList({ versions }: { versions: VersionLine[] }) {
           <>
             <span className="min-w-0 space-y-1">
               <span className="flex flex-wrap items-center gap-2">
-                <span className="font-medium">Millésime {v.vintage}</span>
+                <span className="font-medium">
+                  Millésime {v.vintage}
+                  {v.sheet ? ` · onglet « ${v.sheet} »` : ''}
+                </span>
                 <StatusBadge tone={state.tone}>{state.label}</StatusBadge>
                 {v.importJob && v.state === 'draft' && (
                   <StatusBadge tone={IMPORT_STATES[v.importJob.state].tone}>

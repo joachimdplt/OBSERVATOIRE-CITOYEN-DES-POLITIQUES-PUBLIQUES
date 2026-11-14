@@ -34,6 +34,8 @@ export class ListDatasetVersionsController {
     return versions.map((v) => ({
       id: v.id,
       vintage: v.vintage,
+      // L'onglet lu, pour un classeur.
+      sheet: v.sheet,
       state: v.state,
       fileName: v.fileName,
       fileHash: v.fileHash,
