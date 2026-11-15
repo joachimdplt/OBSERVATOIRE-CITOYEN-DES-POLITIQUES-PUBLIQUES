@@ -86,6 +86,10 @@ function SourcesPage() {
               Le modèle peut se tromper. Un rangement faux est retiré par
               l’équipe ; il ne change jamais le texte cité.
             </p>
+            <p>
+              Sur la page d’un sujet, les candidats apparaissent dans un ordre
+              tiré au hasard à chaque visite : aucun n’est toujours en tête.
+            </p>
             <Facts
               rows={[
                 ['Modèle', 'Qwen3, 8 milliards de paramètres (qwen3:8b)'],

@@ -101,20 +101,8 @@ function SubjectPage() {
         </div>
       </div>
 
-      <section className="px-6 pt-8 pb-10 md:px-10">
-        <div className="mx-auto max-w-[1280px]">
-          <p className={`text-justify text-[0.95rem] leading-[1.75] hyphens-auto ${MUTED}`}>
-            Les chapitres des programmes rangés dans ce sujet de la grille du{' '}
-            {s.classification.grid}. Le rangement est fait automatiquement,
-            chapitre par chapitre
-            {s.classification.model ? ` (modèle ${s.classification.model})` : ''}
-            {' '}: il peut se tromper, et un rangement faux est retiré. Les
-            candidats sont dans un ordre tiré au hasard.
-          </p>
-        </div>
-      </section>
 
-      <section className="px-6 py-6 pb-20 md:px-10">
+      <section className="px-6 pt-8 pb-20 md:px-10">
         <div className="mx-auto grid max-w-[1280px] gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
           <aside className="hidden lg:block">
             <nav className="sticky top-[166px] max-h-[calc(100vh-186px)] overflow-y-auto rounded-[28px] bg-white p-3">
