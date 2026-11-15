@@ -159,6 +159,38 @@ export const surnameOf = (name: string) =>
   name.split(' ').slice(1).join(' ') || name;
 
 /**
+ * Des intitulés centrés sur des lignes : chacun prend les lignes dont il
+ * occupe le milieu. Un intitulé est écrit sur l'une d'elles, ou entre deux ;
+ * sa place se compte en rangs de lignes.
+ */
+function byCenter(
+  rows: number[],
+  labels: { line: number; text: string }[],
+): (string | undefined)[] {
+  const placed = labels
+    .map((l) => {
+      const same = rows.indexOf(l.line);
+      const before = rows.filter((r) => r < l.line).length;
+      return { text: l.text, at: same >= 0 ? same : before - 0.5 };
+    })
+    .sort((x, y) => x.at - y.at);
+  const out: (string | undefined)[] = [];
+  let start = 0;
+  placed.forEach((l, i) => {
+    const next = placed[i + 1];
+    const end = next
+      ? Math.max(
+          start,
+          Math.min(Math.floor(2 * l.at - start), Math.ceil(next.at) - 1),
+        )
+      : rows.length - 1;
+    for (let k = start; k <= end; k++) out[k] = l.text;
+    start = end + 1;
+  });
+  return out;
+}
+
+/**
  * Les lignes d'un tableau chiffré, sur une page de PDF convertie en
  * conservant la mise en page (pdftotext -layout) : chaque ligne qui porte un
  * libellé et un montant en fin de ligne devient un passage, mot pour mot
@@ -184,44 +216,45 @@ export function tableRows(page: string): ProgrammePassage[] {
       .split('\n')
       .map((l) => l.trim().split(/\s{3,}/)[0])
       .find((l) => /\p{L}{3,}/u.test(l)) ?? null;
-  const flush = (subtotal?: string) => {
+  // Les grands groupes écrits à la marge (« Hausse recettes »), et les
+  // lignes qu'ils encadrent, jusqu'au prochain total.
+  let margins: { line: number; text: string }[] = [];
+  let section: { line: number; index: number }[] = [];
+  const closeSection = () => {
+    const groups = byCenter(
+      section.map((r) => r.line),
+      margins,
+    );
+    section.forEach((r, k) => {
+      const group = groups[k];
+      if (group) out[r.index].heading = `${group} · ${out[r.index].heading}`;
+    });
+    margins = [];
+    section = [];
+  };
+  const flush = (subtotal?: { line: number; amount: string }) => {
     // Les catégories d'un bloc, hors la colonne des grands groupes
     // (« Baisse dépenses ») écrite nettement plus à gauche.
     const deepest = Math.max(...labels.map((l) => l.col), 0);
     const own = labels.filter((l) => l.col >= deepest - 15);
-    // Une catégorie est centrée sur ses lignes : écrite sur l'une d'elles, ou
-    // entre deux. Sa place se compte en rangs de lignes chiffrées.
-    const placed = own
-      .map((l) => {
-        const same = rows.findIndex((r) => r.line === l.line);
-        const before = rows.filter((r) => r.line < l.line).length;
-        return { text: l.text, at: same >= 0 ? same : before - 0.5 };
-      })
-      .sort((x, y) => x.at - y.at);
-    // Chaque catégorie prend les lignes dont elle occupe le milieu.
-    const headingOf: string[] = [];
-    let start = 0;
-    placed.forEach((l, i) => {
-      const next = placed[i + 1];
-      const end = next
-        ? Math.max(
-            start,
-            Math.min(Math.floor(2 * l.at - start), Math.ceil(next.at) - 1),
-          )
-        : rows.length - 1;
-      for (let k = start; k <= end; k++) headingOf[k] = l.text;
-      start = end + 1;
-    });
-    rows.forEach((r, k) =>
-      out.push({ heading: headingOf[k] ?? title ?? '', text: r.text }),
+    margins.push(...labels.filter((l) => l.col < deepest - 15));
+    const headingOf = byCenter(
+      rows.map((r) => r.line),
+      own,
     );
+    rows.forEach((r, k) => {
+      out.push({ heading: headingOf[k] ?? title ?? '', text: r.text });
+      section.push({ line: r.line, index: out.length - 1 });
+    });
     // Le sous-total d'un bloc chiffre sa dernière catégorie.
-    const last = placed.at(-1)?.text;
-    if (subtotal && last && rows.length)
+    const last = headingOf.at(-1);
+    if (subtotal && last && rows.length) {
       out.push({
         heading: last,
-        text: `${last} : ${subtotal}${unit ? ` ${unit}` : ''}`,
+        text: `${last} : ${subtotal.amount}${unit ? ` ${unit}` : ''}`,
       });
+      section.push({ line: subtotal.line, index: out.length - 1 });
+    }
     rows = [];
     labels = [];
   };
@@ -233,12 +266,13 @@ export function tableRows(page: string): ProgrammePassage[] {
     const last = segments.at(-1)!;
     const amount = /^-?\d{1,3}(?:\s?\d{3})*(?:[.,]\d+)?$/.test(last.text);
     if (amount && segments.length === 1) {
-      flush(last.text); // un sous-total clôt un bloc
+      flush({ line: index, amount: last.text }); // un sous-total clôt un bloc
       return;
     }
     // Un total général, écrit « Total » à la marge.
     if (amount && segments.length === 2 && /^total$/i.test(segments[0].text)) {
       flush();
+      closeSection();
       out.push({
         heading: title ?? '',
         text: `${segments[0].text} : ${last.text}${unit ? ` ${unit}` : ''}`,
@@ -263,14 +297,20 @@ export function tableRows(page: string): ProgrammePassage[] {
     const category = texts
       .filter((t) => t !== measure && t.text.length < 40 && !isHeader(t.text))
       .at(-1);
-    if (category)
+    if (category) {
       labels.push({ line: index, col: category.col, text: category.text });
+      // Un grand groupe écrit sur la même ligne, nettement plus à gauche.
+      for (const t of texts)
+        if (t !== measure && t !== category && t.col < category.col - 15)
+          margins.push({ line: index, text: t.text });
+    }
     rows.push({
       line: index,
       text: `${measure.text} : ${last.text}${unit ? ` ${unit}` : ''}`,
     });
   });
   flush();
+  closeSection();
   // Un tableau annonce son unité, ou compte au moins dix lignes.
   return unit || out.length >= 10 ? out : [];
 }
@@ -324,7 +364,21 @@ export function cardRows(page: string): ProgrammePassage[] {
   if (band.length) bands.push(band);
 
   const out: ProgrammePassage[] = [];
-  for (const rows of bands) {
+  for (const band of bands) {
+    // Un intitulé de section au-dessus des cartes (« RECETTES FISCALES »),
+    // seul sur sa ligne et suivi d'une ligne vide : il chapeaute les cartes
+    // écrites sous lui.
+    let rows = band;
+    let sections: { col: number; text: string }[] = [];
+    const first = [...(band[0] ?? '').matchAll(/\S(?:.*?\S)?(?=\s{3,}|\s*$)/g)];
+    if (
+      band[1] === '' &&
+      first.length > 0 &&
+      first.every((m) => m[0] === m[0].toUpperCase() && /\p{L}{3,}/u.test(m[0]))
+    ) {
+      sections = first.map((m) => ({ col: m.index ?? 0, text: m[0] }));
+      rows = band.slice(2);
+    }
     // Les colonnes : séparées par au moins deux caractères vides sur toute
     // la hauteur de la rangée.
     const width = Math.max(...rows.map((r) => r.length));
@@ -369,7 +423,21 @@ export function cardRows(page: string): ProgrammePassage[] {
     columns = merged;
     // Une rangée d'une seule colonne est du texte suivi, pas des cartes.
     if (columns.length < 2) continue;
-    for (const column of columns) out.push(...readCard(cut(column)));
+    for (const column of columns) {
+      const section = sections.filter((h) => h.col <= column[0] + 8).at(-1);
+      out.push(
+        ...readCard(cut(column)).map((c) =>
+          section
+            ? {
+                ...c,
+                heading: [sentenceCase(section.text), c.heading]
+                  .filter(Boolean)
+                  .join(' · '),
+              }
+            : c,
+        ),
+      );
+    }
   }
   return out;
 }

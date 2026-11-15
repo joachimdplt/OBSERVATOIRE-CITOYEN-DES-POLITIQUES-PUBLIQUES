@@ -133,7 +133,7 @@ describe('les tableaux chiffrés d’un PDF', () => {
     ]);
   });
 
-  it('range chaque ligne sous la catégorie centrée sur elle, quand un bloc en compte plusieurs', () => {
+  it('range chaque ligne sous la catégorie centrée sur elle, et sous le grand groupe écrit à la marge', () => {
     const page = [
       'Contre-budget 2026 (base PLF 2026)                                  en Mds€',
       'Hausse recettes     Fraude       Lutte contre les fraudes                3,500',
@@ -144,21 +144,24 @@ describe('les tableaux chiffrés d’un PDF', () => {
       'Total                                                                  88,274',
     ].join('\n');
     expect(tableRows(page)).toEqual([
-      { heading: 'Fraude', text: 'Lutte contre les fraudes : 3,500 Mds€' },
       {
-        heading: 'Impôt / infrastructure',
+        heading: 'Hausse recettes · Fraude',
+        text: 'Lutte contre les fraudes : 3,500 Mds€',
+      },
+      {
+        heading: 'Hausse recettes · Impôt / infrastructure',
         text: 'Timbres sur les visa touristiques : 0,800 Mds€',
       },
       {
-        heading: 'Impôt / infrastructure',
+        heading: 'Hausse recettes · Impôt / infrastructure',
         text: 'Redevance d’accès au marché : 0,745 Mds€',
       },
       {
-        heading: 'Impôt / infrastructure',
+        heading: 'Hausse recettes · Impôt / infrastructure',
         text: 'Taxe l’utilisation du réseau : 0,550 Mds€',
       },
       {
-        heading: 'Impôt / infrastructure',
+        heading: 'Hausse recettes · Impôt / infrastructure',
         text: 'Impôt / infrastructure : 5,595 Mds€',
       },
       {
@@ -220,7 +223,7 @@ describe('les infographies d’un PDF', () => {
         heading: 'Dépenses',
         text: 'Baisses sur des mauvaises dépenses : -57 Mds€',
       },
-      { heading: '', text: 'Nouvelles dépenses : +7 Mds€' },
+      { heading: 'Dépenses', text: 'Nouvelles dépenses : +7 Mds€' },
     ]);
   });
 
