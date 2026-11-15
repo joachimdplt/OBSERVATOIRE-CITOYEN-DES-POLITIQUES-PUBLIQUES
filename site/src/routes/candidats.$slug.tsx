@@ -50,7 +50,7 @@ function CandidatePage() {
   const c = Route.useLoaderData()
   return (
     <main>
-      <section className="bg-white px-6 pt-20 pb-14 md:px-10">
+      <section className="px-6 pt-20 pb-6 md:px-10">
         <div className="mx-auto grid max-w-[1120px] gap-8 md:grid-cols-[220px_minmax(0,1fr)] md:items-start">
           <CandidatePortrait
             name={c.name}
@@ -118,7 +118,7 @@ function CandidatePage() {
 
 function Topics({ candidate: c }: { candidate: CandidateSheet }) {
   return (
-    <section className="bg-[#F4F6F8] px-6 py-16 md:px-10">
+    <section className="px-6 py-12 md:px-10">
       <div className="mx-auto max-w-[1120px]">
         <h2 className={`${DISPLAY} text-[clamp(1.6rem,3vw,2.2rem)]`}>
           Les enjeux dans son programme
@@ -167,7 +167,7 @@ function Topics({ candidate: c }: { candidate: CandidateSheet }) {
 
 function Videos({ candidate: c }: { candidate: CandidateSheet }) {
   return (
-    <section className="bg-white px-6 py-16 md:px-10">
+    <section className="px-6 py-12 md:px-10">
       <div className="mx-auto max-w-[1120px]">
         <h2 className={`${DISPLAY} text-[clamp(1.6rem,3vw,2.2rem)]`}>
           Vidéos publiques
@@ -219,17 +219,17 @@ function Videos({ candidate: c }: { candidate: CandidateSheet }) {
                   href={v.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="group block no-underline"
+                  className="group block h-full rounded-[22px] bg-white p-3 no-underline"
                 >
                   {v.thumbnail && (
                     <img
                       src={v.thumbnail}
                       alt=""
                       loading="lazy"
-                      className="aspect-video w-full rounded-[16px] bg-[#F4F6F8] object-cover"
+                      className="aspect-video w-full rounded-[16px] bg-[#E8ECF0] object-cover"
                     />
                   )}
-                  <p className="mt-3 leading-snug font-bold text-[#0B1A2A] group-hover:underline">
+                  <p className="mt-3 px-1 leading-snug font-bold text-[#0B1A2A] group-hover:underline">
                     {v.title}
                   </p>
                   <p className={`mt-1 text-[0.82rem] ${MUTED}`}>

@@ -10,7 +10,7 @@ import { UpdateClock } from '../components/molecules/UpdateClock'
 export function SiteFrame({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur">
+      <header className="sticky top-0 z-10 border-b border-[#0B1A2A]/8 bg-[#F4F6F8]/80 backdrop-blur">
         <div className="mx-auto flex min-h-14 max-w-[1280px] items-center justify-between gap-4 px-6 py-2">
           <Link
             to="/"
@@ -36,7 +36,7 @@ export function SiteFrame({ children }: { children: ReactNode }) {
             </Link>
           </nav>
         </div>
-        <div className="border-t border-slate-100">
+        <div className="border-t border-[#0B1A2A]/5">
           <div className="mx-auto max-w-[1280px] px-6">
             <UpdateClock />
           </div>

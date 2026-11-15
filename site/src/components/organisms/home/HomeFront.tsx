@@ -17,8 +17,8 @@ const MUTED = 'text-[#5B6470]'
 export function HomeHero() {
   const { hero } = HOME
   return (
-    <section className="overflow-hidden bg-[#0B1A2A] px-6 md:px-10">
-      <div className="mx-auto grid max-w-[1280px] items-center gap-4 py-12 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:py-10">
+    <section className="px-3 pt-3 md:px-6 md:pt-6">
+      <div className="mx-auto grid max-w-[1400px] items-center gap-4 overflow-hidden rounded-[36px] bg-[#0B1A2A] px-6 py-12 md:px-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:py-10">
         <img
           src="/images/coq-observateur.png"
           alt="Un coq qui observe un graphique à la loupe"
@@ -59,7 +59,7 @@ export function HomeHero() {
 export function HomeFront({ articles }: { articles: PublicationSheet[] }) {
   const { articles: copy } = HOME
   return (
-    <section className="bg-white px-6 py-20 md:px-10">
+    <section className="px-6 py-16 md:px-10">
       <div className="mx-auto max-w-[1280px]">
         <h2 className="text-[clamp(1.6rem,3vw,2.4rem)] font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
           {copy.title}
@@ -79,7 +79,7 @@ export function HomeFront({ articles }: { articles: PublicationSheet[] }) {
                   <Link
                     to="/enjeux/$slug"
                     params={{ slug: a.slug }}
-                    className="group block rounded-[28px] bg-[#F4F6F8] p-6 no-underline transition-colors hover:bg-[#EDF0F3] md:p-9"
+                    className="group block rounded-[28px] bg-white p-6 no-underline shadow-[0_1px_2px_rgba(11,26,42,0.04)] transition-shadow hover:shadow-[0_8px_30px_rgba(11,26,42,0.08)] md:p-9"
                   >
                     <p className={`text-sm font-semibold ${MUTED}`}>
                       {pillarLabel(a.pillar)}
@@ -97,14 +97,14 @@ export function HomeFront({ articles }: { articles: PublicationSheet[] }) {
                       {a.summary}
                     </p>
                     <p className="mt-5 flex flex-wrap gap-2 text-[0.85rem] font-semibold text-[#0B1A2A]">
-                      <span className="rounded-full bg-white px-3 py-1">
+                      <span className="rounded-full bg-[#F4F6F8] px-3 py-1">
                         {a.sections.length} parties
                       </span>
-                      <span className="rounded-full bg-white px-3 py-1">
+                      <span className="rounded-full bg-[#F4F6F8] px-3 py-1">
                         {indicators.size} indicateurs officiels
                       </span>
                       {measures.length > 0 && (
-                        <span className="rounded-full bg-white px-3 py-1">
+                        <span className="rounded-full bg-[#F4F6F8] px-3 py-1">
                           {measures.length} mesures de {groups.size} groupes
                         </span>
                       )}

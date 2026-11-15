@@ -82,7 +82,7 @@ function PublicationPage() {
 function TopicOnly({ topic }: { topic: TopicSheet }) {
   return (
     <main>
-      <section className="bg-white px-6 pt-20 pb-6 md:px-10">
+      <section className="px-6 pt-20 pb-6 md:px-10">
         <div className="mx-auto max-w-[1120px]">
           <p className={`text-sm font-semibold ${MUTED}`}>
             {pillarLabel(topic.pillar)}
@@ -102,7 +102,7 @@ function TopicOnly({ topic }: { topic: TopicSheet }) {
         </div>
       </section>
       <ProgrammePassages topic={topic} />
-      <section className="bg-white px-6 pb-16 md:px-10">
+      <section className="px-6 pb-16 md:px-10">
         <div className="mx-auto max-w-[1120px]">
           <Link
             to="/enjeux"
@@ -126,7 +126,7 @@ function PublicationView({ topic }: { topic: TopicSheet | null }) {
 
   return (
     <main>
-      <section className="bg-white px-6 pt-20 pb-14 md:px-10">
+      <section className="px-6 pt-20 pb-14 md:px-10">
         <div className="mx-auto max-w-[1120px]">
           <p className={`text-sm font-semibold ${MUTED}`}>
             {pillarLabel(p.pillar)}
@@ -163,7 +163,7 @@ function PublicationView({ topic }: { topic: TopicSheet | null }) {
         </div>
       </section>
 
-      <section className="sticky top-14 z-[5] border-y border-[#0B1A2A]/10 bg-white/90 px-6 py-4 backdrop-blur md:px-10">
+      <section className="sticky top-14 z-[5] border-y border-[#0B1A2A]/8 bg-[#F4F6F8]/90 px-6 py-4 backdrop-blur md:px-10">
         <div className="mx-auto flex max-w-[1120px] flex-wrap items-center gap-3">
           <CommuneSearch
             onPick={(t) =>
@@ -198,12 +198,12 @@ function PublicationView({ topic }: { topic: TopicSheet | null }) {
 
       <MeasureComparison sections={p.sections} collected={p.collected} />
 
-      <section className="bg-[#F4F6F8] px-6 py-16 md:px-10">
+      <section className="px-6 py-16 md:px-10">
         <ol className="mx-auto max-w-[1120px] space-y-8">
           {p.sections.map((section, i) => (
             <li
               key={section.title}
-              className="rounded-[28px] bg-white p-6 shadow-[0_0_0_1px_rgba(11,26,42,0.08)] md:p-10"
+              className="rounded-[28px] bg-white p-6 md:p-10"
             >
               <div className="flex items-start gap-4">
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#0B1A2A] text-sm font-extrabold text-white">

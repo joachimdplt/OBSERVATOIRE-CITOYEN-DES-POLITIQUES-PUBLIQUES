@@ -55,7 +55,9 @@ body,
 
 body {
   margin: 0;
-  background-color: var(--color-slate-50);
+  /* Un seul fond gris pour tout le site ; le contenu se pose dessus en
+     bulles blanches. */
+  background-color: #f4f6f8;
   color: var(--color-slate-900);
   font-feature-settings: 'cv11', 'ss01', 'tnum';
   -webkit-font-smoothing: antialiased;

@@ -17,17 +17,10 @@ export const Route = createFileRoute('/developpeurs')({
 const MUTED = 'text-[#5B6470]'
 const DISPLAY = 'font-extrabold tracking-[-0.03em] text-[#0B1A2A]'
 
-function Block({
-  children,
-  soft = false,
-}: {
-  children: ReactNode
-  soft?: boolean
-}) {
+/** Une partie de la page, posée sur le fond gris commun. */
+function Block({ children }: { children: ReactNode }) {
   return (
-    <section
-      className={`px-6 py-24 md:px-10 ${soft ? 'bg-[#F4F6F8]' : 'bg-white'}`}
-    >
+    <section className="px-6 py-16 md:px-10">
       <div className="mx-auto w-full max-w-[1280px]">{children}</div>
     </section>
   )
@@ -57,7 +50,7 @@ function Developers() {
     DEVELOPERS
   return (
     <>
-      <section className="bg-white px-6 pt-24 pb-16 md:px-10">
+      <section className="px-6 pt-24 pb-8 md:px-10">
         <div className="mx-auto max-w-[1280px]">
           <h1
             className={`${DISPLAY} max-w-[16ch] text-[clamp(2.4rem,5.4vw,4.2rem)] leading-[1.06]`}
@@ -72,14 +65,11 @@ function Developers() {
         </div>
       </section>
 
-      <Block soft>
+      <Block>
         <Title text={architecture.title} lead={architecture.lead} />
         <div className="mt-10 grid gap-5 md:grid-cols-3">
           {architecture.blocks.map((b) => (
-            <div
-              key={b.name}
-              className="rounded-[24px] bg-white p-6 shadow-[0_0_0_1px_rgba(11,26,42,0.1)]"
-            >
+            <div key={b.name} className="rounded-[24px] bg-white p-6">
               <code className="rounded-md bg-[#0B1A2A] px-2 py-1 text-sm font-semibold text-white">
                 {b.name}
               </code>
@@ -113,7 +103,7 @@ function Developers() {
             </li>
           ))}
         </ol>
-        <div className="mt-12 rounded-[24px] bg-[#F4F6F8] p-6 md:p-8">
+        <div className="mt-12 rounded-[24px] bg-white p-6 md:p-8">
           <p className="font-extrabold text-[#0B1A2A]">
             {chemin.guarantees.title}
           </p>
@@ -128,14 +118,11 @@ function Developers() {
         </div>
       </Block>
 
-      <Block soft>
+      <Block>
         <Title text={alimentation.title} lead={alimentation.lead} />
         <div className="mt-10 grid gap-5 md:grid-cols-2">
           {alimentation.ways.map((w) => (
-            <div
-              key={w.title}
-              className="rounded-[24px] bg-white p-6 shadow-[0_0_0_1px_rgba(11,26,42,0.1)]"
-            >
+            <div key={w.title} className="rounded-[24px] bg-white p-6">
               <p className={`${DISPLAY} text-[1.2rem]`}>{w.title}</p>
               <p className={`mt-2 text-[0.95rem] leading-relaxed ${MUTED}`}>
                 {w.text}
@@ -151,7 +138,7 @@ function Developers() {
 
       <Block>
         <Title text={api.title} lead={api.lead} />
-        <ul className="mt-10 divide-y divide-[#0B1A2A]/10 rounded-[24px] bg-white shadow-[0_0_0_1px_rgba(11,26,42,0.1)]">
+        <ul className="mt-10 divide-y divide-[#0B1A2A]/10 rounded-[24px] bg-white">
           {api.routes.map((r) => (
             <li key={r.path} className="space-y-1.5 p-5 md:p-6">
               <p className="flex flex-wrap items-center gap-2 font-mono text-[0.9rem] text-[#0B1A2A]">
@@ -204,7 +191,7 @@ function Developers() {
         </ul>
       </Block>
 
-      <Block soft>
+      <Block>
         <Title text={licences.title} />
         <ul className="mt-8 max-w-[760px]">
           {licences.items.map((l) => (

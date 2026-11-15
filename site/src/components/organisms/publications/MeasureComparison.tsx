@@ -55,7 +55,7 @@ export function MeasureComparison({
   ].sort((a, b) => a.localeCompare(b, 'fr'))
 
   return (
-    <section className="bg-white px-6 py-14 md:px-10">
+    <section className="px-6 py-14 md:px-10">
       <div className="mx-auto max-w-[1120px]">
         <h2 className="text-[1.6rem] font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
           {title}
@@ -66,7 +66,7 @@ export function MeasureComparison({
           vide signifie qu’aucun texte n’a été collecté, pas l’absence de
           position.
         </p>
-        <div className="mt-8 overflow-x-auto rounded-[24px] shadow-[0_0_0_1px_rgba(11,26,42,0.1)]">
+        <div className="mt-8 overflow-x-auto rounded-[24px] bg-white">
           <table className="w-full min-w-[860px] border-collapse text-left text-[0.9rem]">
             <thead>
               <tr className="bg-[#F4F6F8]">

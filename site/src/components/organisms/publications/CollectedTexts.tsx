@@ -26,7 +26,7 @@ export function CollectedTexts({ texts }: { texts: CollectedText[] }) {
           <li
             key={collectedAnchor(t)}
             id={collectedAnchor(t)}
-            className="scroll-mt-32 rounded-2xl bg-white p-5 shadow-[0_0_0_1px_rgba(11,26,42,0.08)]"
+            className="scroll-mt-32 rounded-2xl bg-white p-5"
           >
             <p className="text-[0.8rem] font-semibold text-[#5B6470]">
               Collecté automatiquement, non relu · terme « {t.term} »

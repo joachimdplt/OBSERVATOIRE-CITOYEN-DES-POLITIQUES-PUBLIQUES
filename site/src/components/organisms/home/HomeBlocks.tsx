@@ -125,13 +125,13 @@ const WAY_ICONS = [Flag, BookOpen, ShieldCheck, KeyRound]
 export function HomeContribuer() {
   const { contribuer } = HOME
   return (
-    <Screen id="contribuer" className="bg-white">
+    <Screen id="contribuer">
       <Step title={contribuer.title} lead={contribuer.lead} />
       <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {contribuer.ways.map((way, i) => (
           <div
             key={way.title}
-            className="flex flex-col rounded-[28px] bg-white p-6 shadow-[0_0_0_1px_rgba(11,26,42,0.1)]"
+            className="flex flex-col rounded-[28px] bg-white p-6"
           >
             <Bubble icon={WAY_ICONS[i]} />
             <p className={`${DISPLAY} mt-5 text-[1.2rem]`}>{way.title}</p>
@@ -177,13 +177,13 @@ const STEP_ICONS = [Users, FileText, Video, Database, Gavel, Code2]
 export function HomeComment() {
   const { comment } = HOME
   return (
-    <Screen id="comment" className="bg-white">
+    <Screen id="comment">
       <Step title={comment.title} />
       <ol className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {comment.steps.map((step, i) => (
           <li
             key={step.title}
-            className="flex flex-col rounded-[24px] bg-[#F4F6F8] p-6"
+            className="flex flex-col rounded-[24px] bg-white p-6"
           >
             <div className="flex items-center gap-3">
               <Bubble icon={STEP_ICONS[i]} size={44} />
