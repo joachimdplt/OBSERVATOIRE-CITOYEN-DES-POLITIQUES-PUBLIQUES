@@ -1,13 +1,19 @@
-/** Les trois façons de deviner le sujet d'un extrait. */
-export type Method = 'grille' | 'voisins' | 'modele';
+/**
+ * Les façons de deviner le sujet d'un extrait : la grille, les voisins, le
+ * modèle, et le classement du candidat lui-même (le titre de son document,
+ * et ce titre avec sa rubrique).
+ */
+export type Method = 'grille' | 'voisins' | 'modele' | 'titre' | 'rubrique';
 
 export type Proposal = { method: Method; code: string | null };
 
 /**
- * Le vote des trois méthodes. Le modèle range quand au moins une autre
- * méthode donne le même sujet : mesuré sur 157 blocs vérifiés, c'est juste
- * 91 fois sur 100 (±5), pour trois blocs sur quatre. Sinon, une personne
- * tranche : seul de son avis, le modèle n'a raison qu'une fois sur cinq.
+ * Le vote. Le modèle range quand au moins une autre voix donne le même
+ * sujet : mesuré sur 157 blocs vérifiés, c'est juste 91 fois sur 100 (±5),
+ * pour trois blocs sur quatre. Sinon, une personne tranche : seul de son
+ * avis, le modèle n'a raison qu'une fois sur cinq. Le classement du
+ * candidat (titre, rubrique) ne décide jamais seul : il peut seulement
+ * confirmer le modèle.
  */
 export function vote(
   proposals: Proposal[],

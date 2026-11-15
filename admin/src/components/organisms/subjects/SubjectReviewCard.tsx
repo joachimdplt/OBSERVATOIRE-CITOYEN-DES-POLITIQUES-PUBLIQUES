@@ -6,6 +6,8 @@ const METHODS: Record<ReviewMethod, string> = {
   grille: 'Grille (sens le plus proche)',
   voisins: 'Voisins (passages déjà rangés)',
   modele: 'Modèle (Qwen3)',
+  titre: 'Titre du document',
+  rubrique: 'Titre et rubrique',
 }
 
 type Props = {
@@ -64,7 +66,7 @@ export function SubjectReviewCard({ item, topics, pending, onDecide }: Props) {
         <p className="text-xs font-medium text-slate-500">
           Ce que propose chaque méthode
         </p>
-        <ul className="grid gap-1 text-sm sm:grid-cols-3">
+        <ul className="grid gap-1 text-sm sm:grid-cols-3 lg:grid-cols-5">
           {item.proposals.map((p) => (
             <li key={p.method} className="rounded-lg bg-slate-50 px-3 py-2">
               <span className="block text-[11px] text-slate-400">

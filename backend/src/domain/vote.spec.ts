@@ -23,6 +23,17 @@ describe('le vote des méthodes', () => {
     ).toEqual({ agreed: false });
   });
 
+  it('le titre du candidat peut confirmer le modèle', () => {
+    expect(
+      vote([
+        { method: 'grille', code: '15' },
+        { method: 'voisins', code: '1' },
+        { method: 'modele', code: '9' },
+        { method: 'titre', code: '9' },
+      ]),
+    ).toEqual({ agreed: true, code: '9' });
+  });
+
   it('la grille et les voisins d’accord sans le modèle ne suffisent pas', () => {
     expect(
       vote([

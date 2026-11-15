@@ -1,4 +1,5 @@
 import { currentCaptures } from '../../../domain/programme';
+import { documentName } from '../../../domain/programme-reading';
 import {
   mean,
   nearestTopic,
@@ -16,6 +17,27 @@ import { PrismaService } from '../../../prisma/prisma.service';
 
 /** Le modèle de vecteurs : celui qui a vectorisé les passages et la grille. */
 export const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL ?? 'bge-m3';
+const OLLAMA = process.env.OLLAMA_URL ?? 'http://localhost:11434';
+
+/** Les vecteurs de quelques textes (des titres), calculés par Ollama. */
+export async function embedTexts(input: string[]): Promise<Float32Array[]> {
+  const out: Float32Array[] = [];
+  for (let i = 0; i < input.length; i += 32) {
+    const res = await fetch(`${OLLAMA}/api/embed`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: EMBEDDING_MODEL,
+        input: input.slice(i, i + 32),
+      }),
+    });
+    if (!res.ok) throw new Error(`Ollama : ${res.status} ${await res.text()}`);
+    const { embeddings } = (await res.json()) as { embeddings: number[][] };
+    out.push(...embeddings.map((e) => new Float32Array(e)));
+  }
+  return out;
+}
+
 /** Un bloc se lit par ses huit premiers passages. */
 const BLOCK = 8;
 
@@ -132,9 +154,35 @@ export async function voteCapLabels(
 ) {
   const ctx = await loadVoteContext(prisma);
   const labels = await prisma.capLabel.findMany({
-    where: { origin: LabelOrigin.model, status: LabelStatus.proposed },
+    where: {
+      origin: LabelOrigin.model,
+      status: { in: [LabelStatus.proposed, LabelStatus.review] },
+    },
     include: { candidate: { select: { name: true } } },
   });
+  // Le classement du candidat : le titre de son document, et ce titre avec
+  // la rubrique de l'extrait, chacun rapproché du sujet le plus proche.
+  const titles = new Map(
+    (
+      await prisma.politicalDocument.findMany({
+        where: { url: { in: [...new Set(labels.map((l) => l.documentUrl))] } },
+        select: { url: true, title: true },
+      })
+    ).map((d) => [d.url, documentName(d.title)]),
+  );
+  const texts = [
+    ...new Set(
+      labels.flatMap((l) => {
+        const t = titles.get(l.documentUrl) ?? '';
+        return [t, `${t} — ${l.heading}`];
+      }),
+    ),
+  ];
+  log(`Vectorisation de ${texts.length} titres et rubriques…`);
+  const embedded = await embedTexts(texts);
+  const topicOfText = new Map(
+    texts.map((t, i) => [t, nearestTopic(embedded[i], ctx.topicVectors)]),
+  );
   const report = { voted: 0, agreed: 0, review: 0, skipped: 0 };
   for (const l of labels) {
     const v = ctx.vectorOf(ctx.blockOf(l));
@@ -149,13 +197,24 @@ export async function voteCapLabels(
         code: neighboursTopic(v, ctx.known, `${l.candidateId}\n${l.heading}`),
       },
       { method: 'modele', code: l.capCode },
+      {
+        method: 'titre',
+        code: topicOfText.get(titles.get(l.documentUrl) ?? '') ?? null,
+      },
+      {
+        method: 'rubrique',
+        code:
+          topicOfText.get(
+            `${titles.get(l.documentUrl) ?? ''} — ${l.heading}`,
+          ) ?? null,
+      },
     ];
     const result = vote(proposals);
     await prisma.capLabel.update({
       where: { id: l.id },
       data: {
         proposals,
-        ...(result.agreed ? {} : { status: LabelStatus.review }),
+        status: result.agreed ? LabelStatus.proposed : LabelStatus.review,
       },
     });
     report.voted++;

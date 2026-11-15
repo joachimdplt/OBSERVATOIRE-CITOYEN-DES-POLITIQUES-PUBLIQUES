@@ -1,4 +1,9 @@
-export type ReviewMethod = 'grille' | 'voisins' | 'modele'
+export type ReviewMethod =
+  | 'grille'
+  | 'voisins'
+  | 'modele'
+  | 'titre'
+  | 'rubrique'
 
 /** Un rangement sur lequel les méthodes ne sont pas d'accord. */
 export type ReviewItem = {
