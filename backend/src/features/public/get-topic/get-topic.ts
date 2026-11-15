@@ -30,6 +30,7 @@ export class GetTopicController {
             name: true,
             party: true,
             programmeStatus: true,
+            photoUrl: true,
           },
         },
       },
@@ -90,6 +91,7 @@ export class GetTopicController {
           name: c.name,
           party: c.party,
           programmeStatus: c.programmeStatus,
+          photo: c.photoUrl,
           passages: matches
             .filter((m) => m.measure.document.candidate?.slug === c.slug)
             .map((m) => ({

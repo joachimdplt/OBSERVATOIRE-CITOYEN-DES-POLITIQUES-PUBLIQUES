@@ -312,6 +312,7 @@ export type TopicSheet = {
     name: string
     party: string | null
     programmeStatus: ProgrammeStatus
+    photo: string | null
     passages: {
       heading: string
       quote: string

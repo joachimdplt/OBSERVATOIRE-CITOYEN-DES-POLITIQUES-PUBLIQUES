@@ -108,8 +108,10 @@ export function MeasureComparison({
                           </span>
                         ) : (
                           <ul className="space-y-3">
-                            {own.map((m) => (
-                              <li key={measureAnchor(m)}>
+                            {/* Un même article peut être cité deux fois dans
+                                une case : l'index garde chaque ligne unique. */}
+                            {own.map((m, k) => (
+                              <li key={`${measureAnchor(m)}-${k}`}>
                                 <a
                                   href={`${href}#${measureAnchor(m)}`}
                                   className="font-semibold text-[#0B1A2A] no-underline hover:underline"

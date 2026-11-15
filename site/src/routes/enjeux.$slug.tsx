@@ -12,6 +12,7 @@ import { MeasureComparison } from '../components/organisms/publications/MeasureC
 import { MeasureList } from '../components/organisms/publications/MeasureList'
 import { CollectedTexts } from '../components/organisms/publications/CollectedTexts'
 import { ProgrammePassages } from '../components/organisms/publications/ProgrammePassages'
+import { CandidateMosaic } from '../components/organisms/topics/CandidateMosaic'
 import { pillarLabel } from '../data/pillars'
 import {
   getPublication,
@@ -80,25 +81,48 @@ function PublicationPage() {
  * programmes. L'article viendra avec les indicateurs.
  */
 function TopicOnly({ topic }: { topic: TopicSheet }) {
+  const speaking = topic.candidates.filter((c) => c.passages.length > 0)
+  const passages = speaking.reduce((n, c) => n + c.passages.length, 0)
   return (
     <main>
-      <section className="px-6 pt-20 pb-6 md:px-10">
-        <div className="mx-auto max-w-[1120px]">
-          <p className={`text-sm font-semibold ${MUTED}`}>
-            {pillarLabel(topic.pillar)}
-          </p>
-          <h1
-            className={`${DISPLAY} mt-3 text-[clamp(2.2rem,5vw,3.8rem)] leading-[1.08]`}
-          >
-            {topic.name}
-          </h1>
-          <p
-            className={`mt-6 max-w-[62ch] text-[1.05rem] leading-relaxed ${MUTED}`}
-          >
-            Pas encore d’article de l’observatoire sur cet enjeu : ni
-            indicateurs choisis, ni relecture. Les passages des programmes
-            publiés suivent.
-          </p>
+      <section className="px-6 pt-10 md:px-10">
+        <div className="mx-auto grid max-w-[1120px] items-center gap-8 rounded-[36px] bg-white p-6 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] md:p-10">
+          <div>
+            <p className={`text-sm font-semibold ${MUTED}`}>
+              {pillarLabel(topic.pillar)}
+            </p>
+            <h1
+              className={`${DISPLAY} mt-3 text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.06]`}
+            >
+              {topic.name}
+            </h1>
+            <div className="mt-6 flex gap-8">
+              <p>
+                <span className="block text-[2.4rem] leading-none font-extrabold text-[#0B1A2A] tabular-nums">
+                  {passages}
+                </span>
+                <span className={`text-[0.85rem] ${MUTED}`}>passages</span>
+              </p>
+              <p>
+                <span className="block text-[2.4rem] leading-none font-extrabold text-[#0B1A2A] tabular-nums">
+                  {speaking.length}
+                  <span className="text-[1.2rem] text-[#0B1A2A]/40">
+                    /{topic.candidates.length}
+                  </span>
+                </span>
+                <span className={`text-[0.85rem] ${MUTED}`}>
+                  programmes en parlent
+                </span>
+              </p>
+            </div>
+            <p
+              className={`mt-6 max-w-[48ch] text-[0.92rem] leading-relaxed ${MUTED}`}
+            >
+              Pas encore d’article de l’observatoire sur ce sujet : ni
+              indicateurs officiels choisis, ni relecture.
+            </p>
+          </div>
+          <CandidateMosaic candidates={topic.candidates} />
         </div>
       </section>
       <ProgrammePassages topic={topic} />
@@ -108,7 +132,7 @@ function TopicOnly({ topic }: { topic: TopicSheet }) {
             to="/enjeux"
             className="inline-flex h-12 items-center gap-2 rounded-full bg-[#0B1A2A] px-6 font-extrabold text-white no-underline hover:opacity-90"
           >
-            Tous les enjeux <ArrowRight size={17} />
+            Tous les sujets <ArrowRight size={17} />
           </Link>
         </div>
       </section>
