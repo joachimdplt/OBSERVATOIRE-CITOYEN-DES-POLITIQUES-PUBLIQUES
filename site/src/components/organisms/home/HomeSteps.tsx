@@ -1,9 +1,9 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
-import { motion, useInView, useReducedMotion  } from 'motion/react'
-import type {Easing} from 'motion/react';
-import { useEffect, useRef, useState  } from 'react'
-import type {ReactNode} from 'react';
+import { motion, useInView, useReducedMotion } from 'motion/react'
+import type { Easing } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { Highlight } from '../../atoms/Highlight'
 import { HOME } from '../../../data/home'
 
@@ -41,8 +41,9 @@ function Entree({
 /**
  * Comment l'observatoire se nourrit, en six étapes numérotées. Quand le bloc
  * entre à l'écran, un cadre glisse d'un carré à l'autre et chaque étape
- * parcourue se remplit, de la première à la sixième (repris du parcours des
- * fiches d'airobotics, en monochrome). Sans animation si le lecteur l'a
+ * parcourue se remplit, de la première à la sixième, puis le cadre va
+ * entourer le bouton (repris du parcours des fiches d'airobotics, en
+ * monochrome). Sans animation si le lecteur l'a
  * demandé à son système.
  */
 export function HomeSteps() {
@@ -65,8 +66,10 @@ export function HomeSteps() {
     return () => ids.forEach(clearTimeout)
   }, [seen, reduce, total, comment.steps])
 
-  // Le cadre se pose sur l'étape en cours, puis reste sur la dernière.
-  const current = Math.min(done, total - 1)
+  // Le cadre se pose sur l'étape en cours ; une fois les six parcourues, il
+  // va entourer le bouton, la suite logique de la lecture.
+  const onButton = done >= total
+  const current = onButton ? -1 : done
 
   return (
     <section id="comment" className="scroll-mt-14 px-6 py-16 md:px-10">
@@ -101,7 +104,7 @@ export function HomeSteps() {
                   >
                     {i + 1}
                   </motion.span>
-                  {(seen || reduce) && i === current && (
+                  {seen && i === current && (
                     <motion.span
                       layoutId="cadre-etape"
                       aria-hidden
@@ -125,13 +128,24 @@ export function HomeSteps() {
         </ol>
 
         <Entree delay={0.1} className="mt-14 flex justify-center">
-          <Link
-            to="/developpeurs"
-            className="inline-flex h-14 items-center gap-3 rounded-full bg-[#0B1A2A] px-7 text-[1.05rem] font-extrabold text-white no-underline hover:opacity-90"
-          >
-            {comment.cta}
-            <ArrowRight size={18} strokeWidth={2.75} aria-hidden />
-          </Link>
+          <span className="relative">
+            <Link
+              to="/developpeurs"
+              className="inline-flex h-14 items-center gap-3 rounded-full bg-[#0B1A2A] px-7 text-[1.05rem] font-extrabold text-white no-underline hover:opacity-90"
+            >
+              {comment.cta}
+              <ArrowRight size={18} strokeWidth={2.75} aria-hidden />
+            </Link>
+            {(seen || reduce) && onButton && (
+              <motion.span
+                layoutId="cadre-etape"
+                aria-hidden
+                className="pointer-events-none absolute -inset-[7px] rounded-full"
+                style={{ border: `4px solid ${NAVY}` }}
+                transition={{ duration: 0.5, ease: [0.65, 0, 0.35, 1] }}
+              />
+            )}
+          </span>
         </Entree>
       </div>
     </section>
