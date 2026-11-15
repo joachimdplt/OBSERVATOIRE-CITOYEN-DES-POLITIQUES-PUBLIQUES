@@ -1,5 +1,6 @@
 import type { TopicSheet } from '../../../types/public'
 import { squarify } from '../../../utils/treemap'
+import { goTo } from '../publications/ProgrammePassages'
 
 type Candidate = TopicSheet['candidates'][number]
 
@@ -21,6 +22,7 @@ export function CandidateMosaic({ candidates }: { candidates: Candidate[] }) {
         <a
           key={c.slug}
           href={`#candidat-${c.slug}`}
+          onClick={(e) => goTo(e, c.slug)}
           title={`${c.name} : ${c.passages.length} passage${c.passages.length > 1 ? 's' : ''}`}
           className="group absolute p-[2px]"
           style={{

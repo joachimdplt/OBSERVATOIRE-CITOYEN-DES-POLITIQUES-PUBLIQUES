@@ -20,6 +20,15 @@ const STATUS = {
 
 const surname = (name: string) => name.split(' ').slice(1).join(' ') || name
 
+/** Défile en douceur jusqu'à la carte d'un candidat, sous l'en-tête. */
+export function goTo(e: { preventDefault: () => void }, slug: string) {
+  const target = document.getElementById(`candidat-${slug}`)
+  if (!target) return
+  e.preventDefault()
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  history.replaceState(null, '', `#candidat-${slug}`)
+}
+
 function Avatar({ c, size }: { c: Candidate; size: number }) {
   return (
     <span
@@ -39,13 +48,20 @@ function Avatar({ c, size }: { c: Candidate; size: number }) {
 
 /**
  * Un sujet dans les programmes publiés. Une barre de photos mène à chaque
- * candidat ; puis une carte par candidat, par ordre alphabétique, avec ses
+ * candidat ; puis une carte par candidat, celui qui en parle le plus d'abord, avec ses
  * passages mot pour mot, le terme trouvé surligné, la rubrique et le
  * document. Les programmes sans passage sont nommés à la fin : l'absence d'un
  * terme ne dit pas l'absence de position.
  */
 export function ProgrammePassages({ topic }: { topic: TopicSheet }) {
-  const speaking = topic.candidates.filter((c) => c.passages.length > 0)
+  // Celui qui en parle le plus d'abord ; à égalité, l'ordre alphabétique.
+  const speaking = topic.candidates
+    .filter((c) => c.passages.length > 0)
+    .sort(
+      (a, b) =>
+        b.passages.length - a.passages.length ||
+        surname(a.name).localeCompare(surname(b.name), 'fr'),
+    )
   const silent = topic.candidates.filter((c) => c.passages.length === 0)
   return (
     <section className="px-6 py-12 md:px-10">
@@ -73,6 +89,7 @@ export function ProgrammePassages({ topic }: { topic: TopicSheet }) {
             <a
               key={c.slug}
               href={`#candidat-${c.slug}`}
+              onClick={(e) => goTo(e, c.slug)}
               className="flex shrink-0 items-center gap-2 rounded-full bg-white py-1 pr-3.5 pl-1 text-[0.88rem] font-bold text-[#0B1A2A] no-underline hover:shadow-[0_4px_16px_rgba(11,26,42,0.1)]"
             >
               <Avatar c={c} size={30} />
