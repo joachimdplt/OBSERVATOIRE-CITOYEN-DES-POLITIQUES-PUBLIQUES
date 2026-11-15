@@ -10,6 +10,7 @@ import {
   pdfParagraphs,
   splitProgramme,
   tableRows,
+  cardRows,
   type ProgrammePassage,
 } from '../../domain/programme';
 import type {
@@ -85,12 +86,18 @@ export class WebProgrammeReader implements ProgrammeReader {
         /^Title:\s+(.+)$/m.exec(info.stdout)?.[1]?.trim() ||
         decodeURIComponent(url.split('/').pop() ?? url);
       // Page par page : une page qui porte un tableau chiffré se lit ligne
-      // par ligne, les autres en paragraphes.
+      // par ligne, une infographie carte par carte, les autres en
+      // paragraphes.
       const flowPages = stdout.split('\f');
       const layoutPages = layout.stdout.split('\f');
       const passages = flowPages.flatMap((flow, i) => {
-        const rows = tableRows(layoutPages[i] ?? '');
-        return rows.length >= 5 ? rows : splitProgramme(pdfParagraphs(flow));
+        const page = layoutPages[i] ?? '';
+        const rows = tableRows(page);
+        if (rows.length >= 5) return rows;
+        const cards = cardRows(page);
+        const figured = cards.filter((c) => /\s:\s[+\-−]?\d/.test(c.text));
+        if (figured.length >= 3) return cards;
+        return splitProgramme(pdfParagraphs(flow));
       });
       return { title, passages };
     } finally {

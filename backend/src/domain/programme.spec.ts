@@ -2,6 +2,7 @@ import {
   currentCaptures,
   pdfParagraphs,
   tableRows,
+  cardRows,
   splitProgramme,
   topicsOf,
 } from './programme';
@@ -120,6 +121,7 @@ describe('les tableaux chiffrés d’un PDF', () => {
         heading: 'Immigration',
         text: 'Suppression visa pour soins : 1,000 Mds€',
       },
+      { heading: 'Immigration', text: 'Immigration : 2,300 Mds€' },
       {
         heading: 'Dépenses inutiles',
         text: 'Suppression des CESER : 0,040 Mds€',
@@ -129,5 +131,102 @@ describe('les tableaux chiffrés d’un PDF', () => {
         text: 'Suppression du plan vélo : 0,031 Mds€',
       },
     ]);
+  });
+
+  it('range chaque ligne sous la catégorie centrée sur elle, quand un bloc en compte plusieurs', () => {
+    const page = [
+      'Contre-budget 2026 (base PLF 2026)                                  en Mds€',
+      'Hausse recettes     Fraude       Lutte contre les fraudes                3,500',
+      '                                 Timbres sur les visa touristiques       0,800',
+      '                    Impôt / infrastructure   Redevance d’accès au marché   0,745',
+      '                                 Taxe l’utilisation du réseau            0,550',
+      '                                                                         5,595',
+      'Total                                                                  88,274',
+    ].join('\n');
+    expect(tableRows(page)).toEqual([
+      { heading: 'Fraude', text: 'Lutte contre les fraudes : 3,500 Mds€' },
+      {
+        heading: 'Impôt / infrastructure',
+        text: 'Timbres sur les visa touristiques : 0,800 Mds€',
+      },
+      {
+        heading: 'Impôt / infrastructure',
+        text: 'Redevance d’accès au marché : 0,745 Mds€',
+      },
+      {
+        heading: 'Impôt / infrastructure',
+        text: 'Taxe l’utilisation du réseau : 0,550 Mds€',
+      },
+      {
+        heading: 'Impôt / infrastructure',
+        text: 'Impôt / infrastructure : 5,595 Mds€',
+      },
+      {
+        heading: 'Contre-budget 2026 (base PLF 2026)',
+        text: 'Total : 88,274 Mds€',
+      },
+    ]);
+  });
+});
+
+describe('les infographies d’un PDF', () => {
+  it('lit chaque carte seule : son titre, son total, chaque ligne et son montant', () => {
+    const page = [
+      '    DÉPENSES                              COLLECTIVITÉS',
+      '   INÉFFICACES                            TERRITORIALES',
+      '',
+      '    +  32,4                                  +     5',
+      '     Mds€                                     Mds€',
+      '                    Mds€                                      Mds€',
+      'Baisse de la contribution             Baisse de la',
+      'Française à l’UE.   8,7               Dotation Globale de',
+      '                                      Fonctionnement pour',
+      'Baisse sur les agences                les Régions et les EPCI.        5',
+      'et opérateurs.      7,7',
+    ].join('\n');
+    expect(cardRows(page)).toEqual([
+      {
+        heading: 'Dépenses inéfficaces',
+        text: 'Dépenses inéfficaces : +32,4 Mds€',
+      },
+      {
+        heading: 'Dépenses inéfficaces',
+        text: 'Baisse de la contribution Française à l’UE. : 8,7 Mds€',
+      },
+      {
+        heading: 'Dépenses inéfficaces',
+        text: 'Baisse sur les agences et opérateurs. : 7,7 Mds€',
+      },
+      {
+        heading: 'Collectivités territoriales',
+        text: 'Collectivités territoriales : +5 Mds€',
+      },
+      {
+        heading: 'Collectivités territoriales',
+        text: 'Baisse de la Dotation Globale de Fonctionnement pour les Régions et les EPCI. : 5 Mds€',
+      },
+    ]);
+  });
+
+  it('un grand chiffre sans titre prend pour libellé la phrase écrite dessous', () => {
+    const page = [
+      'DÉPENSES',
+      '',
+      '- 57 Mds€                              + 7 Mds€',
+      'Baisses sur des mauvaises dépenses     Nouvelles dépenses',
+    ].join('\n');
+    expect(cardRows(page)).toEqual([
+      {
+        heading: 'Dépenses',
+        text: 'Baisses sur des mauvaises dépenses : -57 Mds€',
+      },
+      { heading: '', text: 'Nouvelles dépenses : +7 Mds€' },
+    ]);
+  });
+
+  it('un texte suivi sur une seule colonne n’est pas une infographie', () => {
+    expect(
+      cardRows('Nous baisserons la TVA de 5 points.\nEt nous le ferons vite.'),
+    ).toEqual([]);
   });
 });

@@ -61,7 +61,7 @@ export const meaningfulHeading = (heading: string) =>
 /** Les chiffres d'un passage, tels qu'écrits : « 20 % », « 1 700 euros ». */
 export function figuresIn(text: string): string[] {
   const found = text.match(
-    /\d[\d\s,.]*\s?(%|€|euros?\b|milliards?\b|millions?\b|ans?\b|heures?\b|TWh\b|postes?\b|logements?\b|places?\b)/giu,
+    /\d[\d\s,.]*\s?(%|€|euros?\b|Mds?\s?€|Mds?\b|Md€|M€|k€|milliards?\b|millions?\b|ans?\b|heures?\b|TWh\b|postes?\b|logements?\b|places?\b)/giu,
   )
   return [...new Set((found ?? []).map((f) => f.trim()))]
 }
