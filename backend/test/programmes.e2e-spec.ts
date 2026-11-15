@@ -167,10 +167,12 @@ describe('les programmes des candidats : collectés, découpés, rangés par enj
       .expect(201);
   });
 
-  it('le collecteur suit la table des matières, garde chaque page et la découpe en passages', async () => {
+  it('le collecteur lit la table des matières puis chaque page, et découpe chacune en passages', async () => {
     const res = await founder.post('/api/admin/collect/programmes').expect(200);
+    // La table, faite de liens sans passage, est lue mais ne devient pas un document.
     expect(res.body).toMatchObject({
-      pages: 3,
+      pages: 4,
+      empty: 1,
       collected: 3,
       passages: 3,
       matches: 2,
@@ -178,7 +180,11 @@ describe('les programmes des candidats : collectés, découpés, rangés par enj
     const again = await founder
       .post('/api/admin/collect/programmes')
       .expect(200);
-    expect(again.body).toMatchObject({ pages: 3, unchanged: 3, collected: 0 });
+    expect(again.body).toMatchObject({
+      pages: 4,
+      unchanged: 3,
+      collected: 0,
+    });
   });
 
   it('les enjeux se rangent par le nombre de programmes qui en parlent', async () => {

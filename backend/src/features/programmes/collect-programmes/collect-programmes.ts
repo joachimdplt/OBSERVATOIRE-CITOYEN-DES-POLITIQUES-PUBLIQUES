@@ -66,6 +66,7 @@ export async function collectProgrammes(
   const report = {
     pages: 0,
     unchanged: 0,
+    empty: 0,
     collected: 0,
     passages: 0,
     matches: 0,
@@ -104,6 +105,12 @@ export async function collectProgrammes(
         file = await reader.read(url);
       } catch (e) {
         report.failed.push(`${url} : ${String(e)}`);
+        continue;
+      }
+      // Une page sans aucun passage (une table faite de liens) ne dit rien :
+      // elle ne devient pas un document.
+      if (file.passages.length === 0) {
+        report.empty++;
         continue;
       }
       // L'empreinte du texte lu, pas du fichier : une page web change à
