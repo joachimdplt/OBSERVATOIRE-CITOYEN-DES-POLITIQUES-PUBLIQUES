@@ -42,6 +42,59 @@ export async function embedTexts(input: string[]): Promise<Float32Array[]> {
 const BLOCK = 8;
 
 /**
+ * Les passages en vigueur qui n'ont pas encore de vecteur (un programme
+ * collecté depuis) : ils sont vectorisés avant de voter.
+ */
+export async function embedMissingPassages(
+  prisma: PrismaService,
+  log: (line: string) => void = () => {},
+) {
+  const documents = await prisma.politicalDocument.findMany({
+    where: {
+      kind: DocumentKind.programme,
+      sourceRef: { not: null },
+      retiredAt: null,
+    },
+    select: { id: true, sourceRef: true, fetchedAt: true, createdAt: true },
+  });
+  const current = currentCaptures(
+    documents.map((d) => ({
+      id: d.id,
+      sourceRef: d.sourceRef!,
+      fetchedAt: d.fetchedAt ?? d.createdAt,
+    })),
+  );
+  const measures = await prisma.measure.findMany({
+    where: { documentId: { in: [...current] } },
+    select: { id: true, article: true, quote: true },
+  });
+  const done = new Set(
+    (
+      await prisma.passageVector.findMany({
+        where: { model: EMBEDDING_MODEL },
+        select: { measureId: true },
+      })
+    ).map((v) => v.measureId),
+  );
+  const todo = measures.filter((m) => !done.has(m.id));
+  if (todo.length) log(`Vectorisation de ${todo.length} nouveaux passages…`);
+  for (let i = 0; i < todo.length; i += 32) {
+    const batch = todo.slice(i, i + 32);
+    const vectors = await embedTexts(
+      batch.map((m) => `${m.article}\n${m.quote}`.slice(0, 2000)),
+    );
+    await prisma.passageVector.createMany({
+      data: batch.map((m, k) => ({
+        measureId: m.id,
+        model: EMBEDDING_MODEL,
+        vector: Buffer.from(new Float32Array(vectors[k]).buffer),
+      })),
+      skipDuplicates: true,
+    });
+  }
+}
+
+/**
  * Ce qu'il faut pour voter : les vecteurs des sujets de la grille, ceux des
  * passages en vigueur, et les passages déjà rangés (par une personne, ou par
  * un vote d'accord) qui servent de voisins.

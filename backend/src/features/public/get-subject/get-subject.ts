@@ -1,6 +1,15 @@
 import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
+import { indicatorTopic, themeTopic } from '../../../domain/approach-topics';
+import type {
+  DiagnosisChapter,
+  DiagnosisIndicator,
+} from '../../../domain/campaign';
 import { currentCaptures } from '../../../domain/programme';
-import { DocumentKind, LabelStatus } from '../../../generated/prisma/enums';
+import {
+  CampaignSourceKind,
+  DocumentKind,
+  LabelStatus,
+} from '../../../generated/prisma/enums';
 import {
   subjectChapters,
   type SubjectChapter,
@@ -141,6 +150,70 @@ export class GetSubjectController {
       ).map((d) => d.candidateId),
     );
 
+    // Une démarche qui n'est pas un programme (un état des lieux, une
+    // consultation) : ses indicateurs et ses thèmes rattachés à ce sujet par
+    // une table fixe. Les solutions d'une consultation sont celles des
+    // participants : seuls les nombres publiés par le candidat sont repris.
+    const sources = await this.prisma.campaignSource.findMany({
+      where: {
+        kind: {
+          in: [CampaignSourceKind.method, CampaignSourceKind.consultation],
+        },
+      },
+      include: { snapshots: { orderBy: { fetchedAt: 'desc' }, take: 1 } },
+    });
+    const approachOf = new Map<
+      string,
+      {
+        constats: {
+          label: string;
+          title: string;
+          url: string;
+          indicators: DiagnosisIndicator[];
+        }[];
+        consultation: { theme: string; text: string; url: string }[];
+        fetchedAt: string;
+      }
+    >();
+    for (const source of sources) {
+      const snapshot = source.snapshots.at(0);
+      if (!snapshot) continue;
+      const a = approachOf.get(source.candidateId) ?? {
+        constats: [],
+        consultation: [],
+        fetchedAt: snapshot.fetchedAt.toISOString(),
+      };
+      if (source.kind === CampaignSourceKind.method)
+        for (const chapter of snapshot.passages as DiagnosisChapter[]) {
+          const indicators = chapter.indicators.filter(
+            (i) => indicatorTopic(i.name) === code,
+          );
+          if (indicators.length)
+            a.constats.push({
+              label: chapter.label,
+              title: chapter.title,
+              url: chapter.anchor
+                ? `${source.url}#${chapter.anchor}`
+                : source.url,
+              indicators,
+            });
+        }
+      else
+        for (const figure of snapshot.figures as {
+          label: string;
+          text: string;
+        }[])
+          if (themeTopic(figure.label) === code)
+            a.consultation.push({
+              theme: figure.label,
+              text: figure.text,
+              url: source.url,
+            });
+      if (a.constats.length || a.consultation.length)
+        approachOf.set(source.candidateId, a);
+    }
+    const present = (id: string) => byCandidate.has(id) || approachOf.has(id);
+
     const model = labels.find((l) => l.model)?.model ?? null;
     return {
       topic: { code: topic.code, label: topic.labelFr, title: topic.title },
@@ -150,7 +223,7 @@ export class GetSubjectController {
         model,
       },
       candidates: candidates
-        .filter((c) => byCandidate.has(c.id))
+        .filter((c) => present(c.id))
         .map((c) => ({
           slug: c.slug,
           name: c.name,
@@ -160,12 +233,13 @@ export class GetSubjectController {
           // pour qu'une citation ne passe pas pour plus qu'elle n'est.
           programmeStatus: c.programmeStatus,
           programmeNote: c.programmeNote,
-          chapters: subjectChapters(byCandidate.get(c.id)!),
+          chapters: subjectChapters(byCandidate.get(c.id) ?? []),
+          approach: approachOf.get(c.id) ?? null,
         })),
       // Ceux qui n'ont rien ici : sans aucun programme collecté, ou avec
       // un programme collecté mais aucun chapitre rangé dans ce sujet.
       without: candidates
-        .filter((c) => !byCandidate.has(c.id))
+        .filter((c) => !present(c.id))
         .map((c) => ({
           slug: c.slug,
           name: c.name,

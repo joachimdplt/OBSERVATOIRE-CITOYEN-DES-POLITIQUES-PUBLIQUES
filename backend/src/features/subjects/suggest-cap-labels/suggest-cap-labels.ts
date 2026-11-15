@@ -3,6 +3,19 @@ import { Controller, HttpCode, Inject, Post, UseGuards } from '@nestjs/common';
 import { Requires, SessionGuard } from '../../../auth/session.guard';
 import { isVagueHeading } from '../../../domain/cap';
 import type { Correction } from '../../../domain/corrections';
+import { documentName } from '../../../domain/programme-reading';
+import {
+  cosine,
+  nearestTopic,
+  neighboursTopic,
+  vote,
+  type Proposal,
+} from '../../../domain/vote';
+import {
+  embedMissingPassages,
+  embedTexts,
+  loadVoteContext,
+} from '../vote-cap-labels/vote-cap-labels';
 import { currentCaptures } from '../../../domain/programme';
 import {
   DocumentKind,
@@ -226,7 +239,7 @@ export async function suggestCapLabels(
         `${c.candidateId}\n${c.documentUrl}\n${c.heading}\n${c.fromPosition ?? ''}`,
       ),
   );
-  const report = { chapters: chapters.size, proposed: 0, model: '' };
+  const report = { chapters: chapters.size, proposed: 0, review: 0, model: '' };
   if (todo.length === 0) return report;
 
   report.model = classifier.model;
@@ -242,12 +255,67 @@ export async function suggestCapLabels(
   );
   // Une unité à la fois, enregistrée aussitôt : une coupure ne fait rien
   // perdre, et une relance reprend où elle s'était arrêtée.
+  // Le vote : chaque unité est aussi rangée par la grille, les voisins et
+  // le classement du candidat ; le modèle ne range seul que si une autre
+  // voix est d'accord avec lui, sinon l'unité part en relecture.
+  await embedMissingPassages(prisma, log);
+  const ctx = await loadVoteContext(prisma);
+  const titles = new Map(
+    (
+      await prisma.politicalDocument.findMany({
+        where: {
+          url: { in: [...new Set(todo.map(([, c]) => c.documentUrl))] },
+        },
+        select: { url: true, title: true },
+      })
+    ).map((d) => [d.url, documentName(d.title)]),
+  );
+  const titleTopic = new Map<string, string | null>();
+  const topicOfTitle = async (text: string) => {
+    if (!titleTopic.has(text)) {
+      const [v] = await embedTexts([text]);
+      titleTopic.set(text, nearestTopic(v, ctx.topicVectors));
+    }
+    return titleTopic.get(text) ?? null;
+  };
+  // Les corrections de l'équipe, avec le sens de leur bloc : le modèle voit
+  // les plus proches par le sens.
+  const personLabels = await prisma.capLabel.findMany({
+    where: { origin: LabelOrigin.person, status: LabelStatus.validated },
+  });
+  const correctionVectors = personLabels.flatMap((l) => {
+    const v = ctx.vectorOf(ctx.blockOf(l));
+    const g = grouped.get(`${l.candidateId}\n${l.documentUrl}\n${l.heading}`);
+    if (!v || !g) return [];
+    const passages = g.passages.filter(
+      (p) => l.fromPosition === null || p.position >= l.fromPosition,
+    );
+    const c: Correction = {
+      text: [g.heading, ...passages.slice(0, 3).map((p) => p.quote)].join('\n'),
+      code: l.capCode,
+      reason: l.reason,
+    };
+    return [{ c, v }];
+  });
+  report.review = 0;
+
   for (let i = 0; i < todo.length; i += 1) {
     const batch = todo.slice(i, i + 1);
+    const unit = batch[0][1];
+    const v = ctx.vectorOf(ctx.blockOf(unit));
+    const pick = v
+      ? () =>
+          correctionVectors
+            .map((x) => ({ c: x.c, s: cosine(v, x.v) }))
+            .sort((a, b) => b.s - a.s)
+            .slice(0, 6)
+            .map((x) => x.c)
+      : undefined;
     const choices = await classifier.classify(
       grid,
       batch.map(([id, c]) => ({ id, text: c.text.slice(0, CHAPTER_TEXT) })),
       corrections,
+      pick,
     );
     const byId = new Map(batch);
     for (const choice of choices) {
@@ -261,6 +329,27 @@ export async function suggestCapLabels(
         `[${done}/${todo.length}, encore ~${left} min] ${names.get(c.candidateId) ?? '?'} · ${c.heading.slice(0, 60)}${c.fromPosition !== null ? ` (bloc ${c.fromPosition})` : ''} → ${choice.code ? labelOf.get(choice.code) : 'aucun'}`,
       );
       if (!choice.code) continue;
+      const title = titles.get(c.documentUrl) ?? '';
+      const proposals: Proposal[] = [
+        {
+          method: 'grille',
+          code: v ? nearestTopic(v, ctx.topicVectors) : null,
+        },
+        {
+          method: 'voisins',
+          code: v
+            ? neighboursTopic(v, ctx.known, `${c.candidateId}\n${c.heading}`)
+            : null,
+        },
+        { method: 'modele', code: choice.code },
+        { method: 'titre', code: await topicOfTitle(title) },
+        {
+          method: 'rubrique',
+          code: await topicOfTitle(`${title} — ${c.heading}`),
+        },
+      ];
+      const agreed = vote(proposals).agreed;
+      if (!agreed) report.review++;
       await prisma.capLabel.createMany({
         data: [
           {
@@ -271,7 +360,8 @@ export async function suggestCapLabels(
             capCode: choice.code,
             origin: LabelOrigin.model,
             model: classifier.model,
-            status: LabelStatus.proposed,
+            proposals,
+            status: agreed ? LabelStatus.proposed : LabelStatus.review,
           },
         ],
         skipDuplicates: true,

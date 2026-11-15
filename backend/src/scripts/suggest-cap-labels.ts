@@ -24,7 +24,7 @@ async function main() {
       (line) => console.log(line),
     );
     console.log(
-      `${r.chapters} chapitres, ${r.proposed} nouvellement rangés (modèle ${r.model || 'aucun'}).`,
+      `${r.chapters} chapitres, ${r.proposed} nouvellement rangés dont ${r.review} à relire (modèle ${r.model || 'aucun'}).`,
     );
   } finally {
     await prisma.$disconnect();

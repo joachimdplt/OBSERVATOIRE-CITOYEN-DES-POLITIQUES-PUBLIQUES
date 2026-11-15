@@ -5,6 +5,7 @@ import { QuoteText } from '../components/molecules/QuoteText'
 import { getSubject } from '../services/public-api'
 import type { Subject } from '../types/public'
 import { smoothScrollTo } from '../utils/scroll'
+import { frenchDate } from '../utils/date'
 import { seo } from '../utils/seo'
 
 export const Route = createFileRoute('/sujets/grille/$code')({
@@ -193,6 +194,7 @@ function CandidateCard({ index, candidate: c }: { index: number; candidate: Cand
           {c.programmeNote}
         </p>
       )}
+      {c.approach && <Approach approach={c.approach} />}
       <div className="mt-6 space-y-8">
         {c.chapters.map((ch, i) => {
           const page = ch.excerpt[0]?.page ?? null
@@ -283,6 +285,81 @@ function Names({
           </li>
         ))}
       </ul>
+    </div>
+  )
+}
+
+/**
+ * Une démarche qui n'est pas un programme, sur ce sujet : son constat
+ * (ses phrases et ses chiffres sourcés) et sa consultation (les nombres
+ * qu'il publie). Les solutions d'une consultation sont celles des
+ * participants : elles ne sont ni citées ni attribuées au candidat.
+ */
+function Approach({
+  approach: a,
+}: {
+  approach: NonNullable<Candidate['approach']>
+}) {
+  return (
+    <div className="mt-6 space-y-6">
+      {a.constats.map((k) => (
+        <div key={k.url}>
+          <a
+            href={k.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#F4F6F8] px-3 py-1 text-[0.82rem] font-bold text-[#0B1A2A] no-underline hover:underline"
+          >
+            <span className={`shrink-0 font-semibold ${MUTED}`}>Son constat ·</span>
+            <span className="truncate">{k.label}</span>
+            <ArrowUpRight size={12} className="shrink-0" />
+          </a>
+          <div className="mt-4 border-l-2 border-[#0B1A2A]/10 pl-5 md:pl-7">
+            <p className="mb-3 text-[1rem] font-extrabold text-[#0B1A2A]">
+              « {k.title} »
+            </p>
+            <ul className="space-y-2">
+              {k.indicators.map((i) => (
+                <li key={i.name} className="text-[0.95rem] leading-relaxed text-[#0B1A2A]">
+                  <span className="font-bold">{i.name}</span> : {i.sentence}{' '}
+                  <span className={`text-[0.8rem] ${MUTED}`}>
+                    ({i.unit} ·{' '}
+                    {i.sourceUrl ? (
+                      <a href={i.sourceUrl} target="_blank" rel="noreferrer" className="underline">
+                        {i.source}
+                      </a>
+                    ) : (
+                      i.source
+                    )}
+                    )
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ))}
+      {a.consultation.map((t) => (
+        <div key={t.theme}>
+          <a
+            href={t.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#F4F6F8] px-3 py-1 text-[0.82rem] font-bold text-[#0B1A2A] no-underline hover:underline"
+          >
+            <span className={`shrink-0 font-semibold ${MUTED}`}>Sa consultation ·</span>
+            <span className="truncate">{t.theme}</span>
+            <ArrowUpRight size={12} className="shrink-0" />
+          </a>
+          <p className="mt-3 border-l-2 border-[#0B1A2A]/10 pl-5 text-[0.95rem] leading-relaxed text-[#0B1A2A] md:pl-7">
+            Une consultation ouverte sur ce thème : {t.text}, déposés par
+            des participants, selon sa page au {frenchDate(a.fetchedAt.slice(0, 10))}.{' '}
+            <span className={MUTED}>
+              Ces solutions sont celles des participants, pas les siennes.
+            </span>
+          </p>
+        </div>
+      ))}
     </div>
   )
 }

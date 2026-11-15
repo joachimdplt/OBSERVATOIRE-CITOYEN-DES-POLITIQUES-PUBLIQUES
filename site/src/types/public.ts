@@ -462,6 +462,23 @@ export type Subject = {
     photo: string | null
     programmeStatus: ProgrammeStatus
     programmeNote: string | null
+    /** Une démarche qui n'est pas un programme, sur ce sujet. */
+    approach: {
+      constats: {
+        label: string
+        title: string
+        url: string
+        indicators: {
+          name: string
+          unit: string
+          sentence: string
+          source: string
+          sourceUrl: string | null
+        }[]
+      }[]
+      consultation: { theme: string; text: string; url: string }[]
+      fetchedAt: string
+    } | null
     chapters: {
       heading: string
       document: { title: string; url: string }
