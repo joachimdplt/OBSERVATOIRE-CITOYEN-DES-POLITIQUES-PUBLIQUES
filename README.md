@@ -100,6 +100,11 @@ npm run collect:photos               # les photos libres des candidats (Wikimedi
 La collecte des programmes lit les PDF avec `pdftotext` (poppler) :
 `brew install poppler` ou `apt install poppler-utils`.
 
+**Chaque jour à 6 h (heure de Paris), l'API relance elle-même toutes les
+collectes** (textes déposés, programmes, vidéos, photos) et garde le compte
+rendu de chacune ; le site affiche la dernière et le temps avant la
+prochaine. Pour la lancer à la main : `npm run collect:all`.
+
 La lecture à la demande n'a pas de commande : elle se fait quand une commune
 s'ouvre, et se garde un jour.
 

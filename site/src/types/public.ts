@@ -344,3 +344,17 @@ export type CandidateSheet = {
     link: 'own_channel' | 'name_in_title'
   }[]
 }
+
+/** Où en est la mise à jour automatique quotidienne. */
+export type Updates = {
+  schedule: { hour: number; timeZone: string }
+  now: string
+  lastRunAt: string | null
+  nextRunAt: string
+  runs: {
+    kind: string
+    label: string
+    finishedAt: string | null
+    ok: boolean | null
+  }[]
+}

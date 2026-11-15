@@ -24,7 +24,8 @@
     "collect:parliament": "tsx src/scripts/collect-parliament.ts",
     "collect:programmes": "tsx src/scripts/collect-programmes.ts",
     "collect:videos": "tsx src/scripts/collect-videos.ts",
-    "collect:photos": "tsx src/scripts/collect-candidate-photos.ts"
+    "collect:photos": "tsx src/scripts/collect-candidate-photos.ts",
+    "collect:all": "tsx src/scripts/collect-all.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -32,6 +33,7 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/schedule": "^6.1.3",
     "@nestjs/throttler": "^6.7.1",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",

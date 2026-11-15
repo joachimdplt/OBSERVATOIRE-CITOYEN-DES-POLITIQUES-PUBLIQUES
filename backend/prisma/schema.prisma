@@ -880,3 +880,19 @@ model ApiKey {
 
   @@map("api_keys")
 }
+
+/// Une collecte automatique : ce qui a été lu, quand, et avec quel résultat.
+/// La collecte quotidienne en écrit une par source ; rien ne s'efface.
+model CollectionRun {
+  id         String    @id @default(uuid())
+  /// parliament, programmes, videos, photos
+  kind       String
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  ok         Boolean?
+  /// Le compte rendu du collecteur, tel qu'il l'a rendu.
+  summary    Json?
+
+  @@index([kind, startedAt])
+  @@map("collection_runs")
+}

@@ -136,9 +136,10 @@ describe('le public consulte un indicateur', () => {
       licenses: {
         content: { name: 'CC BY-NC-SA 4.0' },
         data: { name: 'Licence Ouverte v2.0' },
-        sourceCode: { license: 'AGPL-3.0' },
       },
     });
+    // Le code n'est pas libre : aucune adresse de code source n'est donnée.
+    expect(sheet.provenance[0].licenses).not.toHaveProperty('sourceCode');
   });
 
   it('une absence se lit comme une absence, jamais comme un zéro, avec la ligne du fichier d’origine', async () => {

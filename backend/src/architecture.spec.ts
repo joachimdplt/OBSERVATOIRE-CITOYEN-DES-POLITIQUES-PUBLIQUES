@@ -69,6 +69,8 @@ describe('le rangement par cas d’usage', () => {
           if (!other || other === sliceOf(file)) return false;
           // Un script en ligne de commande assemble, comme un module.
           if (file.startsWith('scripts/')) return false;
+          // La tâche planifiée aussi : elle relance les collecteurs chaque jour.
+          if (file.startsWith('jobs/')) return false;
           // Le module d'une ressource enregistre ses slices : c'est son rôle.
           const [, resource] = file.split('/');
           return !(

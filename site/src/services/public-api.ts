@@ -5,6 +5,7 @@ import type { MapValue } from '../domain/classes'
 import { shuffleAvoidingFirst } from '../utils/shuffle'
 import type {
   CandidateSheet,
+  Updates,
   ElectionSheet,
   TopicList,
   TopicSheet,
@@ -168,3 +169,7 @@ export const getElectionShuffled = createServerFn({ method: 'GET' })
       })
     return { ...election, candidates }
   })
+
+export const getUpdates = createServerFn({ method: 'GET' }).handler(() =>
+  get<Updates>('/updates'),
+)

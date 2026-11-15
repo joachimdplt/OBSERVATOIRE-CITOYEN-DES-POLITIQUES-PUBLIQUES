@@ -170,6 +170,16 @@ national et des Écologistes.
 Au 15 novembre 2026 : 23 photos sur 25 ; Selma Labib n'a pas de photo sur
 Wikidata, celle de Francis Lalanne n'est pas sous licence libre.
 
+## La mise à jour quotidienne
+
+Chaque jour à 6 h, heure de Paris, l'API relance elle-même ses collecteurs :
+textes déposés, programmes, vidéos, photos. Chaque collecte est datée et
+gardée avec son compte rendu (table `collection_runs`) ; une collecte qui
+échoue n'arrête pas les autres. `GET /api/public/updates` donne la dernière
+collecte de chaque source et la prochaine ; le site l'affiche dans son
+en-tête, avec l'heure locale du lecteur et le compte à rebours. `npm run
+collect:all` lance la même collecte à la main.
+
 ## Les étiquettes, du moins au plus relu
 
 | Étiquette | Sens |
