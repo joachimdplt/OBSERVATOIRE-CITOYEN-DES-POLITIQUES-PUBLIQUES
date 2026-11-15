@@ -159,9 +159,11 @@ export function isProposal(text: string): boolean {
   );
 }
 
+/** Un nombre suivi d'une unité : « 20 % », « 1 700 euros », « 100 milliards ». */
+const FIGURE =
+  /\d[\d\s,.]*\s?(%|€|euros?\b|milliards?\b|millions?\b|\bans?\b|\bheures?\b|\bTWh\b|\bpostes?\b|\blogements?\b|\bplaces?\b)/iu;
+
 /** Un passage chiffré : un nombre suivi d'une unité (%, euros, milliards…). */
 export function isFigured(text: string): boolean {
-  return /\d[\d\s,.]*\s?(%|€|euros?\b|milliards?\b|millions?\b|\bans?\b|\bheures?\b|\bTWh\b|\bpostes?\b|\blogements?\b|\bplaces?\b)/iu.test(
-    text,
-  );
+  return FIGURE.test(text);
 }

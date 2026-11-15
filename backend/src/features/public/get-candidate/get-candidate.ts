@@ -23,7 +23,11 @@ export class GetCandidateController {
   ) {
     const c = await this.prisma.candidate.findFirst({
       where: { slug: candidateSlug, election: { slug } },
-      include: { election: true, videoChannels: true },
+      include: {
+        election: true,
+        videoChannels: true,
+        accounts: { orderBy: { network: 'asc' } },
+      },
     });
     if (!c) throw new NotFoundException('Candidat inconnu');
 
@@ -92,6 +96,12 @@ export class GetCandidateController {
       topics: [...topics.values()].sort(
         (a, b) => b.passages - a.passages || a.name.localeCompare(b.name, 'fr'),
       ),
+      accounts: c.accounts.map((a) => ({
+        network: a.network,
+        handle: a.handle,
+        url: a.url,
+        source: a.source,
+      })),
       channels: c.videoChannels.map((ch) => ({
         kind: ch.kind,
         name: ch.name,

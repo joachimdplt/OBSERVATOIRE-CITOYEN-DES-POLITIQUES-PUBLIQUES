@@ -9,6 +9,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 const KINDS = [
   { kind: 'parliament', label: 'Textes déposés à l’Assemblée' },
   { kind: 'programmes', label: 'Programmes des candidats' },
+  { kind: 'accounts', label: 'Comptes publics des candidats' },
   { kind: 'videos', label: 'Vidéos des chaînes suivies' },
   { kind: 'photos', label: 'Photos des candidats' },
 ];

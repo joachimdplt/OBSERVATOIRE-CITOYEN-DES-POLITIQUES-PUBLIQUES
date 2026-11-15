@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { ArrowUpRight, ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 import type { CandidateProgramme as Programme } from '../../../types/public'
+import { figuresIn } from '../../../utils/highlight'
 import { QuoteText } from '../../molecules/QuoteText'
 
 const MUTED = 'text-[#5B6470]'
@@ -105,29 +106,7 @@ export function CandidateProgramme({ programme: p }: { programme: Programme }) {
 
         <Outline outline={p.outline} />
 
-        {p.figured.length > 0 && (
-          <div className="rounded-[28px] bg-white p-6 md:p-8">
-            <p className="font-extrabold text-[#0B1A2A]">
-              Ses propositions chiffrées
-            </p>
-            <p className={`mt-1 text-[0.88rem] ${MUTED}`}>
-              Dans l’ordre du programme, mot pour mot.
-            </p>
-            <ol className="mt-5 space-y-5 border-l-2 border-[#0B1A2A]/10 pl-5 md:pl-7">
-              {p.figured.map((f, i) => (
-                <li key={i}>
-                  <p className={`mb-1 text-[0.8rem] font-bold ${MUTED}`}>
-                    {documentName(f.document.title)}
-                    {f.heading && f.heading !== f.document.title
-                      ? ` · ${f.heading}`
-                      : ''}
-                  </p>
-                  <QuoteText text={f.quote} terms={[]} />
-                </li>
-              ))}
-            </ol>
-          </div>
-        )}
+        {p.figured.length > 0 && <Figured figured={p.figured} />}
       </div>
     </section>
   )
@@ -213,6 +192,48 @@ function Outline({ outline }: { outline: Programme['outline'] }) {
             </li>
           ))}
         </ol>
+      )}
+    </div>
+  )
+}
+
+/** Les premiers passages chiffrés ; les autres se déplient. */
+const FIGURED_SHOWN = 12
+
+/** Tous les passages chiffrés, dans l'ordre du programme, chiffres surlignés. */
+function Figured({ figured }: { figured: Programme['figured'] }) {
+  const [all, setAll] = useState(false)
+  const shown = all ? figured : figured.slice(0, FIGURED_SHOWN)
+  return (
+    <div className="rounded-[28px] bg-white p-6 md:p-8">
+      <p className="font-extrabold text-[#0B1A2A]">
+        Ses passages chiffrés · {figured.length}
+      </p>
+      <p className={`mt-1 text-[0.88rem] ${MUTED}`}>
+        Tous, dans l’ordre du programme, mot pour mot ; les chiffres sont
+        surlignés.
+      </p>
+      <ol className="mt-5 space-y-5 border-l-2 border-[#0B1A2A]/10 pl-5 md:pl-7">
+        {shown.map((f, i) => (
+          <li key={i}>
+            <p className={`mb-1 text-[0.8rem] font-bold ${MUTED}`}>
+              {documentName(f.document.title)}
+              {f.heading && f.heading !== f.document.title
+                ? ` · ${f.heading}`
+                : ''}
+            </p>
+            <QuoteText text={f.quote} terms={figuresIn(f.quote)} />
+          </li>
+        ))}
+      </ol>
+      {figured.length > FIGURED_SHOWN && (
+        <button
+          type="button"
+          onClick={() => setAll(!all)}
+          className="mt-6 inline-flex h-10 items-center rounded-full bg-[#F4F6F8] px-5 text-[0.9rem] font-bold text-[#0B1A2A] hover:bg-[#E8ECF0]"
+        >
+          {all ? 'Replier' : 'Voir tout'}
+        </button>
       )}
     </div>
   )

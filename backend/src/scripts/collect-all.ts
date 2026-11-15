@@ -10,6 +10,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { AssembleeOpenData } from '../adapters/assemblee/assemblee-open-data';
 import { WebProgrammeReader } from '../adapters/programmes/web-programme-reader';
 import { WikimediaPhotos } from '../adapters/wikimedia/wikimedia-photos';
+import { WikidataAccounts } from '../adapters/wikimedia/wikidata-accounts';
 import { YoutubeFeed } from '../adapters/youtube/youtube-feed';
 import configuration from '../config/configuration';
 import { PrismaClient } from '../generated/prisma/client';
@@ -31,6 +32,7 @@ async function main() {
         programmes: new WebProgrammeReader(),
         videos: new YoutubeFeed(),
         photos: new WikimediaPhotos(),
+        accounts: new WikidataAccounts(),
       },
       console,
     );

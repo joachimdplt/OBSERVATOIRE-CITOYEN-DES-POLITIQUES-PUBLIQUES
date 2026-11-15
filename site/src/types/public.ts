@@ -337,6 +337,13 @@ export type CandidateSheet = {
   photo: CandidatePhoto | null
   programme: { documents: number; passages: number }
   topics: { slug: string; name: string; pillar: Pillar; passages: number }[]
+  /** Ses comptes publics, d'après son élément Wikidata. */
+  accounts: {
+    network: 'youtube' | 'instagram' | 'x' | 'tiktok'
+    handle: string
+    url: string
+    source: string
+  }[]
   channels: {
     kind: 'candidate' | 'party' | 'institution'
     name: string

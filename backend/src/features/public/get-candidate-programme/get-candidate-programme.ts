@@ -8,9 +8,6 @@ import {
 import { DocumentKind } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../../prisma/prisma.service';
 
-/** Les passages chiffrés montrés, dans l'ordre du programme. */
-const FIGURED = 12;
-
 /** Un intitulé qui tient lieu d'étape : au moins deux mots. */
 const meaningful = (h: string) =>
   h
@@ -143,9 +140,8 @@ export class GetCandidateProgrammeController {
         others.map((m) => m.quote),
         { exclude: [candidate.name] },
       ),
-      figured: proposals
+      figured: mine
         .filter((m) => isFigured(m.quote))
-        .slice(0, FIGURED)
         .map((m) => ({
           heading: m.article,
           quote: m.quote,

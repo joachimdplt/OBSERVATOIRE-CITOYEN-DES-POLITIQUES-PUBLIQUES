@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { DAILY_HOUR, DAILY_TIME_ZONE } from '../domain/schedule';
+import { collectCandidateAccounts } from '../features/elections/collect-candidate-accounts/collect-candidate-accounts';
 import { collectCandidatePhotos } from '../features/elections/collect-candidate-photos/collect-candidate-photos';
 import { collectParliamentTexts } from '../features/politics/collect-parliament-texts/collect-parliament-texts';
 import { collectProgrammes } from '../features/programmes/collect-programmes/collect-programmes';
@@ -10,6 +11,7 @@ import {
   PARLIAMENT_SOURCE,
   type ParliamentSource,
 } from '../ports/parliament-source';
+import { ACCOUNT_SOURCE, type AccountSource } from '../ports/account-source';
 import { PHOTO_SOURCE, type PhotoSource } from '../ports/photo-source';
 import {
   PROGRAMME_READER,
@@ -36,6 +38,7 @@ export class DailyCollection {
     @Inject(PROGRAMME_READER) private programmes: ProgrammeReader,
     @Inject(VIDEO_FEED) private videos: VideoFeed,
     @Inject(PHOTO_SOURCE) private photos: PhotoSource,
+    @Inject(ACCOUNT_SOURCE) private accounts: AccountSource,
   ) {}
 
   @Cron(`0 ${DAILY_HOUR} * * *`, {
@@ -52,6 +55,7 @@ export class DailyCollection {
         programmes: this.programmes,
         videos: this.videos,
         photos: this.photos,
+        accounts: this.accounts,
       },
       this.log,
     );
@@ -65,6 +69,7 @@ export type CollectionDeps = {
   programmes: ProgrammeReader;
   videos: VideoFeed;
   photos: PhotoSource;
+  accounts: AccountSource;
 };
 
 /** La collecte de chaque source, l'une après l'autre, chacune datée et gardée. */
@@ -110,6 +115,8 @@ export async function runDailyCollection(
   await step('programmes', () =>
     collectProgrammes(prisma, deps.programmes, deps.keep, actor.id),
   );
+  // Les comptes d'abord : une chaîne nouvelle est lue dans la foulée.
+  await step('accounts', () => collectCandidateAccounts(prisma, deps.accounts));
   await step('videos', () => collectVideos(prisma, deps.videos));
   await step('photos', () => collectCandidatePhotos(prisma, deps.photos));
 }

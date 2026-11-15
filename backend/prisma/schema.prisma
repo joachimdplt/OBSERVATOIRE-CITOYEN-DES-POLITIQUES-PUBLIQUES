@@ -712,6 +712,7 @@ model Candidate {
   programmeSources   ProgrammeSource[]
   videoChannels      VideoChannel[]
   videos             VideoCandidate[]
+  accounts           CandidateAccount[]
 
   @@unique([electionId, slug])
   @@map("candidates")
@@ -898,4 +899,30 @@ model CollectionRun {
 
   @@index([kind, startedAt])
   @@map("collection_runs")
+}
+
+/// Un réseau social public.
+enum SocialNetwork {
+  youtube
+  instagram
+  x
+  tiktok
+}
+
+/// Un compte public d'un candidat, d'après une source datée (Wikidata) : le
+/// même relevé pour tous, sans choix à la main.
+model CandidateAccount {
+  id          String        @id @default(uuid())
+  candidateId String
+  network     SocialNetwork
+  /// L'identifiant sur le réseau : nom de compte, ou identifiant de chaîne.
+  handle      String
+  url         String
+  /// D'où vient le compte : l'élément Wikidata du candidat.
+  source      String
+  checkedAt   DateTime      @default(now())
+  candidate   Candidate     @relation(fields: [candidateId], references: [id])
+
+  @@unique([candidateId, network, handle])
+  @@map("candidate_accounts")
 }

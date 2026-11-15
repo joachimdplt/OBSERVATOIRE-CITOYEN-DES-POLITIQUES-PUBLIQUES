@@ -153,9 +153,20 @@ tout ce qu'il a vu.
   des commentaires ; les chaînes des médias.
 - **Non lus** : les vues et les notes des vidéos.
 
-Au 15 novembre 2026 : 15 chaînes (5 de candidats, 8 de partis, 2
-d'institutions) ; aucune chaîne n'est liée depuis les sites du Rassemblement
-national et des Écologistes.
+- **Les comptes des candidats** viennent aussi de leur élément Wikidata
+  (chaîne YouTube P2397, Instagram P2003, X P2002, TikTok P7085), relevés
+  chaque jour ; une chaîne YouTube trouvée là rejoint les chaînes suivies.
+
+Au 15 novembre 2026 : 23 chaînes, des vidéos pour 16 candidats sur 25.
+
+## Le programme d'un candidat, lu en entier
+
+Pour chaque candidat, l'API lit tout son programme, sans rien reformuler :
+sa structure (ses documents et leurs rubriques, dans ses propres titres), son
+vocabulaire propre (les mots qu'il emploie nettement plus que les autres
+programmes, comptés par racine, d'après les outils de texte de seo-factory),
+ses propositions (passages qui commencent par un verbe d'action) et tous ses
+passages chiffrés, cités mot pour mot. Le résumé n'est fait que de comptes.
 
 ## Les photos des candidats
 

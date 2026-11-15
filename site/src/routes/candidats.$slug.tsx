@@ -2,6 +2,8 @@ import { Link, createFileRoute, notFound } from '@tanstack/react-router'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { CandidatePortrait } from '../components/molecules/CandidatePortrait'
 import { LiveBadge } from '../components/molecules/LiveBadge'
+import { Carousel } from '../components/molecules/Carousel'
+import { VideoEmbed } from '../components/molecules/VideoEmbed'
 import { CandidateProgramme } from '../components/organisms/candidates/CandidateProgramme'
 import { getCandidate, getCandidateProgramme } from '../services/public-api'
 import type { CandidateSheet } from '../types/public'
@@ -39,6 +41,13 @@ const STATUS = {
   complete: 'Programme complet',
   partial: 'Documents partiels',
   none: 'Rien de publié',
+} as const
+
+const NETWORKS = {
+  youtube: 'YouTube',
+  instagram: 'Instagram',
+  x: 'X',
+  tiktok: 'TikTok',
 } as const
 
 const LINK = {
@@ -114,15 +123,50 @@ function CandidatePage() {
                   : ''}
               </p>
             )}
+            {c.accounts.length > 0 && (
+              <p className="mt-5 flex flex-wrap items-center gap-2">
+                {c.accounts.map((a) => (
+                  <a
+                    key={`${a.network}-${a.handle}`}
+                    href={a.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={`D’après Wikidata (${a.source.replace('https://www.wikidata.org/wiki/', '')})`}
+                    className="inline-flex h-9 items-center gap-2 rounded-full bg-white px-4 text-[0.88rem] font-bold text-[#0B1A2A] no-underline hover:bg-[#E8ECF0]"
+                  >
+                    {NETWORKS[a.network]}
+                    {a.network !== 'youtube' && (
+                      <span className={`font-semibold ${MUTED}`}>
+                        @{a.handle}
+                      </span>
+                    )}
+                    <ArrowUpRight size={13} />
+                  </a>
+                ))}
+              </p>
+            )}
           </div>
         </div>
       </section>
 
+      <Videos candidate={c} />
       {c.programmeProfile && (
         <CandidateProgramme programme={c.programmeProfile} />
       )}
       <Topics candidate={c} />
-      <Videos candidate={c} />
+      <section className="px-6 pb-16 md:px-10">
+        <div className="mx-auto max-w-[1120px]">
+          <div>
+            <Link
+              to="/"
+              hash="candidats"
+              className="inline-flex h-12 items-center gap-2 rounded-full bg-[#0B1A2A] px-6 font-extrabold text-white no-underline hover:opacity-90"
+            >
+              Tous les candidats <ArrowRight size={17} />
+            </Link>
+          </div>
+        </div>
+      </section>
     </main>
   )
 }
@@ -186,8 +230,8 @@ function Videos({ candidate: c }: { candidate: CandidateSheet }) {
         <p className={`mt-4 max-w-[64ch] leading-relaxed ${MUTED}`}>
           Seulement des sources primaires : sa propre chaîne, celle de son parti
           (les vidéos qui le nomment), et les chaînes de l’Assemblée nationale
-          et du Sénat. Chaque chaîne est celle que donne un site officiel. Aucun
-          reportage, aucun commentaire d’un tiers.
+          et du Sénat. Chaque chaîne est celle que donne un site officiel ou
+          Wikidata. Aucun reportage, aucun commentaire d’un tiers.
         </p>
         {c.channels.length > 0 && (
           <p className={`mt-3 text-[0.9rem] ${MUTED}`}>
@@ -223,44 +267,32 @@ function Videos({ candidate: c }: { candidate: CandidateSheet }) {
               : 'Aucune vidéo collectée pour l’instant.'}
           </p>
         ) : (
-          <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {c.videos.map((v) => (
-              <li key={v.url}>
-                <a
-                  href={v.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group block h-full rounded-[22px] bg-white p-3 no-underline"
-                >
-                  {v.thumbnail && (
-                    <img
-                      src={v.thumbnail}
-                      alt=""
-                      loading="lazy"
-                      className="aspect-video w-full rounded-[16px] bg-[#E8ECF0] object-cover"
-                    />
-                  )}
-                  <p className="mt-3 px-1 leading-snug font-bold text-[#0B1A2A] group-hover:underline">
+          <div className="mt-6">
+            <Carousel>
+              {c.videos.map((v) => (
+                <div key={v.url} className="h-full rounded-[22px] bg-white p-3">
+                  <VideoEmbed
+                    url={v.url}
+                    title={v.title}
+                    thumbnail={v.thumbnail}
+                  />
+                  <a
+                    href={v.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 block px-1 leading-snug font-bold text-[#0B1A2A] no-underline hover:underline"
+                  >
                     {v.title}
-                  </p>
-                  <p className={`mt-1 text-[0.82rem] ${MUTED}`}>
+                  </a>
+                  <p className={`mt-1 px-1 text-[0.82rem] ${MUTED}`}>
                     {frenchDate(v.publishedAt)} · {v.channel.name} ·{' '}
                     {LINK[v.link]}
                   </p>
-                </a>
-              </li>
-            ))}
-          </ul>
+                </div>
+              ))}
+            </Carousel>
+          </div>
         )}
-        <div className="mt-12">
-          <Link
-            to="/"
-            hash="candidats"
-            className="inline-flex h-12 items-center gap-2 rounded-full bg-[#0B1A2A] px-6 font-extrabold text-white no-underline hover:opacity-90"
-          >
-            Tous les candidats <ArrowRight size={17} />
-          </Link>
-        </div>
       </div>
     </section>
   )
