@@ -246,45 +246,53 @@ export function ProgrammePassages({ topic }: { topic: TopicSheet }) {
 
 function CandidateCard({ c, terms }: { c: Candidate; terms: string[] }) {
   const [all, setAll] = useState(false)
+  const card = useRef<HTMLLIElement>(null)
   const shown = all ? c.passages : c.passages.slice(0, SHOWN)
   const rest = c.passages.length - SHOWN
   return (
     <li
+      ref={card}
       id={`candidat-${c.slug}`}
       className="scroll-mt-32 rounded-[28px] bg-white p-5 md:p-8"
     >
-      <div className="flex items-center gap-4">
-        <Avatar c={c} size={64} />
-        <div className="min-w-0 flex-1">
-          <Link
-            to="/candidats/$slug"
-            params={{ slug: c.slug }}
-            className="text-[1.3rem] leading-tight font-extrabold tracking-[-0.02em] text-[#0B1A2A] no-underline hover:underline"
+      {/* L'en-tête du candidat reste en haut de l'écran tant qu'on lit sa
+          carte, sous la barre des étiquettes (téléphone) ou l'en-tête du site. */}
+      <div className="sticky top-[138px] z-[3] -mx-5 -mt-5 rounded-t-[28px] bg-white/95 px-5 pt-5 pb-3 backdrop-blur md:-mx-8 md:-mt-8 md:px-8 md:pt-8 lg:top-[96px]">
+        <div className="flex items-center gap-4">
+          <Avatar c={c} size={64} />
+          <div className="min-w-0 flex-1">
+            <Link
+              to="/candidats/$slug"
+              params={{ slug: c.slug }}
+              className="text-[1.3rem] leading-tight font-extrabold tracking-[-0.02em] text-[#0B1A2A] no-underline hover:underline"
+            >
+              {c.name}
+            </Link>
+            <p className={`mt-0.5 truncate text-[0.88rem] ${MUTED}`}>
+              {c.party}
+            </p>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="text-[1.8rem] leading-none font-extrabold text-[#0B1A2A] tabular-nums">
+              {c.passages.length}
+            </p>
+            <p className={`text-[0.75rem] ${MUTED}`}>
+              passage{c.passages.length > 1 ? 's' : ''}
+            </p>
+          </div>
+        </div>
+        <p className="mt-3">
+          <span
+            className={`inline-flex rounded-full px-2.5 py-0.5 text-[0.72rem] font-bold ${
+              c.programmeStatus === 'complete'
+                ? 'bg-[#0B1A2A] text-white'
+                : 'text-[#0B1A2A] ring-1 ring-[#0B1A2A]/25'
+            }`}
           >
-            {c.name}
-          </Link>
-          <p className={`mt-0.5 truncate text-[0.88rem] ${MUTED}`}>{c.party}</p>
-        </div>
-        <div className="shrink-0 text-right">
-          <p className="text-[1.8rem] leading-none font-extrabold text-[#0B1A2A] tabular-nums">
-            {c.passages.length}
-          </p>
-          <p className={`text-[0.75rem] ${MUTED}`}>
-            passage{c.passages.length > 1 ? 's' : ''}
-          </p>
-        </div>
+            {STATUS[c.programmeStatus]}
+          </span>
+        </p>
       </div>
-      <p className="mt-3">
-        <span
-          className={`inline-flex rounded-full px-2.5 py-0.5 text-[0.72rem] font-bold ${
-            c.programmeStatus === 'complete'
-              ? 'bg-[#0B1A2A] text-white'
-              : 'text-[#0B1A2A] ring-1 ring-[#0B1A2A]/25'
-          }`}
-        >
-          {STATUS[c.programmeStatus]}
-        </span>
-      </p>
 
       <div className="mt-6 space-y-7">
         {groupByChapter(shown).map((g) => (
@@ -326,7 +334,15 @@ function CandidateCard({ c, terms }: { c: Candidate; terms: string[] }) {
       {rest > 0 && (
         <button
           type="button"
-          onClick={() => setAll(!all)}
+          onClick={() => {
+            // En repliant, on revient au début de la carte.
+            if (all)
+              card.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+              })
+            setAll(!all)
+          }}
           className="mt-6 inline-flex h-10 items-center rounded-full bg-[#F4F6F8] px-5 text-[0.9rem] font-bold text-[#0B1A2A] hover:bg-[#E8ECF0]"
         >
           {all
