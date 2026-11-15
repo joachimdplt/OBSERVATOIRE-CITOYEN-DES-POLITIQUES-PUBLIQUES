@@ -56,11 +56,11 @@ function SubjectsPage() {
           </ul>
         </nav>
 
-        <section className="mt-10 max-w-[880px] rounded-[28px] bg-white p-6 md:p-8">
+        <section className="mt-12 rounded-[28px] bg-white p-6 md:p-10">
           <h2 className="text-[1.1rem] font-extrabold text-[#0B1A2A]">
             D’où viennent ces sujets ?
           </h2>
-          <div className={`mt-3 space-y-3 text-[0.95rem] leading-relaxed ${MUTED}`}>
+          <div className={`mt-4 space-y-4 text-justify text-[0.95rem] leading-[1.75] hyphens-auto ${MUTED}`}>
             <p>
               Nous ne les avons pas inventés. Ils viennent d’une liste mise au
               point par des universitaires, le{' '}
