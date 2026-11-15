@@ -39,6 +39,10 @@ export class AddCandidateDto {
   @Type(() => Date) @IsDate() programmeCheckedAt!: Date;
   /** Son élément Wikidata, vérifié par l'équipe : « Q5829 ». */
   @IsOptional() @Matches(/^Q\d+$/) wikidataId?: string;
+  /** Son site de campagne officiel. */
+  @IsOptional()
+  @IsUrl({ protocols: ['https', 'http'], require_protocol: true })
+  website?: string;
 }
 
 /**
@@ -68,6 +72,7 @@ export class AddCandidateController {
         programmeNote: dto.programmeNote?.trim() || null,
         programmeCheckedAt: dto.programmeCheckedAt,
         ...(dto.wikidataId ? { wikidataId: dto.wikidataId } : {}),
+        ...(dto.website ? { website: dto.website } : {}),
       },
       create: {
         electionId: election.id,
@@ -81,6 +86,7 @@ export class AddCandidateController {
         programmeNote: dto.programmeNote?.trim() || null,
         programmeCheckedAt: dto.programmeCheckedAt,
         wikidataId: dto.wikidataId ?? null,
+        website: dto.website ?? null,
         createdById: user.id,
       },
     });

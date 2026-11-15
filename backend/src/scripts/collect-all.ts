@@ -11,6 +11,7 @@ import { AssembleeOpenData } from '../adapters/assemblee/assemblee-open-data';
 import { WebProgrammeReader } from '../adapters/programmes/web-programme-reader';
 import { WikimediaPhotos } from '../adapters/wikimedia/wikimedia-photos';
 import { WikidataAccounts } from '../adapters/wikimedia/wikidata-accounts';
+import { WebsiteAccounts } from '../adapters/web/website-accounts';
 import { YoutubeFeed } from '../adapters/youtube/youtube-feed';
 import configuration from '../config/configuration';
 import { PrismaClient } from '../generated/prisma/client';
@@ -33,6 +34,7 @@ async function main() {
         videos: new YoutubeFeed(),
         photos: new WikimediaPhotos(),
         accounts: new WikidataAccounts(),
+        sites: new WebsiteAccounts(),
       },
       console,
     );

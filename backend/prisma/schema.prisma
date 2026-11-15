@@ -696,6 +696,8 @@ model Candidate {
   programmeCheckedAt DateTime?           @db.Date
   /// L'élément Wikidata du candidat (« Q5829 »), vérifié par l'équipe.
   wikidataId         String?
+  /// Son site de campagne officiel : ses comptes publics y sont relevés.
+  website            String?
   /// Sa photo sous licence libre, venue de Wikimedia Commons, avec son crédit.
   photoUrl           String?
   photoAuthor        String?

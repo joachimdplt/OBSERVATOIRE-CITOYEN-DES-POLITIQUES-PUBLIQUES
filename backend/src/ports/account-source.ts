@@ -12,3 +12,10 @@ export interface AccountSource {
 }
 
 export const ACCOUNT_SOURCE = Symbol('ACCOUNT_SOURCE');
+
+/** Les comptes publics liés depuis un site officiel (ses liens de pied de page). */
+export interface SiteAccountSource {
+  accountsOnSite(url: string): Promise<FoundAccount[]>;
+}
+
+export const SITE_ACCOUNT_SOURCE = Symbol('SITE_ACCOUNT_SOURCE');

@@ -11,7 +11,12 @@ import {
   PARLIAMENT_SOURCE,
   type ParliamentSource,
 } from '../ports/parliament-source';
-import { ACCOUNT_SOURCE, type AccountSource } from '../ports/account-source';
+import {
+  ACCOUNT_SOURCE,
+  SITE_ACCOUNT_SOURCE,
+  type AccountSource,
+  type SiteAccountSource,
+} from '../ports/account-source';
 import { PHOTO_SOURCE, type PhotoSource } from '../ports/photo-source';
 import {
   PROGRAMME_READER,
@@ -39,6 +44,7 @@ export class DailyCollection {
     @Inject(VIDEO_FEED) private videos: VideoFeed,
     @Inject(PHOTO_SOURCE) private photos: PhotoSource,
     @Inject(ACCOUNT_SOURCE) private accounts: AccountSource,
+    @Inject(SITE_ACCOUNT_SOURCE) private sites: SiteAccountSource,
   ) {}
 
   @Cron(`0 ${DAILY_HOUR} * * *`, {
@@ -56,6 +62,7 @@ export class DailyCollection {
         videos: this.videos,
         photos: this.photos,
         accounts: this.accounts,
+        sites: this.sites,
       },
       this.log,
     );
@@ -70,6 +77,7 @@ export type CollectionDeps = {
   videos: VideoFeed;
   photos: PhotoSource;
   accounts: AccountSource;
+  sites: SiteAccountSource;
 };
 
 /** La collecte de chaque source, l'une après l'autre, chacune datée et gardée. */
@@ -116,7 +124,9 @@ export async function runDailyCollection(
     collectProgrammes(prisma, deps.programmes, deps.keep, actor.id),
   );
   // Les comptes d'abord : une chaîne nouvelle est lue dans la foulée.
-  await step('accounts', () => collectCandidateAccounts(prisma, deps.accounts));
+  await step('accounts', () =>
+    collectCandidateAccounts(prisma, deps.accounts, deps.sites),
+  );
   await step('videos', () => collectVideos(prisma, deps.videos));
   await step('photos', () => collectCandidatePhotos(prisma, deps.photos));
 }

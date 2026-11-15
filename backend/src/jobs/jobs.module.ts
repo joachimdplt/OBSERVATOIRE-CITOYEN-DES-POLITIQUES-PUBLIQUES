@@ -4,7 +4,8 @@ import { AssembleeOpenData } from '../adapters/assemblee/assemblee-open-data';
 import { WebProgrammeReader } from '../adapters/programmes/web-programme-reader';
 import { WikimediaPhotos } from '../adapters/wikimedia/wikimedia-photos';
 import { WikidataAccounts } from '../adapters/wikimedia/wikidata-accounts';
-import { ACCOUNT_SOURCE } from '../ports/account-source';
+import { ACCOUNT_SOURCE, SITE_ACCOUNT_SOURCE } from '../ports/account-source';
+import { WebsiteAccounts } from '../adapters/web/website-accounts';
 import { YoutubeFeed } from '../adapters/youtube/youtube-feed';
 import { PARLIAMENT_SOURCE } from '../ports/parliament-source';
 import { PHOTO_SOURCE } from '../ports/photo-source';
@@ -24,6 +25,7 @@ import { DailyCollection } from './daily-collection';
     { provide: VIDEO_FEED, useClass: YoutubeFeed },
     { provide: PHOTO_SOURCE, useClass: WikimediaPhotos },
     { provide: ACCOUNT_SOURCE, useClass: WikidataAccounts },
+    { provide: SITE_ACCOUNT_SOURCE, useClass: WebsiteAccounts },
   ],
   exports: [DailyCollection],
 })
