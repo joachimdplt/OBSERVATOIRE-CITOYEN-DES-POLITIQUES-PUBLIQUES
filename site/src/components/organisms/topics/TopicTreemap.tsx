@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { motion, useReducedMotion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import type { TopicList } from '../../../types/public'
@@ -187,6 +187,7 @@ function TopicCell({
             {people.map(({ x, y, w, h, item: c }) => (
               <Person
                 key={c.slug}
+                topic={topic.slug}
                 person={c}
                 x={x}
                 y={y}
@@ -203,6 +204,7 @@ function TopicCell({
 }
 
 function Person({
+  topic,
   person: c,
   x,
   y,
@@ -210,6 +212,7 @@ function Person({
   h,
   px,
 }: {
+  topic: string
   person: Candidate
   x: number
   y: number
@@ -217,6 +220,7 @@ function Person({
   h: number
   px: { w: number; h: number }
 }) {
+  const navigate = useNavigate()
   const named = px.w > 90 && px.h > 60
   const counted = px.w > 30 && px.h > 30
   return (
@@ -229,6 +233,17 @@ function Person({
         height: `${h * 100}%`,
       }}
       title={`${c.name} : ${c.passages} passage${c.passages > 1 ? 's' : ''}`}
+      // La photo ouvre le sujet directement sur les passages de ce candidat.
+      onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        void navigate({
+          to: '/enjeux/$slug',
+          params: { slug: topic },
+          hash: `candidat-${c.slug}`,
+          hashScrollIntoView: false,
+        })
+      }}
     >
       <div className="relative size-full overflow-hidden rounded-[10px] bg-[#E8ECF0]">
         {c.photo ? (

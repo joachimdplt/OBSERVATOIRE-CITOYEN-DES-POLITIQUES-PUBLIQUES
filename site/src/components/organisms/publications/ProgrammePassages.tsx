@@ -4,7 +4,11 @@ import { useEffect, useRef, useState } from 'react'
 import type { TopicSheet } from '../../../types/public'
 import { frenchDate } from '../../../utils/date'
 import { meaningfulHeading } from '../../../utils/highlight'
-import { goTo } from '../../../utils/scroll'
+import {
+  goTo,
+  scrollToHashedCandidate,
+  smoothScrollTo,
+} from '../../../utils/scroll'
 import { QuoteText } from '../../molecules/QuoteText'
 import { CandidateMosaic } from '../topics/CandidateMosaic'
 
@@ -109,6 +113,10 @@ export function ProgrammePassages({ topic }: { topic: TopicSheet }) {
     }
     return () => observer.disconnect()
   }, [speaking])
+  // Arrivé par la photo d'un candidat dans la mosaïque des sujets.
+  useEffect(() => {
+    scrollToHashedCandidate()
+  }, [])
   // Sur téléphone, l'étiquette du candidat lu reste visible dans la barre.
   useEffect(() => {
     bar.current
@@ -336,11 +344,7 @@ function CandidateCard({ c, terms }: { c: Candidate; terms: string[] }) {
           type="button"
           onClick={() => {
             // En repliant, on revient au début de la carte.
-            if (all)
-              card.current?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start',
-              })
+            if (all && card.current) smoothScrollTo(card.current)
             setAll(!all)
           }}
           className="mt-6 inline-flex h-10 items-center rounded-full bg-[#F4F6F8] px-5 text-[0.9rem] font-bold text-[#0B1A2A] hover:bg-[#E8ECF0]"
