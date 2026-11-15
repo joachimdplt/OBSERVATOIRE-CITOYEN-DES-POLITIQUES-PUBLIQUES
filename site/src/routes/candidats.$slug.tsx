@@ -1,7 +1,9 @@
 import { Link, createFileRoute, notFound } from '@tanstack/react-router'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { CandidatePortrait } from '../components/molecules/CandidatePortrait'
-import { getCandidate } from '../services/public-api'
+import { LiveBadge } from '../components/molecules/LiveBadge'
+import { CandidateProgramme } from '../components/organisms/candidates/CandidateProgramme'
+import { getCandidate, getCandidateProgramme } from '../services/public-api'
 import type { CandidateSheet } from '../types/public'
 import { frenchDate } from '../utils/date'
 import { seo } from '../utils/seo'
@@ -10,11 +12,14 @@ const ELECTION = 'presidentielle-2027'
 
 export const Route = createFileRoute('/candidats/$slug')({
   loader: async ({ params }) => {
-    const candidate = await getCandidate({
-      data: { election: ELECTION, slug: params.slug },
-    })
+    const [candidate, programme] = await Promise.all([
+      getCandidate({ data: { election: ELECTION, slug: params.slug } }),
+      getCandidateProgramme({
+        data: { election: ELECTION, slug: params.slug },
+      }).catch(() => null),
+    ])
     if (!candidate) throw notFound()
-    return candidate
+    return { ...candidate, programmeProfile: programme }
   },
   head: ({ loaderData }) => ({
     meta: seo({
@@ -58,8 +63,11 @@ function CandidatePage() {
             className="w-[180px] md:w-full"
           />
           <div>
-            <p className={`text-sm font-semibold ${MUTED}`}>
+            <p
+              className={`flex flex-wrap items-center gap-3 text-sm font-semibold ${MUTED}`}
+            >
               {c.election.name}
+              <LiveBadge />
             </p>
             <h1
               className={`${DISPLAY} mt-3 text-[clamp(2.4rem,6vw,4rem)] leading-[1.05]`}
@@ -110,6 +118,9 @@ function CandidatePage() {
         </div>
       </section>
 
+      {c.programmeProfile && (
+        <CandidateProgramme programme={c.programmeProfile} />
+      )}
       <Topics candidate={c} />
       <Videos candidate={c} />
     </main>

@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
-import { useState  } from 'react'
-import type {ReactNode} from 'react';
+import { useState } from 'react'
+import type { ReactNode } from 'react'
 import type { ElectionSheet, ProgrammeStatus } from '../../../types/public'
 import { CandidatePortrait } from '../../molecules/CandidatePortrait'
 

@@ -4,6 +4,7 @@ import { z } from 'zod'
 import type { MapValue } from '../domain/classes'
 import { shuffleAvoidingFirst } from '../utils/shuffle'
 import type {
+  CandidateProgramme,
   CandidateSheet,
   Updates,
   ElectionSheet,
@@ -173,3 +174,11 @@ export const getElectionShuffled = createServerFn({ method: 'GET' })
 export const getUpdates = createServerFn({ method: 'GET' }).handler(() =>
   get<Updates>('/updates'),
 )
+
+export const getCandidateProgramme = createServerFn({ method: 'GET' })
+  .validator(z.object({ election: z.string(), slug: z.string() }))
+  .handler(({ data }) =>
+    get<CandidateProgramme>(
+      `/elections/${encodeURIComponent(data.election)}/candidates/${encodeURIComponent(data.slug)}/programme`,
+    ),
+  )

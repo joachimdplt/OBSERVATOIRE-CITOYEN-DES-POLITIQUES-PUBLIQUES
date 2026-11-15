@@ -366,3 +366,28 @@ export type Updates = {
     ok: boolean | null
   }[]
 }
+
+/** Le programme d'un candidat, lu en entier : compté et cité, jamais reformulé. */
+export type CandidateProgramme = {
+  summary: {
+    documents: number
+    passages: number
+    proposals: number
+    figured: number
+    covered: number
+    topTopics: { slug: string; name: string; passages: number }[]
+  }
+  outline: {
+    title: string
+    url: string
+    fetchedAt: string | null
+    passages: number
+    headings: { heading: string; passages: number }[]
+  }[]
+  vocabulary: { word: string; count: number; ratio: number }[]
+  figured: {
+    heading: string
+    quote: string
+    document: { title: string; url: string }
+  }[]
+}

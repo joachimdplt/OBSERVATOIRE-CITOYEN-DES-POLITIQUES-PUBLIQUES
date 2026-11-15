@@ -75,7 +75,16 @@ export class GetCandidateProgrammeController {
       orderBy: { position: 'asc' },
     });
     const ownIds = new Set(own.map((d) => d.id));
-    const mine = measures.filter((m) => ownIds.has(m.documentId));
+    // Dans l'ordre du programme : ses documents tels que collectés, puis le
+    // rang de chaque passage dans son document.
+    const docRank = new Map(own.map((d, i) => [d.id, i]));
+    const mine = measures
+      .filter((m) => ownIds.has(m.documentId))
+      .sort(
+        (a, b) =>
+          (docRank.get(a.documentId) ?? 0) - (docRank.get(b.documentId) ?? 0) ||
+          (a.position ?? 0) - (b.position ?? 0),
+      );
     const others = measures.filter((m) => !ownIds.has(m.documentId));
 
     // La structure : chaque document, puis ses rubriques dans l'ordre.
