@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { nearestCorrections, type Correction } from '../../domain/corrections';
 import type {
   GridTopic,
   TopicChoice,
@@ -11,7 +12,7 @@ const URL = process.env.OLLAMA_URL ?? 'http://localhost:11434';
 const SYSTEM =
   'Tu ranges des extraits de programmes politiques français dans la grille du Comparative Agendas Project (CAP). ' +
   'Tu choisis le grand sujet dont l’extrait parle principalement, d’après les mesures proposées, pas d’après les mots employés. ' +
-  'Tu ne juges pas, tu ne résumes pas, tu ne donnes aucune position. Tu réponds uniquement par le code.';
+  'Tu ne juges pas, tu ne résumes pas, tu ne donnes aucune position. Tu réponds uniquement par le code. Les réponses déjà données ont été vérifiées par l’équipe : suis-les pour des extraits semblables.';
 
 /**
  * Le classeur local servi par Ollama (Qwen3 par défaut, licence Apache 2.0) :
@@ -24,7 +25,11 @@ const SYSTEM =
 export class OllamaTopicClassifier implements TopicClassifier {
   readonly model = process.env.CLASSIFIER_MODEL ?? 'qwen3:8b';
 
-  async classify(grid: GridTopic[], units: UnitText[]): Promise<TopicChoice[]> {
+  async classify(
+    grid: GridTopic[],
+    units: UnitText[],
+    corrections: Correction[] = [],
+  ): Promise<TopicChoice[]> {
     // Chaque grand sujet en français, avec ses sous-sujets en exemples :
     // des extraits français se rangent mieux dans une grille en français
     // (19 bons sur 26 extraits relus, contre 15 avec les intitulés anglais).
@@ -37,10 +42,28 @@ export class OllamaTopicClassifier implements TopicClassifier {
             .join(', ')}`,
       )
       .join('\n');
+    // La grille dans la consigne, la même pour tous les extraits : Ollama
+    // la garde en mémoire d'un extrait à l'autre.
+    const system = `${SYSTEM}\n\nGrands sujets (code — intitulé : sous-sujets) :\n${majors}`;
+    const ask = (text: string) =>
+      `Extrait :\n« ${text} »\n\nQuel est le grand sujet principal de cet extrait ?`;
     const out: TopicChoice[] = [];
     for (const unit of units) {
+      // Les erreurs déjà corrigées par l'équipe, les plus proches de cet
+      // extrait, posées comme des réponses déjà données.
+      const examples = nearestCorrections(unit.text, corrections).flatMap(
+        (c) => [
+          {
+            role: 'user',
+            content: `${ask(c.text.slice(0, 600))}${c.reason ? `\n(Note de l’équipe : ${c.reason})` : ''}`,
+          },
+          { role: 'assistant', content: JSON.stringify({ code: c.code }) },
+        ],
+      );
       const major = await this.choose(
-        `Grands sujets (code — intitulé : sous-sujets) :\n${majors}\n\nExtrait :\n« ${unit.text} »\n\nQuel est le grand sujet principal de cet extrait ?`,
+        system,
+        examples,
+        ask(unit.text),
         grid.map((t) => t.code),
       );
       out.push({ id: unit.id, code: major });
@@ -49,7 +72,12 @@ export class OllamaTopicClassifier implements TopicClassifier {
   }
 
   /** Une question, et une réponse contrainte à l'un des codes donnés. */
-  private async choose(question: string, codes: string[]) {
+  private async choose(
+    system: string,
+    examples: { role: string; content: string }[],
+    question: string,
+    codes: string[],
+  ) {
     const res = await fetch(`${URL}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -65,7 +93,8 @@ export class OllamaTopicClassifier implements TopicClassifier {
           required: ['code'],
         },
         messages: [
-          { role: 'system', content: SYSTEM },
+          { role: 'system', content: system },
+          ...examples,
           { role: 'user', content: question },
         ],
       }),

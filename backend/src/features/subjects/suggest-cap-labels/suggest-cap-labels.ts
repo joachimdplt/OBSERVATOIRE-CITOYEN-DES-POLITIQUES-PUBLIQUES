@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { Controller, HttpCode, Inject, Post, UseGuards } from '@nestjs/common';
 import { Requires, SessionGuard } from '../../../auth/session.guard';
 import { isVagueHeading } from '../../../domain/cap';
+import type { Correction } from '../../../domain/corrections';
 import { currentCaptures } from '../../../domain/programme';
 import {
   DocumentKind,
@@ -134,6 +135,39 @@ export async function suggestCapLabels(
     grouped.set(key, g);
   }
 
+  // Les corrections de l'équipe : chaque chapitre ou bloc rangé à la main,
+  // avec son texte et sa raison. Le modèle voit les plus proches de chaque
+  // extrait avant de le ranger, et ne refait pas une erreur déjà corrigée.
+  const corrections: Correction[] = (
+    await prisma.capLabel.findMany({
+      where: { origin: LabelOrigin.person, status: LabelStatus.validated },
+      select: {
+        candidateId: true,
+        documentUrl: true,
+        heading: true,
+        fromPosition: true,
+        capCode: true,
+        reason: true,
+      },
+    })
+  ).flatMap((l) => {
+    const g = grouped.get(`${l.candidateId}\n${l.documentUrl}\n${l.heading}`);
+    if (!g) return [];
+    const from = l.fromPosition;
+    const passages = g.passages.filter(
+      (p) => from === null || p.position >= from,
+    );
+    return [
+      {
+        text: [g.heading, ...passages.slice(0, 3).map((p) => p.quote)].join(
+          '\n',
+        ),
+        code: l.capCode,
+        reason: l.reason,
+      },
+    ];
+  });
+
   // Puis les unités à ranger : un chapitre entier, ou, s'il est long, chacun
   // de ses blocs ; un long chapitre peut ainsi entrer dans plusieurs sujets.
   const chapters = new Map<
@@ -213,6 +247,7 @@ export async function suggestCapLabels(
     const choices = await classifier.classify(
       grid,
       batch.map(([id, c]) => ({ id, text: c.text.slice(0, CHAPTER_TEXT) })),
+      corrections,
     );
     const byId = new Map(batch);
     for (const choice of choices) {

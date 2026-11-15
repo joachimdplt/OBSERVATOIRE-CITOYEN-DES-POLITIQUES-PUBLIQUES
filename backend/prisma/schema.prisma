@@ -1161,6 +1161,9 @@ model CapLabel {
   proposedAt  DateTime    @default(now())
   decidedById String?
   decidedAt   DateTime?
+  /// Pourquoi une personne a rangé ou retiré ce chapitre, en une phrase :
+  /// le modèle la lit avec l'exemple corrigé.
+  reason      String?
   candidate   Candidate   @relation(fields: [candidateId], references: [id])
   topic       CapTopic    @relation(fields: [capCode], references: [code])
   decidedBy   User?       @relation("LabelDecidedBy", fields: [decidedById], references: [id])
@@ -1168,4 +1171,18 @@ model CapLabel {
   @@unique([candidateId, documentUrl, heading, capCode])
   @@index([capCode, status])
   @@map("cap_labels")
+}
+
+/// Le vecteur d'un passage : son sens, en nombres, calculé une fois par un
+/// modèle local. Deux passages qui parlent de la même chose ont des vecteurs
+/// proches, même sans mot commun. Le passage lui-même ne change jamais.
+model PassageVector {
+  measureId String   @id
+  /// Le modèle qui l'a calculé (bge-m3) : un autre modèle, d'autres vecteurs.
+  model     String
+  /// Les nombres, en float32 à la suite.
+  vector    Bytes
+  createdAt DateTime @default(now())
+
+  @@map("passage_vectors")
 }

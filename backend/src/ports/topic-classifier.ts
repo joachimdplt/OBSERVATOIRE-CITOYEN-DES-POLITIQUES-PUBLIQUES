@@ -1,3 +1,5 @@
+import type { Correction } from '../domain/corrections';
+
 /** Un grand sujet de la grille, avec ses sous-sujets et leurs définitions. */
 export type GridTopic = {
   code: string;
@@ -24,7 +26,15 @@ export type TopicChoice = { id: string; code: string | null };
 export interface TopicClassifier {
   /** Le modèle utilisé, pour dire d'où vient chaque rangement. */
   readonly model: string;
-  classify(grid: GridTopic[], units: UnitText[]): Promise<TopicChoice[]>;
+  /**
+   * Les corrections de l'équipe lui servent d'exemples : il voit les plus
+   * proches de chaque texte avant de le ranger.
+   */
+  classify(
+    grid: GridTopic[],
+    units: UnitText[],
+    corrections?: Correction[],
+  ): Promise<TopicChoice[]>;
 }
 
 export const TOPIC_CLASSIFIER = Symbol('TOPIC_CLASSIFIER');
