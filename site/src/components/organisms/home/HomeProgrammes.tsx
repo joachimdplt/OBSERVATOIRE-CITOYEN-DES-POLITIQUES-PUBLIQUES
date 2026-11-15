@@ -1,5 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
+import { useState  } from 'react'
+import type {ReactNode} from 'react';
 import type { ElectionSheet, ProgrammeStatus } from '../../../types/public'
 import { CandidatePortrait } from '../../molecules/CandidatePortrait'
 
@@ -22,6 +24,11 @@ const STATES: { status: ProgrammeStatus; count: string; one: string }[] = [
  */
 export function HomeProgrammes({ election }: { election: ElectionSheet }) {
   const { candidates } = election
+  // Un filtre par état du programme ; un second clic le retire.
+  const [only, setOnly] = useState<ProgrammeStatus | null>(null)
+  const shown = only
+    ? candidates.filter((c) => c.programmeStatus === only)
+    : candidates
   const count = (s: ProgrammeStatus) =>
     candidates.filter((c) => c.programmeStatus === s).length
 
@@ -35,16 +42,23 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
           Ordre tiré au hasard à chaque visite. Photos sous licence libre,
           créditées sur la page de chaque candidat.
         </p>
-        <p className="mt-4 flex flex-wrap gap-2 text-[0.9rem] font-semibold text-[#0B1A2A]">
+        <div className="mt-4 flex flex-wrap gap-2 text-[0.9rem] font-semibold">
+          <Chip active={only === null} onClick={() => setOnly(null)}>
+            Tous · {candidates.length}
+          </Chip>
           {STATES.map((s) => (
-            <span key={s.status} className="rounded-full bg-white px-3 py-1">
+            <Chip
+              key={s.status}
+              active={only === s.status}
+              onClick={() => setOnly(only === s.status ? null : s.status)}
+            >
               {count(s.status)} {s.count}
-            </span>
+            </Chip>
           ))}
-        </p>
+        </div>
 
         <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
-          {candidates.map((c) => {
+          {shown.map((c) => {
             const state = STATES.find((s) => s.status === c.programmeStatus)
             return (
               <li key={c.slug} className="min-w-0">
@@ -90,5 +104,31 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
         </div>
       </div>
     </section>
+  )
+}
+
+/** Une pastille de filtre : pleine quand elle est choisie. */
+function Chip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`h-9 rounded-full px-4 transition-colors ${
+        active
+          ? 'bg-[#0B1A2A] text-white'
+          : 'bg-white text-[#0B1A2A] hover:bg-[#E8ECF0]'
+      }`}
+    >
+      {children}
+    </button>
   )
 }
