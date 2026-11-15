@@ -1,6 +1,10 @@
 import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
 import { currentCaptures } from '../../../domain/programme';
 import { DocumentKind, LabelStatus } from '../../../generated/prisma/enums';
+import {
+  subjectChapters,
+  type SubjectChapter,
+} from '../../../domain/subject-chapters';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 /** Les premiers passages cités sous chaque chapitre. */
@@ -72,29 +76,43 @@ export class GetSubjectController {
       orderBy: { name: 'asc' },
     });
 
-    const byCandidate = new Map<
-      string,
-      {
-        heading: string;
-        document: { title: string; url: string };
-        excerpt: { quote: string; page: number | null }[];
-      }[]
-    >();
-    for (const l of labels) {
-      const d = live.get(l.documentUrl);
-      if (!d) continue;
-      const passages = await this.prisma.measure.findMany({
-        where: { documentId: d.id, article: l.heading },
-        select: { quote: true, page: true },
-        orderBy: { position: 'asc' },
-        take: EXCERPT,
-      });
+    const byCandidate = new Map<string, SubjectChapter[]>();
+    // Tous les passages des chapitres rangés, en une seule requête ; les
+    // premiers de chaque chapitre seulement.
+    const wanted = labels.filter((l) => live.has(l.documentUrl));
+    const measures = await this.prisma.measure.findMany({
+      where: {
+        documentId: {
+          in: [...new Set(wanted.map((l) => live.get(l.documentUrl)!.id))],
+        },
+        article: { in: [...new Set(wanted.map((l) => l.heading))] },
+      },
+      select: {
+        documentId: true,
+        article: true,
+        quote: true,
+        page: true,
+        position: true,
+      },
+      orderBy: { position: 'asc' },
+    });
+    const passagesOf = new Map<string, typeof measures>();
+    for (const m of measures) {
+      const key = `${m.documentId}\n${m.article}`;
+      const list = passagesOf.get(key) ?? [];
+      if (list.length < EXCERPT) list.push(m);
+      passagesOf.set(key, list);
+    }
+    for (const l of wanted) {
+      const d = live.get(l.documentUrl)!;
+      const passages = passagesOf.get(`${d.id}\n${l.heading}`) ?? [];
       if (passages.length === 0) continue;
       const list = byCandidate.get(l.candidateId) ?? [];
       list.push({
         heading: l.heading,
         document: { title: d.title, url: d.url ?? '' },
-        excerpt: passages,
+        excerpt: passages.map((p) => ({ quote: p.quote, page: p.page })),
+        position: passages[0].position ?? 0,
       });
       byCandidate.set(l.candidateId, list);
     }
@@ -118,7 +136,7 @@ export class GetSubjectController {
           // pour qu'une citation ne passe pas pour plus qu'elle n'est.
           programmeStatus: c.programmeStatus,
           programmeNote: c.programmeNote,
-          chapters: byCandidate.get(c.id)!,
+          chapters: subjectChapters(byCandidate.get(c.id)!),
         })),
       without: candidates
         .filter((c) => !byCandidate.has(c.id))
