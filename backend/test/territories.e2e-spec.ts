@@ -1,11 +1,10 @@
 import { INestApplication } from '@nestjs/common';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import request from 'supertest';
 import { readCog } from '../src/adapters/cog/read-cog';
 import { loadCogVintage } from '../src/features/territories/load-cog-vintage/load-cog-vintage';
 import { PrismaService } from '../src/prisma/prisma.service';
-import { emptyDatabase, http, startApi } from './harness';
+import { emptyDatabase, reader, startApi } from './harness';
 
 type TerritoryView = {
   name: string;
@@ -42,7 +41,7 @@ describe('les territoires officiels', () => {
   afterAll(() => app?.close());
 
   const get = (path: string) =>
-    request(http(app)).get(`/api/public/territories/${path}`);
+    reader(app).get(`/api/public/territories/${path}`);
   const view = (res: { body: unknown }) => res.body as TerritoryView;
 
   it('un visiteur retrouve une commune, son département et sa région', async () => {

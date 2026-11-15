@@ -46,6 +46,7 @@ model User {
   programmeSources     ProgrammeSource[]
   topics               Topic[]
   videoChannels        VideoChannel[]
+  apiKeys              ApiKey[]
   measures             Measure[]
 
   @@map("users")
@@ -860,4 +861,22 @@ model VideoCandidate {
 
   @@id([videoId, candidateId])
   @@map("video_candidates")
+}
+
+/// Une clé d'accès à l'API publique, donnée par l'équipe à un lecteur
+/// nommé. Seule son empreinte est gardée ; une clé retirée ne lit plus rien.
+model ApiKey {
+  id          String    @id @default(uuid())
+  /// À qui la clé a été donnée, et pour quel usage.
+  label       String
+  /// Les premiers signes de la clé, pour la reconnaître sans la garder.
+  prefix      String
+  keyHash     String    @unique
+  createdById String
+  createdAt   DateTime  @default(now())
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+  createdBy   User      @relation(fields: [createdById], references: [id])
+
+  @@map("api_keys")
 }

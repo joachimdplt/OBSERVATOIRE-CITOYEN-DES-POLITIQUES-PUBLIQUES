@@ -22,11 +22,15 @@ import type {
  */
 const API = process.env.API_ORIGIN ?? 'http://localhost:3001'
 
+/** La clé du site pour lire l'API publique ; elle ne quitte pas le serveur. */
+const API_KEY = process.env.SITE_API_KEY ?? ''
+
 /** Au-delà, la page dit que les données sont indisponibles plutôt que d'attendre. */
 const TIMEOUT_MS = 5000
 
 async function get<T>(path: string): Promise<T | null> {
   const res = await fetch(`${API}/api/public${path}`, {
+    headers: { 'X-Api-Key': API_KEY },
     signal: AbortSignal.timeout(TIMEOUT_MS),
   })
   if (res.status === 404) return null

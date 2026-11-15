@@ -1,5 +1,3 @@
-import { SOURCE_CODE } from './project'
-
 /**
  * La page des développeurs : la construction technique et l'API publique.
  * Chaque route décrite existe dans backend/src/features/public ; l'exemple de
@@ -8,9 +6,7 @@ import { SOURCE_CODE } from './project'
 export const DEVELOPERS = {
   hero: {
     title: 'Développeurs [[et API]]',
-    lead: 'Les données publiées se lisent par une API publique, sans compte ni clé. Le code est libre, sous licence AGPL-3.0.',
-    cta: 'Voir le code source',
-    href: SOURCE_CODE,
+    lead: 'Les données publiées se lisent par une API, avec une clé d’accès donnée par l’équipe. Le code n’est pas public.',
   },
 
   architecture: {
@@ -33,7 +29,7 @@ export const DEVELOPERS = {
         name: 'backend/',
         role: 'L’API',
         stack:
-          'NestJS 11, Prisma 7, PostgreSQL 17 ; /api/public sans compte, /api/admin par session',
+          'NestJS 11, Prisma 7, PostgreSQL 17 ; /api/public avec une clé, /api/admin par session',
       },
     ],
   },
@@ -98,12 +94,12 @@ export const DEVELOPERS = {
         label: 'Lu automatiquement à la source',
       },
     ],
-    doc: 'Le détail est dans docs/05-alimentation.md, dans le dépôt.',
+    doc: 'Le détail est dans la documentation interne du projet.',
   },
 
   api: {
     title: 'L’API [[publique]]',
-    lead: 'Lecture seule, en JSON, ouverte à toute origine. L’adresse de production sera donnée au lancement ; en local : http://localhost:3001.',
+    lead: 'Lecture seule, en JSON, depuis n’importe quel site, avec une clé dans l’en-tête X-Api-Key. Les clés se demandent depuis l’espace membre (à venir). En local : http://localhost:3001.',
     routes: [
       {
         path: '/api/public/indicators',
@@ -242,8 +238,11 @@ export const DEVELOPERS = {
   licences: {
     title: 'Licences',
     items: [
-      { label: 'Code', text: 'AGPL-3.0' },
-      { label: 'Contenus de l’observatoire', text: 'CC BY-SA 4.0' },
+      { label: 'Code', text: 'tous droits réservés' },
+      {
+        label: 'Contenus de l’observatoire',
+        text: 'CC BY-NC-SA 4.0 : reprise avec crédit, pas d’usage commercial sans accord',
+      },
       {
         label: 'Données',
         text: 'la licence de leur producteur, donnée avec chaque valeur',

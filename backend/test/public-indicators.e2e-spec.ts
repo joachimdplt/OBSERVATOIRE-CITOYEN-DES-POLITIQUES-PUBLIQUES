@@ -1,12 +1,11 @@
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 import TestAgent from 'supertest/lib/agent';
 import { Role } from '../src/generated/prisma/enums';
 import { PrismaService } from '../src/prisma/prisma.service';
 import {
   createMember,
   emptyDatabase,
-  http,
+  reader,
   signedIn,
   startApi,
 } from './harness';
@@ -79,7 +78,7 @@ describe('le public consulte un indicateur', () => {
   });
   afterAll(() => app?.close());
 
-  const visitor = () => request(http(app));
+  const visitor = () => reader(app);
   const preprinted = async (vintage: string, value: string) => {
     const { versionId } = await validatedVersion(
       founder,
@@ -135,7 +134,7 @@ describe('le public consulte un indicateur', () => {
         reviewedBy: null,
       },
       licenses: {
-        content: { name: 'CC BY-SA 4.0' },
+        content: { name: 'CC BY-NC-SA 4.0' },
         data: { name: 'Licence Ouverte v2.0' },
         sourceCode: { license: 'AGPL-3.0' },
       },

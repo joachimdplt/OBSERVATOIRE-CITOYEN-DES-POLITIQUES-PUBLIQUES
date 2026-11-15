@@ -1,14 +1,13 @@
 import { INestApplication } from '@nestjs/common';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import request from 'supertest';
 import TestAgent from 'supertest/lib/agent';
 import { Role } from '../src/generated/prisma/enums';
 import { PrismaService } from '../src/prisma/prisma.service';
 import {
   createMember,
   emptyDatabase,
-  http,
+  reader,
   signedIn,
   startApi,
 } from './harness';
@@ -105,7 +104,7 @@ describe('le vrai fichier de l’APL de la DREES passe tout le circuit', () => {
       .post(`/api/admin/versions/${version.id}/preprint`)
       .expect(200);
     const { observations } = (
-      await request(http(app))
+      await reader(app)
         .get('/api/public/indicators/apl-medecins-generalistes/observations')
         .expect(200)
     ).body as Values;

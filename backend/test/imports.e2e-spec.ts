@@ -2,14 +2,13 @@ import { INestApplication } from '@nestjs/common';
 import ExcelJS from 'exceljs';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import request from 'supertest';
 import TestAgent from 'supertest/lib/agent';
 import { Role } from '../src/generated/prisma/enums';
 import { PrismaService } from '../src/prisma/prisma.service';
 import {
   createMember,
   emptyDatabase,
-  http,
+  reader,
   signedIn,
   startApi,
 } from './harness';
@@ -216,7 +215,7 @@ describe('l’équipe dépose le fichier d’un producteur', () => {
   });
 
   it('sans session, rien ne se dépose', async () => {
-    await request(http(app))
+    await reader(app)
       .post(`/api/admin/datasets/${datasetId}/versions`)
       .attach('file', CSV_2024, 'apl.csv')
       .expect(401);

@@ -1,4 +1,5 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { ApiKeyMiddleware } from '../../api-access/api-key.middleware';
 import { GetIndicatorController } from './get-indicator/get-indicator';
 import { GetIndicatorMapController } from './get-indicator-map/get-indicator-map';
 import { GetTerritoryController } from './get-territory/get-territory';
@@ -14,24 +15,31 @@ import { ListTopicsController } from './list-topics/list-topics';
 import { SearchTerritoriesController } from './search-territories/search-territories';
 
 /**
- * Ce que lit le public, sans compte. Aucune route d'écriture, aucun accès aux
- * fichiers bruts ni aux comptes (vérifié par architecture.spec.ts).
+ * Ce que lit le public, avec une clé d'API. Aucune route d'écriture, aucun
+ * accès aux fichiers bruts ni aux comptes (vérifié par architecture.spec.ts).
  */
+const CONTROLLERS = [
+  GetTerritoryController,
+  SearchTerritoriesController,
+  ListTerritoryValuesController,
+  ListIndicatorsController,
+  ListPublicationsPublicController,
+  GetPublicationController,
+  GetElectionController,
+  GetCandidateController,
+  ListTopicsController,
+  GetTopicController,
+  GetIndicatorController,
+  GetIndicatorMapController,
+  ListIndicatorObservationsController,
+];
+
 @Module({
-  controllers: [
-    GetTerritoryController,
-    SearchTerritoriesController,
-    ListTerritoryValuesController,
-    ListIndicatorsController,
-    ListPublicationsPublicController,
-    GetPublicationController,
-    GetElectionController,
-    GetCandidateController,
-    ListTopicsController,
-    GetTopicController,
-    GetIndicatorController,
-    GetIndicatorMapController,
-    ListIndicatorObservationsController,
-  ],
+  controllers: CONTROLLERS,
 })
-export class PublicModule {}
+export class PublicModule implements NestModule {
+  // Toute lecture publique demande une clé (celle du site, ou une clé donnée).
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(ApiKeyMiddleware).forRoutes(...CONTROLLERS);
+  }
+}

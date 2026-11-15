@@ -3,10 +3,11 @@ import request from 'supertest';
 import { Role } from '../src/generated/prisma/enums';
 import { PrismaService } from '../src/prisma/prisma.service';
 import {
+  PASSWORD,
   createMember,
   emptyDatabase,
   http,
-  PASSWORD,
+  reader,
   signedIn,
   startApi,
 } from './harness';
@@ -35,7 +36,7 @@ describe('une personne de l’équipe se connecte à l’administration', () => 
   });
 
   it('le cookie de session est inaccessible au navigateur et réservé à l’administration', async () => {
-    const res = await request(http(app))
+    const res = await reader(app)
       .post('/api/admin/session')
       .send({ email: 'editor@observatoire.test', password: PASSWORD })
       .expect(200);
@@ -46,11 +47,11 @@ describe('une personne de l’équipe se connecte à l’administration', () => 
   });
 
   it('un mot de passe faux et une adresse inconnue reçoivent la même réponse', async () => {
-    const wrong = await request(http(app))
+    const wrong = await reader(app)
       .post('/api/admin/session')
       .send({ email: 'editor@observatoire.test', password: 'faux' })
       .expect(401);
-    const unknown = await request(http(app))
+    const unknown = await reader(app)
       .post('/api/admin/session')
       .send({ email: 'personne@observatoire.test', password: 'faux' })
       .expect(401);
@@ -60,7 +61,7 @@ describe('une personne de l’équipe se connecte à l’administration', () => 
   });
 
   it('sans session, l’administration ne répond pas', async () => {
-    await request(http(app)).get('/api/admin/session').expect(401);
+    await reader(app).get('/api/admin/session').expect(401);
   });
 
   it('un compte retiré perd l’accès tout de suite, même avec une session ouverte', async () => {

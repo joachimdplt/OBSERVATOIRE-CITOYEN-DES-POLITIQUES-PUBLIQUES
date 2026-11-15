@@ -1,5 +1,4 @@
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 import { Role } from '../src/generated/prisma/enums';
 import {
   TABULAR_SOURCE,
@@ -9,7 +8,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import {
   createMember,
   emptyDatabase,
-  http,
+  reader,
   signedIn,
   startApi,
 } from './harness';
@@ -87,7 +86,7 @@ describe('une source lue à la demande, commune par commune', () => {
   };
   const read = async () =>
     (
-      await request(http(app))
+      await reader(app)
         .get('/api/public/territories/commune/45290/live')
         .expect(200)
     ).body as Live;

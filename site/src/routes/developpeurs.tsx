@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { ArrowUpRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Highlight, plain } from '../components/atoms/Highlight'
 import { DEVELOPERS } from '../data/developers'
@@ -70,14 +69,6 @@ function Developers() {
           >
             {hero.lead}
           </p>
-          <a
-            href={hero.href}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-9 inline-flex h-12 items-center gap-2 rounded-full bg-[#0B1A2A] px-6 font-extrabold text-white no-underline hover:opacity-90"
-          >
-            {hero.cta} <ArrowUpRight size={17} strokeWidth={2.75} />
-          </a>
         </div>
       </section>
 

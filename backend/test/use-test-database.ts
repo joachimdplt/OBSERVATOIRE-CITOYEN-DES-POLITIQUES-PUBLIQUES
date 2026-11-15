@@ -12,3 +12,5 @@ if (!process.env.TEST_DATABASE_URL) {
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
 process.env.SESSION_SECRET ??= 'secret-de-test';
 process.env.STORAGE_DIR = `${__dirname}/../storage-test`;
+// La clé du site public : les tests lisent l'API publique comme lui.
+process.env.SITE_API_KEY = 'cle-du-site-de-test';

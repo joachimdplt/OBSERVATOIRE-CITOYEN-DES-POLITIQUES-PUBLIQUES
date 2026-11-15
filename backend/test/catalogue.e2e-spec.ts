@@ -1,12 +1,11 @@
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 import TestAgent from 'supertest/lib/agent';
 import { Role } from '../src/generated/prisma/enums';
 import { PrismaService } from '../src/prisma/prisma.service';
 import {
   createMember,
   emptyDatabase,
-  http,
+  reader,
   signedIn,
   startApi,
 } from './harness';
@@ -154,10 +153,7 @@ describe('l’équipe déclare un producteur, un jeu et un indicateur', () => {
   });
 
   it('sans session, le catalogue ne s’ouvre pas et rien ne se déclare', async () => {
-    await request(http(app)).get('/api/admin/catalogue').expect(401);
-    await request(http(app))
-      .post('/api/admin/providers')
-      .send(DREES)
-      .expect(401);
+    await reader(app).get('/api/admin/catalogue').expect(401);
+    await reader(app).post('/api/admin/providers').send(DREES).expect(401);
   });
 });

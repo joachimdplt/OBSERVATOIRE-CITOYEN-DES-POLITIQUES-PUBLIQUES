@@ -6,8 +6,8 @@ import type { NextFunction, Request, Response } from 'express';
  * Le réglage commun à l'API lancée et à l'API des tests : les tests de bout
  * en bout passent par les mêmes préfixe, cookies et validations.
  *
- * L'API publique se lit depuis n'importe quel site : elle ne demande ni
- * compte ni cookie, et ne sert qu'à lire. L'administration n'ouvre aucune
+ * L'API publique se lit depuis n'importe quel site avec une clé d'API, sans
+ * cookie, et ne sert qu'à lire. L'administration n'ouvre aucune
  * origine : elle partage la sienne avec l'API.
  */
 export function setupApp(app: INestApplication) {
@@ -30,6 +30,7 @@ function openPublicReading(req: Request, res: Response, next: NextFunction) {
     return next();
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Api-Key');
   if (req.method === 'OPTIONS') return res.status(204).end();
   next();
 }

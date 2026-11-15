@@ -29,8 +29,8 @@ ne conclut pas.
   nationale et le Sénat).
 - **Un comparateur** : groupe par groupe, les textes déposés sur un enjeu,
   sans note ni verdict.
-- **Une API publique**, en lecture seule, ouverte à toute origine
-  (`/api/public`), décrite sur la page « Développeurs » du site.
+- **Une API**, en lecture seule (`/api/public`), qui se lit avec une clé
+  d'accès donnée par l'équipe, décrite sur la page « Développeurs » du site.
 
 L'outil se nourrit seul : il collecte les textes déposés au Parlement, lit à
 la demande les chiffres d'une commune chez leur producteur, et importe les
@@ -59,8 +59,9 @@ La frontière passe entre le public et l'équipe. Tout ce que lit le public
 (articles, carte, fiches, valeurs, historique) est rendu côté serveur, pour
 être trouvé et partagé. L'administration ne sert qu'à l'équipe connectée, et
 partage l'origine de l'API : cookie de session réservé à `/api/admin`, aucune
-origine extérieure admise. L'API publique, elle, se lit depuis n'importe quel
-site (CORS ouvert en lecture seule).
+origine extérieure admise. L'API publique se lit avec une clé (en-tête
+`X-Api-Key`) : celle du site, ou une clé donnée et retirée par
+l'administration (`/api/admin/api-keys`).
 
 ```
 observatoire.<domaine>              site/     SSR (Node)
@@ -75,7 +76,7 @@ L'API, avec PostgreSQL 17 en local :
 
 ```bash
 cd backend
-cp .env.example .env              # puis renseigner SESSION_SECRET
+cp .env.example .env              # puis renseigner SESSION_SECRET et SITE_API_KEY
 createdb observatoire && createdb observatoire_shadow && createdb observatoire_test
 npm install
 npx prisma migrate dev            # applique les migrations
@@ -113,6 +114,7 @@ Le site public, une fois l'API lancée :
 
 ```bash
 cd site && npm install
+cp .env.example .env              # SITE_API_KEY : la même que celle du backend
 npm run dev                       # http://localhost:3002, rendu côté serveur
 ```
 
@@ -134,13 +136,14 @@ le code tel qu'il est.
 
 ## Licences
 
-- **Le code** : [AGPL-3.0](LICENSE). Un service en ligne qui reprend ce code
-  publie ses modifications.
+- **Le code** : tous droits réservés ([LICENSE](LICENSE)). Les versions
+  publiées auparavant sous AGPL-3.0 le restent pour ce qu'elles contiennent.
 - **Le contenu de l'observatoire** (fiches, définitions, descriptions, liens,
-  résumés, rapports, historique) : [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.fr).
+  résumés, rapports, historique) : [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr),
+  pas d'usage commercial sans accord.
 - **Les données des producteurs** gardent leur licence, donnée avec chaque
   valeur ; **les citations des partis** relèvent du droit de courte citation.
 
 ## Branches
 
-`main` : déployée automatiquement · `dev` : intégration
+Le projet est local, sans dépôt en ligne. `main` : la branche de travail.

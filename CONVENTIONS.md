@@ -268,12 +268,13 @@ draft ──► in_review ──► published ──► superseded
 
 **Les licences**
 
-- **Contenu de l'observatoire : CC BY-SA 4.0** (fiches, définitions,
+- **Contenu de l'observatoire : CC BY-NC-SA 4.0** (fiches, définitions,
   descriptions, liens, résumés, rapports, historique).
 - **Données des producteurs** : leur licence, affichée à côté.
 - **Citations des partis** : droit de courte citation, l'auteur reste le
   parti.
-- **Code : AGPL-3.0.**
+- **Code : tous droits réservés** (voir LICENSE). L'API publique se lit
+  avec une clé, donnée et retirée par l'administration.
 
 ### 1.11 Les données sont un matériau, les articles se publient
 
@@ -359,8 +360,8 @@ site/src/
   année.
 - **Les filtres vivent dans l'URL** (`?territory=&period=&offset=`) : un lien
   partagé rouvre la même vue.
-- **Le pied de page donne l'adresse du code source** (AGPL-3.0, section 13)
-  et la licence du contenu.
+- **Le pied de page donne la licence des contenus** (CC BY-NC-SA 4.0) et
+  celle du code (tous droits réservés).
 
 - **Chaque bloc de l'accueil occupe un écran plein.** Une page sombre ne
   finit jamais sur un bloc clair.

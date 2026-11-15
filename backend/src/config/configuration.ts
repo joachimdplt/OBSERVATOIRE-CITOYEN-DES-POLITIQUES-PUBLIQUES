@@ -12,5 +12,7 @@ export default () => {
     sessionSecret,
     sessionTtlHours: Number(process.env.SESSION_TTL_HOURS ?? 8),
     storageDir: process.env.STORAGE_DIR ?? './storage',
+    /** La clé du site public, qui lit l'API côté serveur. */
+    siteApiKey: process.env.SITE_API_KEY ?? '',
   };
 };

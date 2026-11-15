@@ -1,5 +1,3 @@
-import { SOURCE_CODE, newIssue } from './project'
-
 /**
  * Les textes de l'accueil : le principe et ses garanties, comment
  * l'observatoire se nourrit, la contribution. Repris du cahier
@@ -56,47 +54,31 @@ export const HOME = {
 
   contribuer: {
     title: 'Contribuer, [[sous son nom]]',
-    lead: 'Les contributions sont séparées de la validation : une autre personne relit avant publication.',
+    lead: 'Un espace membre arrive : chaque contribution y est signée, puis relue par une autre personne avant publication.',
+    soon: 'Bientôt dans l’espace membre',
     ways: [
       {
         title: 'Signaler une erreur',
         text: 'Un chiffre qui ne correspond pas à sa source : la page, la valeur, la ligne du fichier.',
-        action: 'Signaler',
-        href: newIssue(
-          'Erreur : [commune ou indicateur]',
-          'Page concernée :\nValeur affichée :\nSource (lien et ligne du fichier) :\n',
-        ),
       },
       {
         title: 'Proposer une source',
         text: 'Un jeu de données public : producteur, adresse, licence.',
-        action: 'Proposer',
-        href: newIssue(
-          'Source : [titre du jeu de données]',
-          'Producteur :\nAdresse du fichier :\nLicence :\nPilier concerné :\n',
-        ),
       },
       {
         title: 'Relire',
         text: 'Vérifier une version avant publication, liens politiques déclarés et affichés.',
-        action: 'Devenir relecteur',
-        href: newIssue(
-          'Relecture : [nom]',
-          'Nom :\nPiliers :\nLiens politiques à déclarer (adhésion, mandat, emploi), ou « aucun » :\n',
-        ),
       },
       {
-        title: 'Code source',
-        text: 'Site, administration et API, sous licence AGPL-3.0.',
-        action: 'Voir le code',
-        href: SOURCE_CODE,
+        title: 'Demander une clé d’API',
+        text: 'Pour lire les données depuis un autre site ou un programme.',
       },
     ],
   },
 
   fin: {
     title: 'Explorer les indicateurs',
-    lead: 'Contenus sous licence CC BY-SA 4.0. Les données gardent la licence de leur producteur.',
+    lead: 'Contenus sous licence CC BY-NC-SA 4.0. Les données gardent la licence de leur producteur.',
     cta: 'Ouvrir la carte',
   },
 }

@@ -3,7 +3,6 @@ import {
   CONTENT_LICENSE,
   PUBLIC_STATES,
   DATA_LABELS,
-  SOURCE_CODE,
   type PublicState,
 } from '../../domain/publication';
 import type { PrismaService } from '../../prisma/prisma.service';
@@ -85,7 +84,6 @@ export function provenanceOf(version: PublicVersion) {
     licenses: {
       content: CONTENT_LICENSE,
       data: { name: dataset.license, holder: dataset.provider.acronym },
-      sourceCode: SOURCE_CODE,
     },
   };
 }

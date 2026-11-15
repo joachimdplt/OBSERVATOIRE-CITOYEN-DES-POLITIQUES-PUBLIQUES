@@ -28,16 +28,10 @@ export const PUBLIC_STATES: PublicState[] = [
 ];
 
 /**
- * Le contenu de l'observatoire est sous CC BY-SA 4.0 ; le code sous
- * AGPL-3.0, qui demande d'indiquer à chaque utilisateur du service où trouver
- * le code (section 13).
+ * Le contenu de l'observatoire est sous CC BY-NC-SA 4.0 : reprise libre avec
+ * crédit, sauf usage commercial. Le code n'est pas libre.
  */
 export const CONTENT_LICENSE = {
-  name: 'CC BY-SA 4.0',
-  url: 'https://creativecommons.org/licenses/by-sa/4.0/deed.fr',
-} as const;
-
-export const SOURCE_CODE = {
-  license: 'AGPL-3.0',
-  url: 'https://github.com/joachimdplt/OBSERVATOIRE-CITOYEN-DES-POLITIQUES-PUBLIQUES',
+  name: 'CC BY-NC-SA 4.0',
+  url: 'https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr',
 } as const;

@@ -1,11 +1,9 @@
 import { Link } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 
-import { SOURCE_CODE } from '../data/project'
-
 /**
  * Le cadre de chaque page publique. Le pied de page donne les licences et
- * l'adresse du code source, comme l'AGPL le demande à un service en ligne.
+ * la licence des contenus et celle du code.
  */
 export function SiteFrame({ children }: { children: ReactNode }) {
   return (
@@ -43,18 +41,17 @@ export function SiteFrame({ children }: { children: ReactNode }) {
       <footer className="border-t border-white/10 bg-[#0B1A2A]">
         <div className="mx-auto flex max-w-5xl flex-wrap justify-between gap-3 px-6 py-6 text-xs text-white/60">
           <span>
-            Contenu sous{' '}
+            Contenus sous{' '}
             <a
-              href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr"
+              href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr"
               className="underline"
             >
-              CC BY-SA 4.0
+              CC BY-NC-SA 4.0
             </a>
-            . Les données gardent la licence de leur producteur.
+            , pas d’usage commercial sans accord. Les données gardent la licence
+            de leur producteur.
           </span>
-          <a href={SOURCE_CODE} className="underline">
-            Code source (AGPL-3.0)
-          </a>
+          <span>Code : tous droits réservés.</span>
         </div>
       </footer>
     </div>

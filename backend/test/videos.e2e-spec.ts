@@ -1,5 +1,4 @@
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 import TestAgent from 'supertest/lib/agent';
 import { Role } from '../src/generated/prisma/enums';
 import type { FeedVideo, VideoFeed } from '../src/ports/video-feed';
@@ -8,7 +7,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import {
   createMember,
   emptyDatabase,
-  http,
+  reader,
   signedIn,
   startApi,
 } from './harness';
@@ -131,7 +130,7 @@ describe('les vidéos publiques des candidats, depuis les seules sources primair
   });
 
   it('la page du candidat donne ses vidéos, les plus récentes d’abord, avec la raison du rattachement', async () => {
-    const anne = (await request(http(app)).get(`${P}/anne`).expect(200))
+    const anne = (await reader(app).get(`${P}/anne`).expect(200))
       .body as Candidate;
     expect(anne.channels).toEqual([
       expect.objectContaining({
@@ -143,11 +142,11 @@ describe('les vidéos publiques des candidats, depuis les seules sources primair
       ['Audition de Anne Martin au Sénat', 'name_in_title'],
       ['Meeting à Lille', 'own_channel'],
     ]);
-    const bernard = (await request(http(app)).get(`${P}/bernard`).expect(200))
+    const bernard = (await reader(app).get(`${P}/bernard`).expect(200))
       .body as Candidate;
     expect(bernard.videos.map((v) => v.title)).toEqual([
       'Bernard Zola répond à Anne Martin',
     ]);
-    await request(http(app)).get(`${P}/inconnu`).expect(404);
+    await reader(app).get(`${P}/inconnu`).expect(404);
   });
 });

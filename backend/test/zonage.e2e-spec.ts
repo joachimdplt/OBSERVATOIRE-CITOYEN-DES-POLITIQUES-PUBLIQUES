@@ -1,14 +1,13 @@
 import { INestApplication } from '@nestjs/common';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import request from 'supertest';
 import TestAgent from 'supertest/lib/agent';
 import { Role } from '../src/generated/prisma/enums';
 import { PrismaService } from '../src/prisma/prisma.service';
 import {
   createMember,
   emptyDatabase,
-  http,
+  reader,
   signedIn,
   startApi,
 } from './harness';
@@ -158,14 +157,14 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
       .expect(200);
 
     const sheet = (
-      await request(http(app))
+      await reader(app)
         .get('/api/public/indicators/zonage-medecins-generalistes')
         .expect(200)
     ).body as Sheet;
     expect(sheet).toMatchObject({ kind: 'category', categories: CATEGORIES });
 
     const map = (
-      await request(http(app))
+      await reader(app)
         .get(
           '/api/public/indicators/zonage-medecins-generalistes/map?period=2025',
         )
@@ -275,7 +274,7 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
       .expect(200);
 
     const map = (
-      await request(http(app))
+      await reader(app)
         .get(
           '/api/public/indicators/zonage-medecins-generalistes/map?period=2025',
         )
@@ -291,7 +290,7 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
     const producerOf = async (level: string, code: string) =>
       (
         (
-          await request(http(app))
+          await reader(app)
             .get(`/api/public/territories/${level}/${code}/values`)
             .expect(200)
         ).body as {
@@ -305,7 +304,7 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
     const zonageOf = async (code: string) =>
       (
         (
-          await request(http(app))
+          await reader(app)
             .get(`/api/public/territories/commune/${code}/values`)
             .expect(200)
         ).body as {
@@ -326,7 +325,7 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
     });
 
     const sheet = (
-      await request(http(app))
+      await reader(app)
         .get('/api/public/indicators/zonage-medecins-generalistes')
         .expect(200)
     ).body as { provenance: { producer: { acronym: string } }[] };
@@ -351,7 +350,7 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
     }).expect(200);
 
     const sheet = (
-      await request(http(app))
+      await reader(app)
         .get('/api/public/indicators/zonage-medecins-generalistes')
         .expect(200)
     ).body as {
@@ -386,7 +385,7 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
     await retire('Une seconde fois, pour voir.').expect(404);
 
     const map = (
-      await request(http(app))
+      await reader(app)
         .get(
           '/api/public/indicators/zonage-medecins-generalistes/map?period=2025',
         )
@@ -396,7 +395,7 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
 
     const layers = (
       (
-        await request(http(app))
+        await reader(app)
           .get('/api/public/territories/commune/01001/values')
           .expect(200)
       ).body as { layers: { indicator: { code: string } }[] }
@@ -404,7 +403,7 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
     expect(layers).not.toContain('zonage-medecins-generalistes');
 
     const sheet = (
-      await request(http(app))
+      await reader(app)
         .get('/api/public/indicators/zonage-medecins-generalistes')
         .expect(200)
     ).body as {
@@ -511,7 +510,7 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
 
     const zonage = (
       (
-        await request(http(app))
+        await reader(app)
           .get('/api/public/territories/commune/01015/values')
           .expect(200)
       ).body as {
@@ -536,7 +535,7 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
       .send({ comparisonScale: 'regional' })
       .expect(200);
     const sheet = (
-      await request(http(app))
+      await reader(app)
         .get('/api/public/indicators/zonage-medecins-generalistes')
         .expect(200)
     ).body as {
@@ -547,7 +546,7 @@ describe('le zonage officiel des médecins, une catégorie par commune', () => {
     expect(sheet.regions.map((r) => r.code)).toEqual(['84', '93']);
 
     const map = (
-      await request(http(app))
+      await reader(app)
         .get(
           '/api/public/indicators/zonage-medecins-generalistes/map?period=2025&region=93',
         )

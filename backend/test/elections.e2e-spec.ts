@@ -1,5 +1,4 @@
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 import TestAgent from 'supertest/lib/agent';
 import { Role } from '../src/generated/prisma/enums';
 import { isFreeLicence, type FreePhoto } from '../src/domain/photo';
@@ -8,7 +7,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import {
   createMember,
   emptyDatabase,
-  http,
+  reader,
   signedIn,
   startApi,
 } from './harness';
@@ -74,7 +73,7 @@ describe('une élection : les candidats déclarés et l’état de leur programm
     founder = await signedIn(app, 'joachim@observatoire.test');
   });
   afterAll(() => app?.close());
-  const visitor = () => request(http(app));
+  const visitor = () => reader(app);
 
   it('s’inscrit avec son critère, puis chaque candidat avec sa source', async () => {
     await visitor()

@@ -14,6 +14,10 @@ export const PASSWORD = 'mot-de-passe-de-test';
 /** Le serveur HTTP de l'API, typé pour supertest. */
 export const http = (app: INestApplication) => app.getHttpServer() as App;
 
+/** Un lecteur de l'API publique, avec la clé du site (voir use-test-database). */
+export const reader = (app: INestApplication) =>
+  request.agent(http(app)).set('X-Api-Key', process.env.SITE_API_KEY ?? '');
+
 /**
  * L'API complète, branchée sur la base de test. La limite de connexions par
  * minute est levée par défaut : chaque test se reconnecte, et la limite est

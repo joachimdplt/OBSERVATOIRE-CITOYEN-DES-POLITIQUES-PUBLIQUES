@@ -1,9 +1,9 @@
 import { Link } from '@tanstack/react-router'
 import {
   ArrowRight,
-  ArrowUpRight,
   BookOpen,
   Code2,
+  KeyRound,
   FileText,
   Database,
   Users,
@@ -119,8 +119,9 @@ function Bubble({
   )
 }
 
-const WAY_ICONS = [Flag, BookOpen, ShieldCheck, Code2]
+const WAY_ICONS = [Flag, BookOpen, ShieldCheck, KeyRound]
 
+/** Les façons de contribuer, qui passeront par l'espace membre. */
 export function HomeContribuer() {
   const { contribuer } = HOME
   return (
@@ -128,25 +129,19 @@ export function HomeContribuer() {
       <Step title={contribuer.title} lead={contribuer.lead} />
       <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {contribuer.ways.map((way, i) => (
-          <a
+          <div
             key={way.title}
-            href={way.href}
-            target="_blank"
-            rel="noreferrer"
-            className="flex flex-col rounded-[28px] bg-white p-6 no-underline shadow-[0_0_0_1px_rgba(11,26,42,0.1)] transition-shadow hover:shadow-[0_0_0_1px_rgba(11,26,42,0.3)]"
+            className="flex flex-col rounded-[28px] bg-white p-6 shadow-[0_0_0_1px_rgba(11,26,42,0.1)]"
           >
             <Bubble icon={WAY_ICONS[i]} />
             <p className={`${DISPLAY} mt-5 text-[1.2rem]`}>{way.title}</p>
             <p className={`mt-2 flex-1 text-[0.95rem] leading-snug ${MUTED}`}>
               {way.text}
             </p>
-            <span className="mt-5 inline-flex items-center gap-2 text-[0.95rem] font-extrabold text-[#0B1A2A]">
-              <span className="flex size-7 items-center justify-center rounded-full bg-[#0B1A2A] text-white">
-                <ArrowUpRight size={14} strokeWidth={3} />
-              </span>
-              {way.action}
+            <span className="mt-5 text-[0.85rem] font-bold text-[#5B6470]">
+              {contribuer.soon}
             </span>
-          </a>
+          </div>
         ))}
       </div>
     </Screen>

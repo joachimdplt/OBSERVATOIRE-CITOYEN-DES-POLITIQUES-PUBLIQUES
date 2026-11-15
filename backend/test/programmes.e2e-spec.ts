@@ -1,5 +1,4 @@
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 import TestAgent from 'supertest/lib/agent';
 import { Role } from '../src/generated/prisma/enums';
 import type {
@@ -11,7 +10,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import {
   createMember,
   emptyDatabase,
-  http,
+  reader,
   signedIn,
   startApi,
 } from './harness';
@@ -124,7 +123,7 @@ describe('les programmes des candidats : collectés, découpés, rangés par enj
         .expect(201);
   });
   afterAll(() => app?.close());
-  const visitor = () => request(http(app));
+  const visitor = () => reader(app);
 
   it('l’équipe indique où lire chaque programme, et nomme les enjeux avec leurs termes', async () => {
     await founder
