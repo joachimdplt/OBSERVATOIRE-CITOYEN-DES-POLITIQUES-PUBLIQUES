@@ -62,3 +62,20 @@ body {
   font-feature-settings: 'cv11', 'ss01', 'tnum';
   -webkit-font-smoothing: antialiased;
 }
+
+/* Une entrée du panneau des chapitres : écrite une fois ici plutôt que
+   répétée sur chacune des dizaines d'entrées d'un programme. */
+@layer components {
+  .chapter-link {
+    @apply flex w-full items-baseline gap-3 rounded-[14px] px-3 py-2 text-left text-[0.86rem] leading-snug font-bold text-[#0B1A2A] transition-colors hover:bg-[#F4F6F8];
+  }
+  .chapter-link[aria-current='true'] {
+    @apply bg-[#0B1A2A] text-white hover:bg-[#0B1A2A];
+  }
+  .chapter-link-count {
+    @apply shrink-0 text-[#5B6470] tabular-nums;
+  }
+  .chapter-link[aria-current='true'] .chapter-link-count {
+    @apply text-white/70;
+  }
+}

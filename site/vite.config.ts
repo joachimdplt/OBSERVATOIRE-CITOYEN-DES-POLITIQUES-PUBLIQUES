@@ -13,7 +13,14 @@ const config = defineConfig(({ mode }) => {
     process.env[k] ??= v
   return {
   resolve: { tsconfigPaths: true },
-  plugins: [devtools(), tailwindcss(), tanstackStart(), viteReact()],
+  // Sans la source de chaque balise ajoutée en développement : elle doublait
+  // le poids des pages pour un outil que nous n'utilisons pas.
+  plugins: [
+    devtools({ injectSource: { enabled: false } }),
+    tailwindcss(),
+    tanstackStart(),
+    viteReact(),
+  ],
   // MapLibre charge son worker depuis un fichier voisin du sien : réemballé
   // par Vite, il ne le trouve plus et la carte reste blanche.
   optimizeDeps: { exclude: ['maplibre-gl'] },

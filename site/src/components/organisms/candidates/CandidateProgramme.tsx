@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowUpRight, ChevronDown } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { CandidateProgramme as Programme } from '../../../types/public'
 import { HEAT_GRADIENT, heatColor, isDark } from '../../../utils/heat'
@@ -126,8 +126,6 @@ export function CandidateProgramme({
           )
         )}
 
-        <Outline outline={p.outline} />
-
         {p.chapters.length > 0 && (
           <Reader programme={p} election={election} candidate={candidate} />
         )}
@@ -147,72 +145,6 @@ function Fact({ value, label }: { value: number | string; label: string }) {
   )
 }
 
-/** Sa structure : ses documents, puis ses rubriques, dans ses propres titres. */
-function Outline({ outline }: { outline: Programme['outline'] }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="rounded-[28px] bg-white">
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between gap-4 p-6 text-left md:p-8"
-      >
-        <span>
-          <span className="block font-extrabold text-[#0B1A2A]">
-            Ses étapes, dans ses propres titres
-          </span>
-        </span>
-        <ChevronDown
-          size={22}
-          className={`shrink-0 text-[#0B1A2A] transition-transform ${open ? 'rotate-180' : ''}`}
-        />
-      </button>
-      {open && (
-        <ol className="space-y-6 border-t border-[#0B1A2A]/8 p-6 md:p-8">
-          {outline.map((d) => (
-            <li key={d.url}>
-              <a
-                href={d.url}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 font-bold text-[#0B1A2A] no-underline hover:underline"
-              >
-                {documentName(d.title)}
-                <span className={`font-semibold ${MUTED}`}>
-                  · {d.passages} passages
-                </span>
-                <ArrowUpRight size={14} />
-              </a>
-              {d.headings.length > 0 && (
-                <ul className="mt-2 divide-y divide-[#0B1A2A]/6">
-                  {d.headings.map((h, i) => (
-                    <li
-                      key={i}
-                      className="flex items-baseline justify-between gap-4 py-1.5 text-[0.92rem]"
-                    >
-                      <a
-                        href={atText(d.url, h.heading)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[#0B1A2A] no-underline hover:underline"
-                      >
-                        {h.heading}
-                      </a>
-                      <span className={`shrink-0 tabular-nums ${MUTED}`}>
-                        {h.passages}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
-        </ol>
-      )}
-    </div>
-  )
-}
 
 type Passage = Programme['passages'][number]
 type ReadingChapter = Programme['chapters'][number]
@@ -222,13 +154,13 @@ const passageHref = (url: string, p: { page: number | null; text: string }) =>
   p.page ? `${url}#page=${p.page}` : atText(url, p.text.slice(0, 80))
 
 /** Les rubriques d'un chapitre chargé, chacune une fois, dans l'ordre. */
-function sectionsOf(passages: Passage[]) {
+function sectionsOf(passages: Passage[], documentTitle: string) {
   const sections: {
     heading: string
     quotes: { text: string; page: number | null }[]
   }[] = []
   for (const f of passages) {
-    const heading = f.heading === f.document.title ? '' : f.heading
+    const heading = f.heading === documentTitle ? '' : f.heading
     const quote = { text: f.quote, page: f.page }
     const last = sections.at(-1)
     if (last && last.heading === heading) last.quotes.push(quote)
@@ -258,11 +190,22 @@ function Reader({
   const [loaded, setLoaded] = useState<Partial<Record<number, Passage[]>>>(
     () => ({ 0: p.passages }),
   )
-  const asked = useRef(new Set<number>([0]))
+  // Le premier chapitre n'arrive qu'en partie avec la page : sa suite se
+  // demande à l'approche comme les autres.
+  const asked = useRef(new Set<number>())
   const [active, setActive] = useState(0)
   // Un titre demandé (mosaïque) dans un chapitre pas encore chargé.
   const [target, setTarget] = useState<string | null>(null)
   const bar = useRef<HTMLElement>(null)
+  // Un écran étroit (téléphone) : la barre des chapitres en haut.
+  const [narrow, setNarrow] = useState(false)
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 1023px)')
+    const update = () => setNarrow(query.matches)
+    update()
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
 
   const need = (i: number) => {
     const g = groups.at(i)
@@ -340,24 +283,15 @@ function Reader({
           <nav className="sticky top-[110px] max-h-[calc(100vh-130px)] overflow-y-auto rounded-[28px] bg-white p-3">
             <ul className="space-y-1">
               {groups.map((g, i) => (
-                <li key={`${g.url}-${i}`}>
+                <li key={i}>
                   <button
                     type="button"
                     onClick={() => go(i)}
-                    className={`flex w-full items-baseline gap-3 rounded-[14px] px-3 py-2 text-left text-[0.86rem] leading-snug font-bold transition-colors ${
-                      active === i
-                        ? 'bg-[#0B1A2A] text-white'
-                        : 'text-[#0B1A2A] hover:bg-[#F4F6F8]'
-                    }`}
+                    className="chapter-link"
+                    aria-current={active === i ? 'true' : undefined}
                   >
                     <span className="flex-1">{g.label}</span>
-                    <span
-                      className={`shrink-0 tabular-nums ${
-                        active === i ? 'text-white/70' : MUTED
-                      }`}
-                    >
-                      {g.count}
-                    </span>
+                    <span className="chapter-link-count">{g.count}</span>
                   </button>
                 </li>
               ))}
@@ -366,14 +300,16 @@ function Reader({
         </aside>
 
         <div className="min-w-0">
-          {/* Sur téléphone, la barre des chapitres reste en haut. */}
+          {/* Sur téléphone, la barre des chapitres reste en haut ; elle
+              n'est construite que sur un écran étroit. */}
+          {narrow && (
           <nav
             ref={bar}
             className="sticky top-[86px] z-[4] -mx-6 flex gap-2 overflow-x-auto bg-[#F4F6F8]/90 px-6 py-2 backdrop-blur lg:hidden"
           >
             {groups.map((g, i) => (
               <button
-                key={`${g.url}-${i}`}
+                key={i}
                 type="button"
                 data-index={i}
                 onClick={() => go(i)}
@@ -387,13 +323,15 @@ function Reader({
               </button>
             ))}
           </nav>
+          )}
 
           <ol className="mt-4 space-y-5 lg:mt-0">
             {groups.map((g, i) => (
               <Chapter
-                key={`${g.url}-${i}`}
+                key={i}
                 index={i}
                 group={g}
+                document={p.outline[g.document]}
                 passages={loaded[i]}
                 onNear={() => need(i)}
                 target={target}
@@ -409,12 +347,15 @@ function Reader({
 function Chapter({
   index,
   group: g,
+  document: d,
   passages,
   onNear,
   target,
 }: {
   index: number
   group: ReadingChapter
+  /** Le document du chapitre : son titre et son adresse. */
+  document: Programme['outline'][number]
   /** Absents tant que le chapitre n'est pas chargé. */
   passages: Passage[] | undefined
   onNear: () => void
@@ -422,18 +363,20 @@ function Chapter({
 }) {
   const card = useRef<HTMLLIElement>(null)
 
-  // Le chapitre se charge un peu avant d'arriver à l'écran.
+  // Le chapitre (ou sa suite) se charge un peu avant d'arriver à l'écran.
+  const complete = !!passages && passages.length >= g.count
+  const rest = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (passages || !card.current) return
+    if (complete || !rest.current) return
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) onNear()
       },
       { rootMargin: '1500px 0px' },
     )
-    observer.observe(card.current)
+    observer.observe(rest.current)
     return () => observer.disconnect()
-  }, [passages])
+  }, [complete])
 
   // Chargé à la demande d'un titre de la mosaïque : la page y défile.
   useEffect(() => {
@@ -442,7 +385,7 @@ function Chapter({
     if (el instanceof HTMLElement) smoothScrollTo(el)
   }, [passages, target])
 
-  const sections = passages ? sectionsOf(passages) : []
+  const sections = passages ? sectionsOf(passages, d.title) : []
   let lastPage: number | null = null
   return (
     <li
@@ -451,12 +394,12 @@ function Chapter({
       className="scroll-mt-32 rounded-[28px] bg-white p-5 md:p-8"
     >
       <a
-        href={g.from ? `${g.url}#page=${g.from}` : g.url}
+        href={g.from ? `${d.url}#page=${g.from}` : d.url}
         target="_blank"
         rel="noreferrer"
         className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#F4F6F8] px-3 py-1 text-[0.82rem] font-bold text-[#0B1A2A] no-underline hover:underline"
       >
-        <span className="truncate">{documentName(g.title)}</span>
+        <span className="truncate">{documentName(d.title)}</span>
         {g.from !== null && (
           <span className="shrink-0 font-semibold">
             · {g.from === g.to ? `p. ${g.from}` : `p. ${g.from} à ${g.to}`}
@@ -467,14 +410,7 @@ function Chapter({
         </span>
         <ArrowUpRight size={12} className="shrink-0" />
       </a>
-      {!passages ? (
-        // Sa place, à sa taille prévue, en attendant son texte.
-        <div
-          aria-busy="true"
-          className="mt-4 rounded-[18px] bg-[#F4F6F8]"
-          style={{ height: Math.min(4000, 60 + g.count * 110) }}
-        />
-      ) : (
+      {passages && (
         <div className="mt-4 space-y-5 border-l-2 border-[#0B1A2A]/10 pl-5 md:pl-7">
           {sections.map((s, k) => (
             <div
@@ -484,7 +420,7 @@ function Chapter({
             >
               {s.heading && (
                 <a
-                  href={passageHref(g.url, {
+                  href={passageHref(d.url, {
                     page: s.quotes[0].page,
                     text: s.heading,
                   })}
@@ -506,7 +442,7 @@ function Chapter({
                     <div key={j}>
                       {mark && (
                         <a
-                          href={`${g.url}#page=${q.page}`}
+                          href={`${d.url}#page=${q.page}`}
                           target="_blank"
                           rel="noreferrer"
                           className={`mb-2 inline-block rounded-full bg-[#F4F6F8] px-2.5 py-0.5 text-[0.75rem] font-bold ${MUTED} no-underline hover:text-[#0B1A2A] hover:underline`}
@@ -522,6 +458,17 @@ function Chapter({
             </div>
           ))}
         </div>
+      )}
+      {!complete && (
+        // Sa place, à sa taille prévue, en attendant son texte.
+        <div
+          ref={rest}
+          aria-busy="true"
+          className="mt-4 rounded-[18px] bg-[#F4F6F8]"
+          style={{
+            height: Math.min(4000, 60 + (g.count - (passages?.length ?? 0)) * 110),
+          }}
+        />
       )}
     </li>
   )

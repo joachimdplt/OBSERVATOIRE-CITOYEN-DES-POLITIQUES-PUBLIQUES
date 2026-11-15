@@ -73,7 +73,7 @@ export class GetCandidateProgrammeController {
         counts: c.snapshots[0].figures as ParticipationCount[],
       }));
 
-    const { own, mine, passages } = await this.reading(candidate.id);
+    const { own, mine, passages, served } = await this.reading(candidate.id);
 
     // La structure : chaque document, puis ses rubriques dans l'ordre.
     // Un document qui ne donne aucun passage (une page d'entrée faite de
@@ -115,8 +115,22 @@ export class GetCandidateProgrammeController {
     );
     // Le plan de lecture : tous les chapitres, et le texte du premier
     // seulement. Le site charge chaque chapitre quand on s'en approche.
-    const chapters = readingChapters(passages);
-    const first = chapters[0];
+    const read = readingChapters(passages);
+    const first = read.at(0);
+    // Chaque chapitre renvoie à son document par son rang dans la structure,
+    // sans en répéter le titre ni l'adresse ; ses rubriques ne sont données
+    // que si elles diffèrent de son nom.
+    const rankOf = new Map(outline.map((d, i) => [d.url, i]));
+    const chapters = read.map((c) => ({
+      label: c.label,
+      document: rankOf.get(c.url) ?? 0,
+      start: c.start,
+      count: c.count,
+      from: c.from,
+      to: c.to,
+      headings:
+        c.headings.length === 1 && c.headings[0] === c.label ? [] : c.headings,
+    }));
 
     return {
       summary: {
@@ -136,8 +150,10 @@ export class GetCandidateProgrammeController {
       approach,
       outline,
       chapters,
+      // Le premier écran seulement : les premiers passages du premier
+      // chapitre ; la suite se charge à l'approche.
       passages: first
-        ? passages.slice(first.start, first.start + first.count)
+        ? served.slice(first.start, first.start + Math.min(first.count, 12))
         : [],
     };
   }
@@ -161,8 +177,8 @@ export class GetCandidateProgrammeController {
     )
       throw new BadRequestException('Début ou nombre de passages invalide');
     const candidate = await this.candidate(slug, candidateSlug);
-    const { passages } = await this.reading(candidate.id);
-    return { start: from, passages: passages.slice(from, from + size) };
+    const { served } = await this.reading(candidate.id);
+    return { start: from, passages: served.slice(from, from + size) };
   }
 
   private async candidate(slug: string, candidateSlug: string) {
@@ -257,6 +273,19 @@ export class GetCandidateProgrammeController {
         url: docOf.get(m.documentId)?.url ?? '',
       },
     }));
-    return { own, mine, passages };
+    // Tels que l'API les donne : le document par son rang dans la structure
+    // (les seuls documents qui ont des passages), sans titre ni adresse.
+    const withPassages = own.filter((d) =>
+      mine.some((m) => m.documentId === d.id),
+    );
+    const rank = new Map(withPassages.map((d, i) => [d.url, i]));
+    const served = passages.map((p) => ({
+      heading: p.heading,
+      quote: p.quote,
+      page: p.page,
+      figured: p.figured,
+      document: rank.get(p.document.url) ?? 0,
+    }));
+    return { own, mine, passages, served };
   }
 }

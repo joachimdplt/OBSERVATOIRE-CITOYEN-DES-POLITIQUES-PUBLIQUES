@@ -418,8 +418,8 @@ export type CandidateProgramme = {
   /** Le plan de lecture : chaque chapitre, son rang et son nombre de passages. */
   chapters: {
     label: string
-    title: string
-    url: string
+    /** Son document, par son rang dans `outline`. */
+    document: number
     start: number
     count: number
     from: number | null
@@ -432,6 +432,7 @@ export type CandidateProgramme = {
     quote: string
     page: number | null
     figured: boolean
-    document: { title: string; url: string }
+    /** Son document, par son rang dans `outline`. */
+    document: number
   }[]
 }
