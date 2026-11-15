@@ -86,7 +86,7 @@ function SubjectPage() {
 
   return (
     <main>
-      <section className="px-6 pt-16 pb-6 md:px-10">
+      <section className="px-6 pt-16 pb-12 md:px-10">
         <div className="mx-auto max-w-[1280px]">
           <Link
             to="/sujets"
@@ -97,7 +97,7 @@ function SubjectPage() {
           <h1 className={`${DISPLAY} mt-3 text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.08]`}>
             {s.topic.label}
           </h1>
-          <p className={`mt-4 max-w-[72ch] text-[0.95rem] leading-relaxed ${MUTED}`}>
+          <p className={`mt-6 max-w-[72ch] text-justify text-[0.95rem] leading-[1.75] hyphens-auto ${MUTED}`}>
             Les chapitres des programmes rangés dans ce sujet de la grille du{' '}
             {s.classification.grid}. Le rangement est fait automatiquement,
             chapitre par chapitre
