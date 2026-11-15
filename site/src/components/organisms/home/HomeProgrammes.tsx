@@ -37,6 +37,10 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
         <h2 className="text-[clamp(1.6rem,3vw,2.4rem)] leading-tight font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
           {election.name} : {candidates.length} candidats
         </h2>
+        <p className={`mt-1.5 text-[0.85rem] ${MUTED}`}>
+          Ordre tiré au hasard à chaque visite. Photos sous licence libre,
+          créditées sur la page de chaque candidat.
+        </p>
         <p className="mt-3 text-[1.15rem] font-semibold text-[#0B1A2A]">
           {count('none')} sur {candidates.length} n’ont publié aucun programme
           {checkedAt ? ` au ${frenchDate(checkedAt)}` : ''}.
@@ -93,10 +97,6 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
           >
             Les enjeux dans leurs programmes <ArrowRight size={17} />
           </Link>
-          <p className={`text-[0.85rem] ${MUTED}`}>
-            Ordre tiré au hasard à chaque visite. Photos sous licence libre,
-            créditées sur la page de chaque candidat.
-          </p>
         </div>
       </div>
     </section>
