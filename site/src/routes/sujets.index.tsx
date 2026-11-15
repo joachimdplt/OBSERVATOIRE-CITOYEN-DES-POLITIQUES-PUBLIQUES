@@ -56,10 +56,26 @@ function SubjectsPage() {
           </ul>
         </nav>
 
-        <p className={`mt-8 max-w-[80ch] text-[0.85rem] leading-relaxed ${MUTED}`}>
-          Grille : Comparative Agendas Project, version {data.version}, licence{' '}
-          {data.licence}. {data.citation} {data.translation}
-        </p>
+        <dl className="mt-10 grid max-w-[880px] gap-x-8 gap-y-3 text-[0.85rem] leading-relaxed sm:grid-cols-[140px_minmax(0,1fr)]">
+          <dt className="font-bold text-[#0B1A2A]">Grille</dt>
+          <dd className={MUTED}>
+            <a
+              href="https://www.comparativeagendas.net/"
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-[#0B1A2A] hover:underline"
+            >
+              Comparative Agendas Project
+            </a>
+            {data.version ? `, version ${data.version}` : ''}
+          </dd>
+          <dt className="font-bold text-[#0B1A2A]">Licence</dt>
+          <dd className={MUTED}>{data.licence}</dd>
+          <dt className="font-bold text-[#0B1A2A]">Référence</dt>
+          <dd className={MUTED}>{data.citation}</dd>
+          <dt className="font-bold text-[#0B1A2A]">Intitulés français</dt>
+          <dd className={MUTED}>Traduction de l’équipe de l’observatoire.</dd>
+        </dl>
       </div>
     </main>
   )
