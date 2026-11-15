@@ -182,3 +182,19 @@ export const getCandidateProgramme = createServerFn({ method: 'GET' })
       `/elections/${encodeURIComponent(data.election)}/candidates/${encodeURIComponent(data.slug)}/programme`,
     ),
   )
+
+/** Les passages d'un chapitre de lecture, chargés quand on s'en approche. */
+export const getProgrammePassages = createServerFn({ method: 'GET' })
+  .validator(
+    z.object({
+      election: z.string(),
+      slug: z.string(),
+      start: z.number().int().min(0),
+      count: z.number().int().min(1).max(1000),
+    }),
+  )
+  .handler(({ data }) =>
+    get<{ start: number; passages: CandidateProgramme['passages'] }>(
+      `/elections/${encodeURIComponent(data.election)}/candidates/${encodeURIComponent(data.slug)}/programme/passages?start=${data.start}&count=${data.count}`,
+    ),
+  )

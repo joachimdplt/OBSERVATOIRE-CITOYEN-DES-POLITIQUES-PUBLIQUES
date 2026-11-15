@@ -1,6 +1,14 @@
-import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Query,
+} from '@nestjs/common';
 import { currentCaptures } from '../../../domain/programme';
 import { isFigured, isProposal } from '../../../domain/programme-profile';
+import { readingChapters } from '../../../domain/programme-reading';
 import type {
   DiagnosisChapter,
   ParticipationCount,
@@ -40,10 +48,7 @@ export class GetCandidateProgrammeController {
     @Param('slug') slug: string,
     @Param('candidate') candidateSlug: string,
   ) {
-    const candidate = await this.prisma.candidate.findFirst({
-      where: { slug: candidateSlug, election: { slug } },
-    });
-    if (!candidate) throw new NotFoundException('Candidat inconnu');
+    const candidate = await this.candidate(slug, candidateSlug);
 
     // Sa démarche, quand elle n'est pas un programme : un diagnostic chiffré
     // ou une consultation, chacun par son dernier relevé daté.
@@ -68,6 +73,108 @@ export class GetCandidateProgrammeController {
         counts: c.snapshots[0].figures as ParticipationCount[],
       }));
 
+    const { own, mine, passages } = await this.reading(candidate.id);
+
+    // La structure : chaque document, puis ses rubriques dans l'ordre.
+    // Un document qui ne donne aucun passage (une page d'entrée faite de
+    // liens) ne figure pas dans la structure.
+    const outline = own
+      .filter((d) => mine.some((m) => m.documentId === d.id))
+      .map((d) => {
+        const inDoc = mine.filter((m) => m.documentId === d.id);
+        const headings: { heading: string; passages: number }[] = [];
+        for (const m of inDoc) {
+          if (!meaningful(m.article) || m.article === d.title) continue;
+          const last = headings.at(-1);
+          if (last && last.heading === m.article) last.passages++;
+          else headings.push({ heading: m.article, passages: 1 });
+        }
+        return {
+          title: d.title,
+          url: d.url,
+          fetchedAt: d.fetchedAt?.toISOString().slice(0, 10) ?? null,
+          passages: inDoc.length,
+          headings,
+        };
+      });
+
+    const topics = await this.prisma.topicMatch.groupBy({
+      by: ['topicId'],
+      where: { measureId: { in: mine.map((m) => m.id) } },
+      _count: { measureId: true },
+      orderBy: { _count: { measureId: 'desc' } },
+    });
+    const topicTotal = topics.reduce((n, t) => n + t._count.measureId, 0);
+    const names = new Map(
+      (
+        await this.prisma.topic.findMany({
+          where: { id: { in: topics.map((t) => t.topicId) } },
+          select: { id: true, slug: true, name: true },
+        })
+      ).map((t) => [t.id, t]),
+    );
+    // Le plan de lecture : tous les chapitres, et le texte du premier
+    // seulement. Le site charge chaque chapitre quand on s'en approche.
+    const chapters = readingChapters(passages);
+    const first = chapters[0];
+
+    return {
+      summary: {
+        documents: own.length,
+        passages: mine.length,
+        proposals: mine.filter((m) => isProposal(m.quote)).length,
+        figured: mine.filter((m) => isFigured(m.quote)).length,
+        covered: mine.filter((m) => m._count.topics > 0).length,
+        // Tous ses sujets, avec leur part dans son programme (elles font 1).
+        topTopics: topics.map((t) => ({
+          slug: names.get(t.topicId)?.slug ?? '',
+          name: names.get(t.topicId)?.name ?? '',
+          passages: t._count.measureId,
+          share: topicTotal ? t._count.measureId / topicTotal : 0,
+        })),
+      },
+      approach,
+      outline,
+      chapters,
+      passages: first
+        ? passages.slice(first.start, first.start + first.count)
+        : [],
+    };
+  }
+
+  /** Les passages d'un chapitre de lecture, chargés quand on s'en approche. */
+  @Get(':slug/candidates/:candidate/programme/passages')
+  async passages(
+    @Param('slug') slug: string,
+    @Param('candidate') candidateSlug: string,
+    @Query('start') start = '0',
+    @Query('count') count = '50',
+  ) {
+    const from = Number(start);
+    const size = Number(count);
+    if (
+      !Number.isInteger(from) ||
+      !Number.isInteger(size) ||
+      from < 0 ||
+      size < 1 ||
+      size > 1000
+    )
+      throw new BadRequestException('Début ou nombre de passages invalide');
+    const candidate = await this.candidate(slug, candidateSlug);
+    const { passages } = await this.reading(candidate.id);
+    return { start: from, passages: passages.slice(from, from + size) };
+  }
+
+  private async candidate(slug: string, candidateSlug: string) {
+    const candidate = await this.prisma.candidate.findFirst({
+      where: { slug: candidateSlug, election: { slug } },
+    });
+    if (!candidate) throw new NotFoundException('Candidat inconnu');
+    return candidate;
+  }
+
+  /** Ses documents en vigueur et ses passages, dans l'ordre du programme. */
+  private async reading(candidateId: string) {
     const all = await this.prisma.politicalDocument.findMany({
       where: {
         kind: DocumentKind.programme,
@@ -101,7 +208,7 @@ export class GetCandidateProgrammeController {
       if (d.programmeSource && !sourceRank.has(d.programmeSource.id))
         sourceRank.set(d.programmeSource.id, sourceRank.size);
     const own = live
-      .filter((d) => d.candidateId === candidate.id)
+      .filter((d) => d.candidateId === candidateId)
       .map((d, i) => ({ d, i }))
       .sort(
         (x, y) =>
@@ -114,7 +221,7 @@ export class GetCandidateProgrammeController {
       .map((e) => e.d);
 
     const measures = await this.prisma.measure.findMany({
-      where: { documentId: { in: live.map((d) => d.id) } },
+      where: { documentId: { in: own.map((d) => d.id) } },
       select: {
         id: true,
         documentId: true,
@@ -138,76 +245,18 @@ export class GetCandidateProgrammeController {
           (a.position ?? 0) - (b.position ?? 0),
       );
 
-    // La structure : chaque document, puis ses rubriques dans l'ordre.
-    // Un document qui ne donne aucun passage (une page d'entrée faite de
-    // liens) ne figure pas dans la structure.
-    const outline = own
-      .filter((d) => mine.some((m) => m.documentId === d.id))
-      .map((d) => {
-        const passages = mine.filter((m) => m.documentId === d.id);
-        const headings: { heading: string; passages: number }[] = [];
-        for (const m of passages) {
-          if (!meaningful(m.article) || m.article === d.title) continue;
-          const last = headings.at(-1);
-          if (last && last.heading === m.article) last.passages++;
-          else headings.push({ heading: m.article, passages: 1 });
-        }
-        return {
-          title: d.title,
-          url: d.url,
-          fetchedAt: d.fetchedAt?.toISOString().slice(0, 10) ?? null,
-          passages: passages.length,
-          headings,
-        };
-      });
-
-    const topics = await this.prisma.topicMatch.groupBy({
-      by: ['topicId'],
-      where: { measureId: { in: mine.map((m) => m.id) } },
-      _count: { measureId: true },
-      orderBy: { _count: { measureId: 'desc' } },
-    });
-    const topicTotal = topics.reduce((n, t) => n + t._count.measureId, 0);
-    const names = new Map(
-      (
-        await this.prisma.topic.findMany({
-          where: { id: { in: topics.map((t) => t.topicId) } },
-          select: { id: true, slug: true, name: true },
-        })
-      ).map((t) => [t.id, t]),
-    );
     const docOf = new Map(own.map((d) => [d.id, d]));
-    const proposals = mine.filter((m) => isProposal(m.quote));
-
-    return {
-      summary: {
-        documents: own.length,
-        passages: mine.length,
-        proposals: proposals.length,
-        figured: mine.filter((m) => isFigured(m.quote)).length,
-        covered: mine.filter((m) => m._count.topics > 0).length,
-        // Tous ses sujets, avec leur part dans son programme (elles font 1).
-        topTopics: topics.map((t) => ({
-          slug: names.get(t.topicId)?.slug ?? '',
-          name: names.get(t.topicId)?.name ?? '',
-          passages: t._count.measureId,
-          share: topicTotal ? t._count.measureId / topicTotal : 0,
-        })),
+    // Tout le programme, dans l'ordre, chaque passage avec sa page.
+    const passages = mine.map((m) => ({
+      heading: m.article,
+      quote: m.quote,
+      page: m.page,
+      figured: isFigured(m.quote),
+      document: {
+        title: docOf.get(m.documentId)?.title ?? '',
+        url: docOf.get(m.documentId)?.url ?? '',
       },
-      approach,
-      outline,
-      // Tout le programme, dans l'ordre, chaque passage avec sa page : le
-      // site le lit chapitre par chapitre, chiffres surlignés.
-      passages: mine.map((m) => ({
-        heading: m.article,
-        quote: m.quote,
-        page: m.page,
-        figured: isFigured(m.quote),
-        document: {
-          title: docOf.get(m.documentId)?.title ?? '',
-          url: docOf.get(m.documentId)?.url ?? '',
-        },
-      })),
-    };
+    }));
+    return { own, mine, passages };
   }
 }

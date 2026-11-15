@@ -156,7 +156,11 @@ function CandidatePage() {
         <CandidateApproach approach={c.programmeProfile.approach} />
       )}
       {c.programmeProfile && (
-        <CandidateProgramme programme={c.programmeProfile} candidate={c.slug} />
+        <CandidateProgramme
+          programme={c.programmeProfile}
+          election={ELECTION}
+          candidate={c.slug}
+        />
       )}
       <Topics candidate={c} />
       <section className="px-6 pb-16 md:px-10">

@@ -415,7 +415,18 @@ export type CandidateProgramme = {
     passages: number
     headings: { heading: string; passages: number }[]
   }[]
-  /** Tout le programme, dans l'ordre ; la page vaut pour un PDF. */
+  /** Le plan de lecture : chaque chapitre, son rang et son nombre de passages. */
+  chapters: {
+    label: string
+    title: string
+    url: string
+    start: number
+    count: number
+    from: number | null
+    to: number | null
+    headings: string[]
+  }[]
+  /** Les passages du premier chapitre ; les autres se chargent à l'approche. */
   passages: {
     heading: string
     quote: string

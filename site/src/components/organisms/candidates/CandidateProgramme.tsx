@@ -6,6 +6,7 @@ import { HEAT_GRADIENT, heatColor, isDark } from '../../../utils/heat'
 import { atText, figuresIn } from '../../../utils/highlight'
 import { squarify } from '../../../utils/treemap'
 import { smoothScrollTo } from '../../../utils/scroll'
+import { getProgrammePassages } from '../../../services/public-api'
 import { QuoteText } from '../../molecules/QuoteText'
 
 const MUTED = 'text-[#5B6470]'
@@ -62,9 +63,12 @@ function ownHeadings(outline: Programme['outline']) {
  */
 export function CandidateProgramme({
   programme: p,
+  election,
   candidate,
 }: {
   programme: Programme
+  /** L'élection, pour charger chaque chapitre à l'approche. */
+  election: string
   /** Le candidat : un sujet s'ouvre sur ses citations. */
   candidate: string
 }) {
@@ -124,7 +128,9 @@ export function CandidateProgramme({
 
         <Outline outline={p.outline} />
 
-        {p.passages.length > 0 && <Reader passages={p.passages} />}
+        {p.chapters.length > 0 && (
+          <Reader programme={p} election={election} candidate={candidate} />
+        )}
       </div>
     </section>
   )
@@ -209,64 +215,69 @@ function Outline({ outline }: { outline: Programme['outline'] }) {
 }
 
 type Passage = Programme['passages'][number]
+type ReadingChapter = Programme['chapters'][number]
 
 /** L'adresse d'un passage : la page du PDF, ou le texte dans la page web. */
 const passageHref = (url: string, p: { page: number | null; text: string }) =>
   p.page ? `${url}#page=${p.page}` : atText(url, p.text.slice(0, 80))
 
-/**
- * Le programme regroupé comme il est écrit : par document, ou par ses
- * propres titres quand le candidat ne publie qu'un document ou deux ; sans
- * titre, par page du PDF. Chaque rubrique une seule fois.
- */
-function byChapter(passages: Passage[]) {
-  const groups: {
-    title: string
-    /** Le nom du chapitre dans le panneau : son titre, sa page ou son document. */
-    label: string
-    url: string
-    sections: {
-      heading: string
-      quotes: { text: string; page: number | null }[]
-    }[]
-    count: number
+/** Les rubriques d'un chapitre chargé, chacune une fois, dans l'ordre. */
+function sectionsOf(passages: Passage[]) {
+  const sections: {
+    heading: string
+    quotes: { text: string; page: number | null }[]
   }[] = []
-  const byHeading = new Set(passages.map((f) => f.document.url)).size < 3
   for (const f of passages) {
     const heading = f.heading === f.document.title ? '' : f.heading
-    const label = !byHeading
-      ? documentName(f.document.title)
-      : heading || (f.page ? `Page ${f.page}` : documentName(f.document.title))
-    let g = groups.at(-1)
-    if (!g || g.url !== f.document.url || (byHeading && g.label !== label)) {
-      g = {
-        title: f.document.title,
-        label,
-        url: f.document.url,
-        sections: [],
-        count: 0,
-      }
-      groups.push(g)
-    }
-    g.count++
     const quote = { text: f.quote, page: f.page }
-    const last = g.sections.at(-1)
+    const last = sections.at(-1)
     if (last && last.heading === heading) last.quotes.push(quote)
-    else g.sections.push({ heading, quotes: [quote] })
+    else sections.push({ heading, quotes: [quote] })
   }
-  return groups
+  return sections
 }
 
 /**
- * Tout le programme, dans son ordre, en entier : un panneau fixe des
- * chapitres (celui qu'on lit en surbrillance) et, à côté, une carte par
- * chapitre, chiffres surlignés, chaque passage avec sa page.
+ * Tout le programme, dans son ordre, en entier, chargé comme un monde
+ * ouvert : le plan complet tout de suite, le premier chapitre déjà là, et
+ * chaque chapitre suivant chargé quand le lecteur s'en approche (ou quand il
+ * y saute depuis le panneau ou la mosaïque). Chaque chapitre garde sa place
+ * à sa taille prévue, la page ne saute pas.
  */
-function Reader({ passages }: { passages: Passage[] }) {
-  const groups = byChapter(passages)
-  const figured = passages.filter((p) => p.figured).length
+function Reader({
+  programme: p,
+  election,
+  candidate,
+}: {
+  programme: Programme
+  election: string
+  candidate: string
+}) {
+  const groups = p.chapters
+  // Le premier chapitre arrive avec la page ; les autres à l'approche.
+  const [loaded, setLoaded] = useState<Partial<Record<number, Passage[]>>>(
+    () => ({ 0: p.passages }),
+  )
+  const asked = useRef(new Set<number>([0]))
   const [active, setActive] = useState(0)
+  // Un titre demandé (mosaïque) dans un chapitre pas encore chargé.
+  const [target, setTarget] = useState<string | null>(null)
   const bar = useRef<HTMLElement>(null)
+
+  const need = (i: number) => {
+    const g = groups.at(i)
+    if (!g || asked.current.has(i)) return
+    asked.current.add(i)
+    // Une réponse vide ou une erreur laisse le chapitre redemandable.
+    getProgrammePassages({
+      data: { election, slug: candidate, start: g.start, count: g.count },
+    })
+      .then((r) => {
+        if (r) setLoaded((l) => ({ ...l, [i]: r.passages }))
+        else asked.current.delete(i)
+      })
+      .catch(() => asked.current.delete(i))
+  }
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -290,7 +301,27 @@ function Reader({ passages }: { passages: Passage[] }) {
       ?.scrollIntoView({ inline: 'nearest', block: 'nearest' })
   }, [active])
 
+  // Un titre cliqué dans la mosaïque : son chapitre se charge, puis la page
+  // y défile.
+  useEffect(() => {
+    const open = (e: Event) => {
+      const key = (e as CustomEvent<string>).detail
+      const i = groups.findIndex(
+        (g) =>
+          headingKey(g.label) === key ||
+          g.headings.some((h) => headingKey(h) === key),
+      )
+      if (i < 0) return
+      need(i)
+      setTarget(key)
+      go(i)
+    }
+    window.addEventListener(OPEN_HEADING, open)
+    return () => window.removeEventListener(OPEN_HEADING, open)
+  }, [groups])
+
   const go = (i: number) => {
+    need(i)
     const el = document.getElementById(`chapitre-${i}`)
     if (el) smoothScrollTo(el)
   }
@@ -299,8 +330,8 @@ function Reader({ passages }: { passages: Passage[] }) {
     <div>
       <div className="rounded-[28px] bg-white p-6 md:p-8">
         <p className="font-extrabold text-[#0B1A2A]">
-          Son programme, chapitre par chapitre · {passages.length} passages,
-          dont {figured} chiffrés
+          Chapitre par chapitre · {p.summary.passages} passages, dont{' '}
+          {p.summary.figured} chiffrés
         </p>
       </div>
 
@@ -359,7 +390,14 @@ function Reader({ passages }: { passages: Passage[] }) {
 
           <ol className="mt-4 space-y-5 lg:mt-0">
             {groups.map((g, i) => (
-              <Chapter key={`${g.url}-${i}`} index={i} group={g} />
+              <Chapter
+                key={`${g.url}-${i}`}
+                index={i}
+                group={g}
+                passages={loaded[i]}
+                onNear={() => need(i)}
+                target={target}
+              />
             ))}
           </ol>
         </div>
@@ -371,27 +409,40 @@ function Reader({ passages }: { passages: Passage[] }) {
 function Chapter({
   index,
   group: g,
+  passages,
+  onNear,
+  target,
 }: {
   index: number
-  group: ReturnType<typeof byChapter>[number]
+  group: ReadingChapter
+  /** Absents tant que le chapitre n'est pas chargé. */
+  passages: Passage[] | undefined
+  onNear: () => void
+  target: string | null
 }) {
   const card = useRef<HTMLLIElement>(null)
-  // Un titre cliqué dans la mosaïque : la page défile jusqu'à lui.
+
+  // Le chapitre se charge un peu avant d'arriver à l'écran.
   useEffect(() => {
-    const open = (e: Event) => {
-      const key = (e as CustomEvent<string>).detail
-      const el = card.current?.querySelector(`[data-heading="${key}"]`)
-      if (el instanceof HTMLElement) smoothScrollTo(el)
-    }
-    window.addEventListener(OPEN_HEADING, open)
-    return () => window.removeEventListener(OPEN_HEADING, open)
-  }, [g])
-  // Les pages du chapitre, quand il vient d'un PDF ; une page web n'en a pas.
-  const pages = g.sections.flatMap((s) =>
-    s.quotes.flatMap((q) => (q.page ? [q.page] : [])),
-  )
-  const from = pages.length ? Math.min(...pages) : 0
-  const to = pages.length ? Math.max(...pages) : 0
+    if (passages || !card.current) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) onNear()
+      },
+      { rootMargin: '1500px 0px' },
+    )
+    observer.observe(card.current)
+    return () => observer.disconnect()
+  }, [passages])
+
+  // Chargé à la demande d'un titre de la mosaïque : la page y défile.
+  useEffect(() => {
+    if (!passages || !target) return
+    const el = card.current?.querySelector(`[data-heading="${target}"]`)
+    if (el instanceof HTMLElement) smoothScrollTo(el)
+  }, [passages, target])
+
+  const sections = passages ? sectionsOf(passages) : []
   let lastPage: number | null = null
   return (
     <li
@@ -400,15 +451,15 @@ function Chapter({
       className="scroll-mt-32 rounded-[28px] bg-white p-5 md:p-8"
     >
       <a
-        href={from ? `${g.url}#page=${from}` : g.url}
+        href={g.from ? `${g.url}#page=${g.from}` : g.url}
         target="_blank"
         rel="noreferrer"
         className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#F4F6F8] px-3 py-1 text-[0.82rem] font-bold text-[#0B1A2A] no-underline hover:underline"
       >
         <span className="truncate">{documentName(g.title)}</span>
-        {from > 0 && (
+        {g.from !== null && (
           <span className="shrink-0 font-semibold">
-            · {from === to ? `p. ${from}` : `p. ${from} à ${to}`}
+            · {g.from === g.to ? `p. ${g.from}` : `p. ${g.from} à ${g.to}`}
           </span>
         )}
         <span className={`shrink-0 font-semibold ${MUTED}`}>
@@ -416,56 +467,66 @@ function Chapter({
         </span>
         <ArrowUpRight size={12} className="shrink-0" />
       </a>
-      <div className="mt-4 space-y-5 border-l-2 border-[#0B1A2A]/10 pl-5 md:pl-7">
-        {g.sections.map((s, k) => (
-          <div
-            key={k}
-            data-heading={headingKey(s.heading)}
-            className="scroll-mt-40"
-          >
-            {s.heading && (
-              <a
-                href={passageHref(g.url, {
-                  page: s.quotes[0].page,
-                  text: s.heading,
+      {!passages ? (
+        // Sa place, à sa taille prévue, en attendant son texte.
+        <div
+          aria-busy="true"
+          className="mt-4 rounded-[18px] bg-[#F4F6F8]"
+          style={{ height: Math.min(4000, 60 + g.count * 110) }}
+        />
+      ) : (
+        <div className="mt-4 space-y-5 border-l-2 border-[#0B1A2A]/10 pl-5 md:pl-7">
+          {sections.map((s, k) => (
+            <div
+              key={k}
+              data-heading={headingKey(s.heading)}
+              className="scroll-mt-40"
+            >
+              {s.heading && (
+                <a
+                  href={passageHref(g.url, {
+                    page: s.quotes[0].page,
+                    text: s.heading,
+                  })}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mb-2 block text-[1rem] font-extrabold text-[#0B1A2A] no-underline hover:underline"
+                >
+                  {s.heading}
+                </a>
+              )}
+              <div className="space-y-4">
+                {s.quotes.map((q, j) => {
+                  // Un repère au changement de page seulement ; un chapitre
+                  // d'une seule page a déjà la sienne dans sa pastille.
+                  const mark =
+                    q.page !== null && g.from !== g.to && q.page !== lastPage
+                  lastPage = q.page
+                  return (
+                    <div key={j}>
+                      {mark && (
+                        <a
+                          href={`${g.url}#page=${q.page}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={`mb-2 inline-block rounded-full bg-[#F4F6F8] px-2.5 py-0.5 text-[0.75rem] font-bold ${MUTED} no-underline hover:text-[#0B1A2A] hover:underline`}
+                        >
+                          Page {q.page}
+                        </a>
+                      )}
+                      <QuoteText text={q.text} terms={figuresIn(q.text)} />
+                    </div>
+                  )
                 })}
-                target="_blank"
-                rel="noreferrer"
-                className={`mb-2 block text-[1rem] font-extrabold text-[#0B1A2A] no-underline hover:underline`}
-              >
-                {s.heading}
-              </a>
-            )}
-            <div className="space-y-4">
-              {s.quotes.map((q, j) => {
-                // Un repère au changement de page seulement ; un chapitre
-                // d'une seule page a déjà la sienne dans sa pastille.
-                const mark =
-                  q.page !== null && from !== to && q.page !== lastPage
-                lastPage = q.page
-                return (
-                  <div key={j}>
-                    {mark && (
-                      <a
-                        href={`${g.url}#page=${q.page}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={`mb-2 inline-block rounded-full bg-[#F4F6F8] px-2.5 py-0.5 text-[0.75rem] font-bold ${MUTED} no-underline hover:text-[#0B1A2A] hover:underline`}
-                      >
-                        Page {q.page}
-                      </a>
-                    )}
-                    <QuoteText text={q.text} terms={figuresIn(q.text)} />
-                  </div>
-                )
-              })}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </li>
   )
 }
+
 
 /**
  * La mosaïque des sujets d'un candidat : la surface de chaque sujet est sa
