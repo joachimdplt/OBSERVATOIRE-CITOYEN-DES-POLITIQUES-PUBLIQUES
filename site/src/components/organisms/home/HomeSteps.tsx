@@ -39,12 +39,14 @@ function Entree({
 }
 
 /**
- * Comment l'observatoire se nourrit, en six étapes numérotées. Quand le bloc
- * entre à l'écran, un cadre glisse d'un carré à l'autre et chaque étape
- * parcourue se remplit, de la première à la sixième, puis le cadre va
- * entourer le bouton (repris du parcours des fiches d'airobotics, en
- * monochrome). Sans animation si le lecteur l'a
- * demandé à son système.
+ * Comment ça marche, raconté dans l'ordre : on relève, on cite, on range par
+ * enjeu, on pose les chiffres, on suit les vidéos, vous comparez. Le bouton
+ * mène aux enjeux, là où tout se lit.
+ *
+ * Quand le bloc entre à l'écran, un cadre glisse d'un carré à l'autre et
+ * chaque étape parcourue se remplit, puis le cadre va entourer le bouton
+ * (repris du parcours des fiches d'airobotics, en monochrome). Sans animation
+ * si le lecteur l'a demandé à son système.
  */
 export function HomeSteps() {
   const { comment } = HOME
@@ -78,6 +80,11 @@ export function HomeSteps() {
           <h2 className="text-[clamp(1.9rem,3.6vw,3rem)] leading-[1.15] font-extrabold tracking-[-0.03em] text-balance text-[#0B1A2A]">
             <Highlight text={comment.title} />
           </h2>
+          <p
+            className={`mx-auto mt-5 max-w-[56ch] text-[1.08rem] leading-relaxed md:text-[1.2rem] ${MUTED}`}
+          >
+            {comment.lead}
+          </p>
         </Entree>
 
         <ol
@@ -127,10 +134,13 @@ export function HomeSteps() {
           })}
         </ol>
 
-        <Entree delay={0.1} className="mt-14 flex justify-center">
+        <Entree
+          delay={0.1}
+          className="mt-14 flex flex-wrap items-center justify-center gap-x-8 gap-y-4"
+        >
           <span className="relative">
             <Link
-              to="/developpeurs"
+              to="/enjeux"
               className="inline-flex h-14 items-center gap-3 rounded-full bg-[#0B1A2A] px-7 text-[1.05rem] font-extrabold text-white no-underline hover:opacity-90"
             >
               {comment.cta}
@@ -146,6 +156,12 @@ export function HomeSteps() {
               />
             )}
           </span>
+          <Link
+            to="/developpeurs"
+            className="text-[0.95rem] font-bold text-[#0B1A2A] no-underline hover:underline"
+          >
+            {comment.technical}
+          </Link>
         </Entree>
       </div>
     </section>

@@ -17,33 +17,35 @@ export const HOME = {
 
   comment: {
     title: 'Comment [[ça marche]]',
+    lead: 'Chaque jour, l’observatoire relève les publications des candidats et des partis, les cite mot pour mot et les range par enjeu, à côté des chiffres officiels.',
     steps: [
       {
-        title: 'Les candidats',
-        text: 'Chaque candidature déclarée publiquement, avec sa source datée.',
+        title: 'On relève tout',
+        text: 'Programmes, livrets, textes déposés à l’Assemblée : collectés chaque jour sur leurs sites et les données ouvertes du Parlement.',
       },
       {
-        title: 'Leurs programmes',
-        text: 'Collectés chaque jour sur leurs sites, découpés en passages cités mot pour mot.',
+        title: 'On cite, mot pour mot',
+        text: 'Chaque proposition est reprise telle quelle, avec le lien vers son document. Aucune reformulation.',
       },
       {
-        title: 'Leurs vidéos',
-        text: 'Leurs chaînes officielles, l’Assemblée et le Sénat. Aucun commentaire de tiers.',
+        title: 'On range par enjeu',
+        text: 'Logement, retraites, accès aux médecins : chaque passage rejoint l’enjeu dont il parle.',
       },
       {
-        title: 'Les chiffres publics',
-        text: 'INSEE, DREES, ministères : lus à la source, gardés tels que publiés.',
+        title: 'On pose les chiffres à côté',
+        text: 'INSEE, DREES, ministères : la situation réelle, commune par commune, lue à la source.',
       },
       {
-        title: 'Les textes déposés',
-        text: 'Propositions de loi de l’Assemblée, avec leur auteur et son groupe.',
+        title: 'On suit leurs vidéos',
+        text: 'Leurs chaînes officielles, l’Assemblée et le Sénat : leurs mots, sans commentaire de tiers.',
       },
       {
-        title: 'Une API avec clé',
-        text: 'Chaque chiffre se relit à sa source ; les données se lisent par une API, avec une clé.',
+        title: 'Vous comparez',
+        text: 'Enjeu par enjeu, candidat par candidat. Aucune note, aucun classement.',
       },
     ],
-    cta: 'La construction technique',
+    cta: 'Voir les enjeux',
+    technical: 'La construction technique',
   },
 
   articles: {
