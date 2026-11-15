@@ -339,7 +339,6 @@ export type CandidateSheet = {
   programmeCheckedAt: string | null
   photo: CandidatePhoto | null
   programme: { documents: number; passages: number }
-  topics: { slug: string; name: string; pillar: Pillar; passages: number }[]
   /** Ses comptes publics, d'après son élément Wikidata. */
   accounts: {
     network: 'youtube' | 'instagram' | 'x' | 'tiktok'
@@ -382,9 +381,6 @@ export type CandidateProgramme = {
   summary: {
     documents: number
     passages: number
-    proposals: number
-    covered: number
-    topTopics: { slug: string; name: string; passages: number; share: number }[]
   }
   /** Sa démarche, quand elle n'est pas un programme : relevés datés. */
   approach: {

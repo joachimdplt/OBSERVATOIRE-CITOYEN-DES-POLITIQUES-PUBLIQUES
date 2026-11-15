@@ -7,7 +7,6 @@ import {
   Query,
 } from '@nestjs/common';
 import { currentCaptures } from '../../../domain/programme';
-import { isProposal } from '../../../domain/programme-profile';
 import { readingChapters } from '../../../domain/programme-reading';
 import type {
   DiagnosisChapter,
@@ -96,21 +95,6 @@ export class GetCandidateProgrammeController {
         };
       });
 
-    const topics = await this.prisma.topicMatch.groupBy({
-      by: ['topicId'],
-      where: { measureId: { in: mine.map((m) => m.id) } },
-      _count: { measureId: true },
-      orderBy: { _count: { measureId: 'desc' } },
-    });
-    const topicTotal = topics.reduce((n, t) => n + t._count.measureId, 0);
-    const names = new Map(
-      (
-        await this.prisma.topic.findMany({
-          where: { id: { in: topics.map((t) => t.topicId) } },
-          select: { id: true, slug: true, name: true },
-        })
-      ).map((t) => [t.id, t]),
-    );
     // Le plan de lecture : tous les chapitres, et le texte du premier
     // seulement. Le site charge chaque chapitre quand on s'en approche.
     const read = readingChapters(passages);
@@ -134,15 +118,6 @@ export class GetCandidateProgrammeController {
       summary: {
         documents: own.length,
         passages: mine.length,
-        proposals: mine.filter((m) => isProposal(m.quote)).length,
-        covered: mine.filter((m) => m._count.topics > 0).length,
-        // Tous ses sujets, avec leur part dans son programme (elles font 1).
-        topTopics: topics.map((t) => ({
-          slug: names.get(t.topicId)?.slug ?? '',
-          name: names.get(t.topicId)?.name ?? '',
-          passages: t._count.measureId,
-          share: topicTotal ? t._count.measureId / topicTotal : 0,
-        })),
       },
       approach,
       outline,
@@ -242,7 +217,6 @@ export class GetCandidateProgrammeController {
         quote: true,
         position: true,
         page: true,
-        _count: { select: { topics: true } },
       },
       orderBy: { position: 'asc' },
     });

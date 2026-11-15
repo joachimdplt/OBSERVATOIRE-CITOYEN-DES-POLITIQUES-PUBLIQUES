@@ -162,7 +162,7 @@ function CandidatePage() {
           candidate={c.slug}
         />
       )}
-      <Topics candidate={c} />
+      <NoProgramme candidate={c} />
       <section className="px-6 pb-16 md:px-10">
         <div className="mx-auto max-w-[1120px]">
           <div>
@@ -180,46 +180,15 @@ function CandidatePage() {
   )
 }
 
-function Topics({ candidate: c }: { candidate: CandidateSheet }) {
+/** Aucun programme collecté : dit tel quel, avec la date du constat. */
+function NoProgramme({ candidate: c }: { candidate: CandidateSheet }) {
+  if (c.programme.passages > 0) return null
   return (
     <section className="px-6 py-12 md:px-10">
-      <div className="mx-auto max-w-[1120px]">
-        <h2 className={`${DISPLAY} text-[clamp(1.6rem,3vw,2.2rem)]`}>
-          Les sujets de son programme
-        </h2>
-        {c.programme.passages === 0 ? (
-          <p className={`mt-4 ${MUTED}`}>
-            Aucun programme collecté
-            {c.programmeCheckedAt
-              ? ` au ${frenchDate(c.programmeCheckedAt)}`
-              : ''}
-            .
-          </p>
-        ) : (
-          <>
-            <ul className="mt-8 grid gap-3 sm:grid-cols-2">
-              {c.topics.map((t) => (
-                <li key={t.slug}>
-                  <Link
-                    to="/sujets/$slug"
-                    params={{ slug: t.slug }}
-                    hash={`candidat-${c.slug}`}
-                    hashScrollIntoView={false}
-                    className="group flex items-center justify-between gap-4 rounded-[20px] bg-white px-5 py-4 no-underline"
-                  >
-                    <span className="font-bold text-[#0B1A2A] group-hover:underline">
-                      {t.name}
-                    </span>
-                    <span className={`shrink-0 text-sm tabular-nums ${MUTED}`}>
-                      {t.passages} passage{t.passages > 1 ? 's' : ''}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </div>
+      <p className={`mx-auto max-w-[1120px] ${MUTED}`}>
+        Aucun programme collecté
+        {c.programmeCheckedAt ? ` au ${frenchDate(c.programmeCheckedAt)}` : ''}.
+      </p>
     </section>
   )
 }

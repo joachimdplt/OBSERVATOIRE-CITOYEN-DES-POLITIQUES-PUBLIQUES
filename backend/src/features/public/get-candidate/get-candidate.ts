@@ -49,12 +49,8 @@ export class GetCandidateController {
         })),
       ),
     ];
-    const [passages, matches, videos] = await Promise.all([
+    const [passages, videos] = await Promise.all([
       this.prisma.measure.count({ where: { documentId: { in: current } } }),
-      this.prisma.topicMatch.findMany({
-        where: { measure: { documentId: { in: current } } },
-        select: { topic: { select: { slug: true, name: true, pillar: true } } },
-      }),
       this.prisma.videoCandidate.findMany({
         where: { candidateId: c.id },
         include: { video: { include: { channel: true } } },
@@ -62,16 +58,6 @@ export class GetCandidateController {
         take: VIDEOS,
       }),
     ]);
-    const topics = new Map<
-      string,
-      { slug: string; name: string; pillar: string; passages: number }
-    >();
-    for (const { topic } of matches) {
-      const t = topics.get(topic.slug) ?? { ...topic, passages: 0 };
-      t.passages++;
-      topics.set(topic.slug, t);
-    }
-
     return {
       election: { slug: c.election.slug, name: c.election.name },
       slug: c.slug,
@@ -94,9 +80,6 @@ export class GetCandidateController {
           }
         : null,
       programme: { documents: current.length, passages },
-      topics: [...topics.values()].sort(
-        (a, b) => b.passages - a.passages || a.name.localeCompare(b.name, 'fr'),
-      ),
       accounts: c.accounts.map((a) => ({
         network: a.network,
         handle: a.handle,
