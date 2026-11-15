@@ -9,9 +9,10 @@ ne conclut pas.
 ## Ce que fait l'application
 
 - **Des articles** : chaque article nomme un enjeu (« Accès aux médecins
-  généralistes »), le découpe en parties, choisit pour chacune des
-  indicateurs officiels avec la raison du choix, et met côte à côte les textes
-  déposés par chaque groupe politique, cités mot pour mot. Un article est
+  généralistes ») et l'ouvre sur les programmes des candidats : leurs
+  passages mot pour mot, candidat par candidat. Viennent ensuite les
+  indicateurs officiels choisis, avec la raison du choix, puis, repliés en
+  bas, les textes déposés au Parlement groupe par groupe. Un article est
   signé, versionné, relu avant publication.
 - **Une carte** : la France commune par commune, une région à la fois si on
   veut zoomer, la recherche d'une commune par son nom, et pour chaque commune

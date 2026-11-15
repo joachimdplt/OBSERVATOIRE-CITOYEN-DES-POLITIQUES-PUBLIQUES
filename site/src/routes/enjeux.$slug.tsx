@@ -8,9 +8,7 @@ import { ArrowRight, Map as MapIcon, X } from 'lucide-react'
 import { z } from 'zod'
 import { CommuneSearch } from '../components/molecules/CommuneSearch'
 import { ValueCell } from '../components/organisms/indicators/ValueCell'
-import { MeasureComparison } from '../components/organisms/publications/MeasureComparison'
-import { MeasureList } from '../components/organisms/publications/MeasureList'
-import { CollectedTexts } from '../components/organisms/publications/CollectedTexts'
+import { ParliamentBlock } from '../components/organisms/publications/ParliamentBlock'
 import { ProgrammePassages } from '../components/organisms/publications/ProgrammePassages'
 import { pillarLabel } from '../data/pillars'
 import {
@@ -185,7 +183,21 @@ function PublicationView({ topic }: { topic: TopicSheet | null }) {
         </div>
       </section>
 
-      <section className="sticky top-14 z-[5] border-y border-[#0B1A2A]/8 bg-[#F4F6F8]/90 px-6 py-4 backdrop-blur md:px-10">
+      {topic && <ProgrammePassages topic={topic} />}
+
+      <section className="px-6 pt-8 md:px-10">
+        <div className="mx-auto max-w-[1120px]">
+          <h2 className={`${DISPLAY} text-[clamp(1.6rem,3vw,2.2rem)]`}>
+            Les chiffres officiels
+          </h2>
+          <p className={`mt-2 max-w-[62ch] ${MUTED}`}>
+            Les indicateurs publics choisis pour cet enjeu, avec la raison de
+            chaque choix.
+          </p>
+        </div>
+      </section>
+
+      <section className="sticky top-[86px] z-[5] border-y border-[#0B1A2A]/8 bg-[#F4F6F8]/90 px-6 py-4 backdrop-blur md:px-10">
         <div className="mx-auto flex max-w-[1120px] flex-wrap items-center gap-3">
           <CommuneSearch
             onPick={(t) =>
@@ -217,8 +229,6 @@ function PublicationView({ topic }: { topic: TopicSheet | null }) {
           )}
         </div>
       </section>
-
-      <MeasureComparison sections={p.sections} collected={p.collected} />
 
       <section className="px-6 py-16 md:px-10">
         <ol className="mx-auto max-w-[1120px] space-y-8">
@@ -325,11 +335,9 @@ function PublicationView({ topic }: { topic: TopicSheet | null }) {
                   )
                 })}
               </ul>
-              <MeasureList measures={section.measures} />
             </li>
           ))}
         </ol>
-        <CollectedTexts texts={p.collected} />
         {p.history.length > 0 && (
           <div className={`mx-auto mt-10 max-w-[1120px] text-sm ${MUTED}`}>
             Versions précédentes :{' '}
@@ -350,7 +358,7 @@ function PublicationView({ topic }: { topic: TopicSheet | null }) {
           </Link>
         </div>
       </section>
-      {topic && <ProgrammePassages topic={topic} />}
+      <ParliamentBlock article={p} />
     </main>
   )
 }
