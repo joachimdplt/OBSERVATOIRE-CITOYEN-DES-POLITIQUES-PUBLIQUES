@@ -1,5 +1,5 @@
 import { Link, createFileRoute, notFound } from '@tanstack/react-router'
-import { ArrowRight, ArrowUpRight } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Download } from 'lucide-react'
 import { CandidatePortrait } from '../components/molecules/CandidatePortrait'
 import { LiveBadge } from '../components/molecules/LiveBadge'
 import { Carousel } from '../components/molecules/Carousel'
@@ -36,6 +36,12 @@ export const Route = createFileRoute('/candidats/$slug')({
 })
 
 const MUTED = 'text-[#5B6470]'
+
+const isPdf = (url: string) => /\.pdf(\?|#|$)/i.test(url)
+
+/** « LR_Produire_Plus_LIVRET.pdf » se lit « LR Produire Plus LIVRET ». */
+const pdfName = (title: string) =>
+  title.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ').trim()
 const DISPLAY = 'font-extrabold tracking-[-0.03em] text-[#0B1A2A]'
 
 const STATUS = {
@@ -63,6 +69,26 @@ const LINK = {
  */
 function CandidatePage() {
   const c = Route.useLoaderData()
+  // Ses programmes en document se téléchargent ; son site va dans la liste
+  // de ses adresses, avec ses réseaux.
+  const outline = c.programmeProfile?.outline ?? []
+  const pdfs = outline
+    .filter((d) => isPdf(d.url))
+    .map((d) => ({ title: d.title, url: d.url }))
+  if (
+    c.programmeUrl &&
+    isPdf(c.programmeUrl) &&
+    !pdfs.some((d) => d.url === c.programmeUrl)
+  )
+    pdfs.unshift({ title: 'programme', url: c.programmeUrl })
+  // Le premier document est le programme ; les autres (livrets par thème)
+  // vont dans la liste.
+  const main = pdfs.at(0)
+  const others = pdfs.slice(1)
+  const site =
+    c.programmeUrl && !isPdf(c.programmeUrl)
+      ? c.programmeUrl
+      : (outline.find((d) => !isPdf(d.url))?.url ?? null)
   return (
     <main>
       <section className="px-6 pt-20 pb-6 md:px-10">
@@ -106,27 +132,61 @@ function CandidatePage() {
               >
                 {STATUS[c.programmeStatus]}
               </span>
-              {c.programmeUrl && (
+              {main && (
                 <a
-                  href={c.programmeUrl}
+                  href={main.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 font-bold text-[#0B1A2A] no-underline hover:underline"
+                  className="inline-flex h-10 items-center gap-2 rounded-full bg-[#0B1A2A] px-5 text-[0.9rem] font-bold text-white no-underline hover:bg-[#1C2B3B]"
                 >
-                  Lire le programme <ArrowUpRight size={15} />
+                  <Download size={16} />
+                  Télécharger le programme
                 </a>
               )}
             </p>
             {c.programmeNote && (
               <p className={`mt-3 max-w-[62ch] text-[0.95rem] ${MUTED}`}>
                 {c.programmeNote}
-                {c.programmeCheckedAt
-                  ? ` État constaté le ${frenchDate(c.programmeCheckedAt)}.`
-                  : ''}
               </p>
             )}
-            {c.accounts.length > 0 && (
+            {(site || others.length > 0 || c.accounts.length > 0) && (
               <ul className="mt-6 max-w-[520px] divide-y divide-[#0B1A2A]/8 overflow-hidden rounded-[18px] bg-white">
+                {site && (
+                  <li>
+                    <a
+                      href={site}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-4 px-4 py-2.5 text-[0.9rem] no-underline hover:bg-[#F4F6F8]"
+                    >
+                      <span className="w-[90px] shrink-0 font-bold text-[#0B1A2A]">
+                        Site
+                      </span>
+                      <span className={`flex-1 truncate font-semibold ${MUTED}`}>
+                        {new URL(site).hostname.replace(/^www\./, '')}
+                      </span>
+                      <ArrowUpRight size={14} className="shrink-0 text-[#0B1A2A]" />
+                    </a>
+                  </li>
+                )}
+                {others.map((d) => (
+                  <li key={d.url}>
+                    <a
+                      href={d.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-4 px-4 py-2.5 text-[0.9rem] no-underline hover:bg-[#F4F6F8]"
+                    >
+                      <span className="w-[90px] shrink-0 font-bold text-[#0B1A2A]">
+                        Document
+                      </span>
+                      <span className={`flex-1 truncate font-semibold ${MUTED}`}>
+                        {pdfName(d.title)}
+                      </span>
+                      <Download size={14} className="shrink-0 text-[#0B1A2A]" />
+                    </a>
+                  </li>
+                ))}
                 {c.accounts.map((a) => (
                   <li key={`${a.network}-${a.handle}`}>
                     <a
@@ -201,10 +261,6 @@ function Videos({ candidate: c }: { candidate: CandidateSheet }) {
         <h2 className={`${DISPLAY} text-[clamp(1.6rem,3vw,2.2rem)]`}>
           Vidéos publiques
         </h2>
-        <p className={`mt-4 max-w-[64ch] leading-relaxed ${MUTED}`}>
-          Le candidat, dans ses propres mots : ses vidéos, celles de son parti
-          et ses interventions à l’Assemblée et au Sénat.
-        </p>
         {c.channels.length > 0 && (
           <p className={`mt-3 text-[0.9rem] ${MUTED}`}>
             {c.channels.map((ch, i) => (

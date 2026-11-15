@@ -46,6 +46,21 @@ function SourcesPage() {
             </p>
           </Block>
 
+          <Block id="videos" title="Les vidéos">
+            <p>
+              Le candidat dans ses propres mots : ses vidéos, celles de son
+              parti et ses interventions à l’Assemblée nationale et au Sénat.
+            </p>
+            <p>
+              Les chaînes suivies sont celles du candidat et de son parti,
+              quand leur site y renvoie, et celles de l’Assemblée nationale et
+              du Sénat. Sur sa propre chaîne, toutes ses vidéos sont retenues ;
+              sur celle de son parti ou d’une assemblée, seulement celles dont
+              le titre donne son nom complet. Les vidéos sont collectées depuis
+              le 1er janvier 2026.
+            </p>
+          </Block>
+
           <Block id="sujets" title="La grille des sujets">
             <p>
               Les sujets viennent de la grille du Comparative Agendas Project,
