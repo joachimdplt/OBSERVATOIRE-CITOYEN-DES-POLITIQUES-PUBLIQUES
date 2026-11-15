@@ -39,8 +39,8 @@ export const HOME = {
         text: 'Propositions de loi de l’Assemblée, avec leur auteur et son groupe.',
       },
       {
-        title: 'Une API ouverte',
-        text: 'Tout se relit et se réutilise librement. Le code est public.',
+        title: 'Une API avec clé',
+        text: 'Chaque chiffre se relit à sa source ; les données se lisent par une API, avec une clé.',
       },
     ],
     cta: 'La construction technique',

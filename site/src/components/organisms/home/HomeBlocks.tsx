@@ -1,17 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import {
-  ArrowRight,
-  BookOpen,
-  Code2,
-  KeyRound,
-  FileText,
-  Database,
-  Users,
-  Video,
-  Gavel,
-  Flag,
-  ShieldCheck,
-} from 'lucide-react'
+import { ArrowRight, BookOpen, KeyRound, Flag, ShieldCheck } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Highlight } from '../../atoms/Highlight'
@@ -163,49 +151,6 @@ export function HomeFin() {
         <div className="mt-10">
           <ActionPill label={fin.cta} dark />
         </div>
-      </div>
-    </Screen>
-  )
-}
-
-const STEP_ICONS = [Users, FileText, Video, Database, Gavel, Code2]
-
-/**
- * Comment l'observatoire se nourrit, en six gestes : d'où vient chaque chose
- * affichée, et comment la relire par l'API publique.
- */
-export function HomeComment() {
-  const { comment } = HOME
-  return (
-    <Screen id="comment">
-      <Step title={comment.title} />
-      <ol className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {comment.steps.map((step, i) => (
-          <li
-            key={step.title}
-            className="flex flex-col rounded-[24px] bg-white p-6"
-          >
-            <div className="flex items-center gap-3">
-              <Bubble icon={STEP_ICONS[i]} size={44} />
-              <span className="text-[0.85rem] font-bold text-[#5B6470]">
-                {i + 1}
-              </span>
-            </div>
-            <p className={`${DISPLAY} mt-4 text-[1.2rem]`}>{step.title}</p>
-            <p className={`mt-1.5 text-[0.95rem] leading-snug ${MUTED}`}>
-              {step.text}
-            </p>
-          </li>
-        ))}
-      </ol>
-      <div className="mt-10 flex justify-center">
-        <Link
-          to="/developpeurs"
-          className="inline-flex h-14 items-center gap-3 rounded-full bg-[#0B1A2A] px-7 text-[1.05rem] font-extrabold text-white no-underline hover:opacity-90"
-        >
-          {comment.cta}
-          <ArrowRight size={18} strokeWidth={2.75} aria-hidden />
-        </Link>
       </div>
     </Screen>
   )

@@ -1,10 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { plain } from '../components/atoms/Highlight'
 import {
-  HomeComment,
   HomeContribuer,
   HomeFin,
 } from '../components/organisms/home/HomeBlocks'
+import { HomeSteps } from '../components/organisms/home/HomeSteps'
 import { HomeFront, HomeHero } from '../components/organisms/home/HomeFront'
 import { HomeProgrammes } from '../components/organisms/home/HomeProgrammes'
 import { HOME } from '../data/home'
@@ -42,17 +42,17 @@ export const Route = createFileRoute('/')({
 })
 
 /**
- * L'accueil : le principe et ses garanties, les candidats, les articles,
- * comment l'observatoire se nourrit, la contribution.
+ * L'accueil : le principe et ses garanties, comment l'observatoire se
+ * nourrit, les candidats, les articles, la contribution.
  */
 function Home() {
   const { articles, election } = Route.useLoaderData()
   return (
     <>
       <HomeHero />
+      <HomeSteps />
       {election && <HomeProgrammes election={election} />}
       <HomeFront articles={articles} />
-      <HomeComment />
       <HomeContribuer />
       <HomeFin />
     </>
