@@ -13,6 +13,7 @@ import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as AdminIndexRouteImport } from './routes/_admin/index'
 import { Route as AdminReviewsRouteImport } from './routes/_admin/reviews'
+import { Route as AdminSubjectsRouteImport } from './routes/_admin/subjects'
 import { Route as AdminDatasetsDatasetIdRouteImport } from './routes/_admin/datasets.$datasetId'
 import { Route as AdminDatasetsNewRouteImport } from './routes/_admin/datasets.new'
 import { Route as AdminImportsJobIdRouteImport } from './routes/_admin/imports.$jobId'
@@ -38,6 +39,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminReviewsRoute = AdminReviewsRouteImport.update({
   id: '/reviews',
   path: '/reviews',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSubjectsRoute = AdminSubjectsRouteImport.update({
+  id: '/subjects',
+  path: '/subjects',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminDatasetsDatasetIdRoute = AdminDatasetsDatasetIdRouteImport.update({
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AdminIndexRoute
   '/signin': typeof SigninRoute
   '/reviews': typeof AdminReviewsRoute
+  '/subjects': typeof AdminSubjectsRoute
   '/datasets/$datasetId': typeof AdminDatasetsDatasetIdRoute
   '/datasets/new': typeof AdminDatasetsNewRoute
   '/imports/$jobId': typeof AdminImportsJobIdRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/signin': typeof SigninRoute
   '/reviews': typeof AdminReviewsRoute
+  '/subjects': typeof AdminSubjectsRoute
   '/': typeof AdminIndexRoute
   '/datasets/$datasetId': typeof AdminDatasetsDatasetIdRoute
   '/datasets/new': typeof AdminDatasetsNewRoute
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   '/_admin': typeof AdminRouteWithChildren
   '/signin': typeof SigninRoute
   '/_admin/reviews': typeof AdminReviewsRoute
+  '/_admin/subjects': typeof AdminSubjectsRoute
   '/_admin/': typeof AdminIndexRoute
   '/_admin/datasets/$datasetId': typeof AdminDatasetsDatasetIdRoute
   '/_admin/datasets/new': typeof AdminDatasetsNewRoute
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/'
     | '/signin'
     | '/reviews'
+    | '/subjects'
     | '/datasets/$datasetId'
     | '/datasets/new'
     | '/imports/$jobId'
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
   to:
     | '/signin'
     | '/reviews'
+    | '/subjects'
     | '/'
     | '/datasets/$datasetId'
     | '/datasets/new'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/_admin'
     | '/signin'
     | '/_admin/reviews'
+    | '/_admin/subjects'
     | '/_admin/'
     | '/_admin/datasets/$datasetId'
     | '/_admin/datasets/new'
@@ -187,6 +199,13 @@ declare module '@tanstack/react-router' {
       path: '/reviews'
       fullPath: '/reviews'
       preLoaderRoute: typeof AdminReviewsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/subjects': {
+      id: '/_admin/subjects'
+      path: '/subjects'
+      fullPath: '/subjects'
+      preLoaderRoute: typeof AdminSubjectsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_admin/datasets/$datasetId': {
@@ -243,6 +262,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminReviewsRoute: typeof AdminReviewsRoute
+  AdminSubjectsRoute: typeof AdminSubjectsRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminDatasetsDatasetIdRoute: typeof AdminDatasetsDatasetIdRoute
   AdminDatasetsNewRoute: typeof AdminDatasetsNewRoute
@@ -255,6 +275,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminReviewsRoute: AdminReviewsRoute,
+  AdminSubjectsRoute: AdminSubjectsRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminDatasetsDatasetIdRoute: AdminDatasetsDatasetIdRoute,
   AdminDatasetsNewRoute: AdminDatasetsNewRoute,

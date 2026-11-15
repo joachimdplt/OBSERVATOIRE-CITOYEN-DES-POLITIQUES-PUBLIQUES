@@ -37,6 +37,13 @@ export function AdminLayout({ member, onSignOut }: Props) {
             >
               Publications
             </Link>
+            <Link
+              to="/subjects"
+              className="text-slate-600 hover:text-slate-900"
+              activeProps={{ className: 'font-medium text-slate-900' }}
+            >
+              Sujets à relire
+            </Link>
             {can(member.role, 'review') && (
               <Link
                 to="/reviews"
