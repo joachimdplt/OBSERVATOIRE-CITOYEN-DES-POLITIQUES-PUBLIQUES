@@ -8,12 +8,18 @@ import {
 import { DocumentKind } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../../prisma/prisma.service';
 
-/** Un intitulé qui tient lieu d'étape : au moins deux mots. */
+/** Un intitulé qui tient lieu d'étape : au moins deux mots, ou un mot de sujet. */
 const meaningful = (h: string) =>
   h
     .trim()
     .split(/\s+/)
-    .filter((w) => /\p{L}{2,}/u.test(w)).length >= 2;
+    .filter((w) => /\p{L}{2,}/u.test(w)).length >= 2 ||
+  // Un mot seul vaut titre (« Immigration », « Fraude »), sauf les mots de
+  // mise en page.
+  (/^\p{Lu}\p{L}{4,}$/u.test(h.trim()) &&
+    !/^(sommaire|introduction|pr[ée]ambule|[ée]dito(rial)?|conclusion|annexes?|accueil|menu|contact|recherche)$/i.test(
+      h.trim(),
+    ));
 
 /**
  * Le programme d'un candidat, lu en entier et sans rien reformuler : sa

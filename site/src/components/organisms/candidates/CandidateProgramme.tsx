@@ -24,6 +24,39 @@ const percent = (part: number, whole: number) =>
   whole > 0 ? Math.round((part / whole) * 100) : 0
 
 /**
+ * La clé d'un titre : « Dépenses inéfficaces » et « Dépenses inefficaces »,
+ * écrits dans deux pages du même document, sont un seul titre.
+ */
+const headingKey = (heading: string) =>
+  heading
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/\s*\/\s*/g, ' / ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+/** Un clic sur un titre de la mosaïque ouvre ses passages chiffrés. */
+const OPEN_HEADING = 'ouvrir-rubrique'
+
+/** Les titres du candidat, tous documents confondus, avec leurs passages. */
+function ownHeadings(outline: Programme['outline']) {
+  const byKey = new Map<string, { name: string; key: string; passages: number }>()
+  for (const d of outline)
+    for (const h of d.headings) {
+      const key = headingKey(h.heading)
+      const seen = byKey.get(key)
+      if (seen) seen.passages += h.passages
+      else byKey.set(key, { name: h.heading, key, passages: h.passages })
+    }
+  const all = [...byKey.values()]
+  const total = all.reduce((n, h) => n + h.passages, 0)
+  return all
+    .map((h) => ({ ...h, share: total > 0 ? h.passages / total : 0 }))
+    .sort((a, b) => b.passages - a.passages)
+}
+
+/**
  * Le programme d'un candidat, lu en entier, sans une phrase écrite par une
  * machine : des comptes, ses propres titres, ses mots, ses citations.
  */
@@ -38,6 +71,7 @@ export function CandidateProgramme({
   const { summary: s } = p
   if (s.passages === 0) return null
   const maxCount = Math.max(...p.vocabulary.map((v) => v.count), 1)
+  const headings = ownHeadings(p.outline)
   return (
     <section className="px-6 py-12 md:px-10">
       <div className="mx-auto max-w-[1280px] space-y-5">
@@ -56,15 +90,30 @@ export function CandidateProgramme({
           />
         </div>
 
-        {s.topTopics.length > 0 && (
+        {headings.length >= 3 ? (
           <div className="rounded-[28px] bg-white p-4 md:p-6">
             <p className="px-2 font-extrabold text-[#0B1A2A]">
-              De quoi parle son programme
+              De quoi parle son programme, sous ses propres titres
+            </p>
+            <p className={`mt-1 px-2 text-[0.85rem] ${MUTED}`}>
+              Chaque case est un titre de ses documents, à la taille de ses
+              passages. Un clic ouvre ses citations.
             </p>
             <div className="mt-4">
-              <OwnTopics topics={s.topTopics} candidate={candidate} />
+              <OwnHeadings headings={headings} />
             </div>
           </div>
+        ) : (
+          s.topTopics.length > 0 && (
+            <div className="rounded-[28px] bg-white p-4 md:p-6">
+              <p className="px-2 font-extrabold text-[#0B1A2A]">
+                De quoi parle son programme
+              </p>
+              <div className="mt-4">
+                <OwnTopics topics={s.topTopics} candidate={candidate} />
+              </div>
+            </div>
+          )
         )}
 
         {p.vocabulary.length > 0 && (
@@ -328,6 +377,21 @@ function Chapter({
 }) {
   const [all, setAll] = useState(false)
   const card = useRef<HTMLLIElement>(null)
+  // Un titre cliqué dans la mosaïque : le chapitre qui le porte s'ouvre en
+  // entier et défile jusqu'à sa première rubrique.
+  useEffect(() => {
+    const open = (e: Event) => {
+      const key = (e as CustomEvent<string>).detail
+      if (!g.sections.some((s) => headingKey(s.heading) === key)) return
+      setAll(true)
+      requestAnimationFrame(() => {
+        const el = card.current?.querySelector(`[data-heading="${key}"]`)
+        if (el instanceof HTMLElement) smoothScrollTo(el)
+      })
+    }
+    window.addEventListener(OPEN_HEADING, open)
+    return () => window.removeEventListener(OPEN_HEADING, open)
+  }, [g])
   // Les premiers passages du chapitre, rubrique par rubrique.
   let left = all ? Infinity : CHAPTER_SHOWN
   const sections = g.sections
@@ -357,7 +421,11 @@ function Chapter({
       </a>
       <div className="mt-4 space-y-5 border-l-2 border-[#0B1A2A]/10 pl-5 md:pl-7">
         {sections.map((s, k) => (
-          <div key={k}>
+          <div
+            key={k}
+            data-heading={headingKey(s.heading)}
+            className="scroll-mt-40"
+          >
             {s.heading && (
               <a
                 href={atText(g.url, s.heading)}
@@ -474,6 +542,92 @@ function OwnTopics({
                 </span>
               </span>
             </Link>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * La mosaïque des titres du candidat : chaque case est un titre de ses
+ * documents, mot pour mot, à la taille de ses passages, du blanc au noir.
+ * Un clic ouvre ses passages chiffrés plus bas dans la page.
+ */
+function OwnHeadings({
+  headings,
+}: {
+  headings: ReturnType<typeof ownHeadings>
+}) {
+  const shown = headings.slice(0, 30)
+  const heatOf = (i: number) =>
+    shown.length > 1 ? 1 - i / (shown.length - 1) : 1
+  const floor = 0.02
+  const cells = squarify(
+    shown.map((h, i) => ({
+      value: Math.max(h.share, floor),
+      item: { ...h, heat: heatOf(i) },
+    })),
+    1.9,
+  )
+  return (
+    <div>
+      <div className="mb-3 flex items-center gap-3 px-2 text-[0.8rem] font-semibold text-[#5B6470]">
+        <span>Le moins</span>
+        <span
+          className="h-2 w-32 rounded-full"
+          style={{ background: HEAT_GRADIENT }}
+          aria-hidden
+        />
+        <span>le plus</span>
+      </div>
+      <div className="relative aspect-[1.2] w-full md:aspect-[1.9]">
+        {cells.map(({ x, y, w, h, item: t }) => {
+          const dark = isDark(t.heat)
+          return (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent(OPEN_HEADING, { detail: t.key }),
+                )
+              }
+              title={`${t.name} : ${t.passages} passage${t.passages > 1 ? 's' : ''}`}
+              className="group absolute p-[3px] text-left"
+              style={{
+                left: `${x * 100}%`,
+                top: `${y * 100}%`,
+                width: `${w * 100}%`,
+                height: `${h * 100}%`,
+              }}
+            >
+              <span
+                className="flex size-full flex-col justify-between overflow-hidden rounded-[14px] p-2.5"
+                style={{
+                  backgroundColor: heatColor(t.heat),
+                  boxShadow:
+                    t.heat < 0.15
+                      ? 'inset 0 0 0 1px rgba(11,26,42,0.08)'
+                      : undefined,
+                }}
+              >
+                <span
+                  className={`text-[0.82rem] leading-tight font-extrabold group-hover:underline ${
+                    dark ? 'text-white' : 'text-[#0B1A2A]'
+                  }`}
+                >
+                  {t.name}
+                </span>
+                <span
+                  className={`text-[1.1rem] font-extrabold tabular-nums ${
+                    dark ? 'text-white/80' : 'text-[#0B1A2A]/70'
+                  }`}
+                >
+                  {t.passages}
+                </span>
+              </span>
+            </button>
           )
         })}
       </div>
