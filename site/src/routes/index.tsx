@@ -9,7 +9,7 @@ import { HomeFront } from '../components/organisms/home/HomeFront'
 import { HomeProgrammes } from '../components/organisms/home/HomeProgrammes'
 import { HOME } from '../data/home'
 import {
-  getElection,
+  getElectionShuffled,
   getPublication,
   listPublications,
 } from '../services/public-api'
@@ -27,7 +27,7 @@ export const Route = createFileRoute('/')({
       .filter((a): a is PublicationSheet => a !== null)
       .sort((a, b) => (b.publishedAt ?? '').localeCompare(a.publishedAt ?? ''))
     // L'accueil reste lisible si l'élection n'est pas encore inscrite.
-    const election = await getElection({
+    const election = await getElectionShuffled({
       data: { slug: 'presidentielle-2027' },
     }).catch(() => null)
     return { publications, articles, election }

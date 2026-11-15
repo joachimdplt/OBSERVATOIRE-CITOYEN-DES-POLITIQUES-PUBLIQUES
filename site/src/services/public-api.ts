@@ -1,6 +1,8 @@
 import { createServerFn } from '@tanstack/react-start'
+import { getCookie, setCookie } from '@tanstack/react-start/server'
 import { z } from 'zod'
 import type { MapValue } from '../domain/classes'
+import { shuffleAvoidingFirst } from '../utils/shuffle'
 import type {
   CandidateSheet,
   ElectionSheet,
@@ -132,3 +134,33 @@ export const getCandidate = createServerFn({ method: 'GET' })
       `/elections/${encodeURIComponent(data.election)}/candidates/${encodeURIComponent(data.slug)}`,
     ),
   )
+
+/** Le cookie qui retient le dernier candidat placé en tête, pour ne pas le remettre premier. */
+const FIRST_COOKIE = 'premier-candidat'
+
+/**
+ * Une élection dont les candidats sont dans un ordre tiré au hasard à chaque
+ * visite : aucun n'est toujours en tête, et le premier change d'une visite à
+ * l'autre. Le tirage se fait côté serveur, pour que la page arrive rendue
+ * dans l'ordre qu'elle affichera.
+ */
+export const getElectionShuffled = createServerFn({ method: 'GET' })
+  .validator(z.object({ slug: z.string() }))
+  .handler(async ({ data }) => {
+    const election = await get<ElectionSheet>(
+      `/elections/${encodeURIComponent(data.slug)}`,
+    )
+    if (!election) return null
+    const candidates = shuffleAvoidingFirst(
+      election.candidates,
+      getCookie(FIRST_COOKIE),
+    )
+    if (candidates.length > 0)
+      setCookie(FIRST_COOKIE, candidates[0].slug, {
+        path: '/',
+        sameSite: 'lax',
+        httpOnly: true,
+        maxAge: 60 * 60 * 24 * 365,
+      })
+    return { ...election, candidates }
+  })

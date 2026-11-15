@@ -22,8 +22,8 @@ const STATES: { status: ProgrammeStatus; label: string; one: string }[] = [
 /**
  * L'état des programmes de l'élection : combien de candidats déclarés ont
  * publié un programme complet, des documents partiels, ou rien encore. Puis
- * chaque candidat, dans l'ordre alphabétique, avec la source de sa
- * déclaration et le lien vers ce qu'il a publié.
+ * une carte par candidat, dans un ordre tiré au hasard à chaque visite, avec
+ * la source de sa déclaration et le lien vers ce qu'il a publié.
  */
 export function HomeProgrammes({ election }: { election: ElectionSheet }) {
   const { candidates } = election
@@ -66,64 +66,74 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
           ))}
         </ul>
 
-        <ul className="mt-8 divide-y divide-[#0B1A2A]/8 rounded-[28px] bg-white px-6 md:px-8">
+        <p className={`mt-8 text-[0.88rem] ${MUTED}`}>
+          Ordre tiré au hasard à chaque visite : aucun candidat n’ouvre la liste
+          deux fois de suite.
+        </p>
+        <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {candidates.map((c) => {
             const state = STATES.find((s) => s.status === c.programmeStatus)
             return (
               <li
                 key={c.slug}
-                className="grid gap-2 py-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] md:gap-8"
+                className="flex flex-col rounded-[24px] bg-white p-6"
               >
-                <div>
-                  <Link
-                    to="/candidats/$slug"
-                    params={{ slug: c.slug }}
-                    className="font-bold text-[#0B1A2A] no-underline hover:underline"
+                <Link
+                  to="/candidats/$slug"
+                  params={{ slug: c.slug }}
+                  className="text-[1.2rem] leading-tight font-extrabold tracking-[-0.02em] text-[#0B1A2A] no-underline hover:underline"
+                >
+                  {c.name}
+                </Link>
+                <p className={`mt-1 text-[0.88rem] ${MUTED}`}>
+                  {c.party ?? 'Sans étiquette'}
+                </p>
+                <p className={`mt-1 text-[0.82rem] ${MUTED}`}>
+                  Candidature déclarée le{' '}
+                  <a
+                    href={c.declarationSource}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline decoration-[#0B1A2A]/25 underline-offset-2 hover:decoration-[#0B1A2A]"
                   >
-                    {c.name}
-                  </Link>
-                  <p className={`text-[0.88rem] ${MUTED}`}>
-                    {c.party ?? 'Sans étiquette'} · candidature déclarée le{' '}
+                    {frenchDate(c.declaredAt)}
+                  </a>
+                </p>
+                <p className="mt-4 flex flex-wrap items-center gap-3">
+                  <span
+                    className={`inline-flex h-7 items-center rounded-full px-3 text-xs font-bold ${
+                      c.programmeStatus === 'complete'
+                        ? 'bg-[#0B1A2A] text-white'
+                        : c.programmeStatus === 'partial'
+                          ? 'text-[#0B1A2A] ring-1 ring-[#0B1A2A]/30'
+                          : 'text-[#5B6470] ring-1 ring-[#0B1A2A]/10'
+                    }`}
+                  >
+                    {state?.one}
+                  </span>
+                  {c.programmeUrl && (
                     <a
-                      href={c.declarationSource}
+                      href={c.programmeUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="underline decoration-[#0B1A2A]/25 underline-offset-2 hover:decoration-[#0B1A2A]"
+                      className="inline-flex items-center gap-1 text-[0.85rem] font-bold text-[#0B1A2A] no-underline hover:underline"
                     >
-                      {frenchDate(c.declaredAt)}
+                      Lire <ArrowUpRight size={14} />
                     </a>
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[0.95rem]">
-                    <span
-                      className={`inline-flex h-7 items-center rounded-full px-3 text-xs font-bold ${
-                        c.programmeStatus === 'complete'
-                          ? 'bg-[#0B1A2A] text-white'
-                          : c.programmeStatus === 'partial'
-                            ? 'text-[#0B1A2A] ring-1 ring-[#0B1A2A]/30'
-                            : 'text-[#5B6470] ring-1 ring-[#0B1A2A]/10'
-                      }`}
-                    >
-                      {state?.one}
-                    </span>
-                    {c.programmeUrl && (
-                      <a
-                        href={c.programmeUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="ml-3 inline-flex items-center gap-1 text-[0.88rem] font-bold text-[#0B1A2A] no-underline hover:underline"
-                      >
-                        Lire <ArrowUpRight size={14} />
-                      </a>
-                    )}
-                  </p>
-                  {c.programmeNote && (
-                    <p className={`mt-1.5 text-[0.88rem] ${MUTED}`}>
-                      {c.programmeNote}
-                    </p>
                   )}
-                </div>
+                </p>
+                {c.programmeNote && (
+                  <p className={`mt-2 text-[0.82rem] leading-snug ${MUTED}`}>
+                    {c.programmeNote}
+                  </p>
+                )}
+                <Link
+                  to="/candidats/$slug"
+                  params={{ slug: c.slug }}
+                  className="mt-auto inline-flex items-center gap-1.5 pt-5 text-[0.88rem] font-bold text-[#0B1A2A] no-underline hover:underline"
+                >
+                  Sa page <ArrowRight size={15} />
+                </Link>
               </li>
             )
           })}
