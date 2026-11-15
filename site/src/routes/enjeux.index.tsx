@@ -32,12 +32,6 @@ function TopicsPage() {
         <h1 className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
           De quoi parlent les programmes ?
         </h1>
-        <p
-          className={`mt-4 max-w-[60ch] text-[1.15rem] leading-relaxed ${MUTED}`}
-        >
-          Grande case : sujet très présent. Grande photo : candidat qui en parle
-          beaucoup.
-        </p>
 
         <div className="mt-10">
           <TopicTreemap topics={topics} />
