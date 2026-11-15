@@ -836,21 +836,24 @@ enum VideoLink {
 /// Une chaîne vidéo publique suivie, avec la page officielle qui la cite :
 /// seules les sources primaires entrent, sans montage ni commentaire d'un tiers.
 model VideoChannel {
-  id          String      @id @default(uuid())
+  id            String      @id @default(uuid())
   /// L'identifiant de la chaîne chez YouTube : « UCk-_PEY3iC6DIGJKuoEe9bw ».
-  youtubeId   String      @unique
-  name        String
-  kind        ChannelKind
+  youtubeId     String      @unique
+  name          String
+  kind          ChannelKind
   /// Le candidat de la chaîne (chacune de ses vidéos lui revient), ou celui
   /// que présente le parti (seulement les vidéos qui le nomment).
-  candidateId String?
+  candidateId   String?
   /// La page officielle d'où vient le lien vers la chaîne.
-  linkedFrom  String
-  createdById String
-  createdAt   DateTime    @default(now())
-  candidate   Candidate?  @relation(fields: [candidateId], references: [id])
-  createdBy   User        @relation(fields: [createdById], references: [id])
-  videos      Video[]
+  linkedFrom    String
+  /// Quand son historique a été lu (depuis le début de l'année de
+  /// l'élection) ; ensuite, le flux public suit les nouveautés.
+  historyReadAt DateTime?
+  createdById   String
+  createdAt     DateTime    @default(now())
+  candidate     Candidate?  @relation(fields: [candidateId], references: [id])
+  createdBy     User        @relation(fields: [createdById], references: [id])
+  videos        Video[]
 
   @@map("video_channels")
 }

@@ -14,6 +14,11 @@ export type FeedVideo = {
  */
 export interface VideoFeed {
   latest(channelId: string): Promise<FeedVideo[]>;
+  /**
+   * Toutes les vidéos publiées par la chaîne depuis une date (AAAA-MM-JJ),
+   * avec leur titre d'origine : lu une fois, à la première lecture.
+   */
+  history(channelId: string, since: string): Promise<FeedVideo[]>;
 }
 
 export const VIDEO_FEED = Symbol('VIDEO_FEED');

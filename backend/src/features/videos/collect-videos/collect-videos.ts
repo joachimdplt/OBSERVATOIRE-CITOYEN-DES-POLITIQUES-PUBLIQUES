@@ -1,6 +1,6 @@
 import { Controller, HttpCode, Inject, Post, UseGuards } from '@nestjs/common';
 import { Requires, SessionGuard } from '../../../auth/session.guard';
-import { videoCandidates } from '../../../domain/video';
+import { VIDEO_HISTORY_SINCE, videoCandidates } from '../../../domain/video';
 import { VIDEO_FEED, type VideoFeed } from '../../../ports/video-feed';
 import { PrismaService } from '../../../prisma/prisma.service';
 
@@ -8,7 +8,9 @@ import { PrismaService } from '../../../prisma/prisma.service';
  * Le collecteur des vidéos : il lit le flux public de chaque chaîne suivie et
  * garde chaque vidéo nouvelle telle que le flux la décrit, rattachée aux
  * candidats qu'elle concerne. Le flux ne donne que les dernières vidéos :
- * relancé chaque jour, le collecteur suit la chaîne sans rien perdre.
+ * à sa première lecture, une chaîne donne aussi son historique depuis le
+ * début de l'année de l'élection ; relancé chaque jour, le collecteur suit
+ * ensuite la chaîne sans rien perdre.
  */
 @Controller('admin/collect')
 @UseGuards(SessionGuard)
@@ -34,6 +36,7 @@ export async function collectVideos(prisma: PrismaService, feed: VideoFeed) {
   });
   const report = {
     channels: 0,
+    histories: 0,
     seen: 0,
     collected: 0,
     linked: 0,
@@ -46,6 +49,24 @@ export async function collectVideos(prisma: PrismaService, feed: VideoFeed) {
     } catch (e) {
       report.failed.push(`${channel.name} : ${String(e)}`);
       continue;
+    }
+    // À sa première lecture, une chaîne donne aussi son historique depuis
+    // le début de l'année de l'élection ; le flux ne montre que les quinze
+    // dernières.
+    if (!channel.historyReadAt) {
+      try {
+        videos = [
+          ...videos,
+          ...(await feed.history(channel.youtubeId, VIDEO_HISTORY_SINCE)),
+        ];
+        await prisma.videoChannel.update({
+          where: { id: channel.id },
+          data: { historyReadAt: new Date() },
+        });
+        report.histories++;
+      } catch (e) {
+        report.failed.push(`${channel.name} (historique) : ${String(e)}`);
+      }
     }
     report.channels++;
     for (const v of videos) {

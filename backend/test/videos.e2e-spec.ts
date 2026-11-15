@@ -36,7 +36,10 @@ const FEEDS: Record<string, FeedVideo[]> = {
     video('senate2', 'Séance publique du 13 novembre', '13'),
   ],
 };
-const FEED: VideoFeed = { latest: (id) => Promise.resolve(FEEDS[id] ?? []) };
+const FEED: VideoFeed = {
+  latest: (id) => Promise.resolve(FEEDS[id] ?? []),
+  history: () => Promise.resolve([]),
+};
 
 type Candidate = {
   channels: { name: string; linkedFrom: string }[];

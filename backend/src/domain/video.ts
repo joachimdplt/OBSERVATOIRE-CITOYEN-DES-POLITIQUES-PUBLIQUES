@@ -1,5 +1,12 @@
 import { watchMatch } from './parliament';
 
+/**
+ * Le début de l'historique repris d'une chaîne, à sa première lecture :
+ * l'année de l'élection. Le flux public ne donne que les quinze dernières
+ * vidéos ; l'historique est lu une fois, puis le flux suit chaque jour.
+ */
+export const VIDEO_HISTORY_SINCE = '2026-01-01';
+
 /** Un candidat, pour rattacher les vidéos. */
 export type VideoCandidate = { id: string; name: string };
 
