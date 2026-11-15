@@ -1149,6 +1149,9 @@ model CapLabel {
   documentUrl String
   /// Le titre du chapitre, mot pour mot.
   heading     String
+  /// Le rang du premier passage du bloc rangé, quand un long chapitre est
+  /// rangé bloc par bloc ; vide quand le chapitre est rangé en entier.
+  fromPosition Int?
   capCode     String
   origin      LabelOrigin
   /// La similarité donnée par le modèle (elle classe, elle ne prouve rien).

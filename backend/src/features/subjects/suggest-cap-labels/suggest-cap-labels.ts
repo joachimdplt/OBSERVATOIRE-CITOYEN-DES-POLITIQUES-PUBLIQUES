@@ -16,6 +16,10 @@ import { PrismaService } from '../../../prisma/prisma.service';
 
 /** Le texte d'un chapitre donné au classeur : son titre et son début. */
 const CHAPTER_TEXT = 1500;
+/** Un chapitre d'au moins tant de passages parle de plusieurs sujets. */
+const LONG_CHAPTER = 15;
+/** Il se range alors par blocs d'autant de passages, chacun pour soi. */
+const BLOCK = 8;
 
 /**
  * Le rangement automatique : chaque chapitre des programmes en vigueur (son
@@ -95,47 +99,96 @@ export async function suggestCapLabels(
   const live = documents.filter((d) => current.has(d.id));
   const measures = await prisma.measure.findMany({
     where: { documentId: { in: live.map((d) => d.id) } },
-    select: { documentId: true, article: true, quote: true },
+    select: { documentId: true, article: true, quote: true, position: true },
     orderBy: { position: 'asc' },
   });
 
   // Les chapitres : un document et un titre ; un passage sans titre propre
   // ou une ligne de sommaire ne fait pas un chapitre.
   const docOf = new Map(live.map((d) => [d.id, d]));
-  const chapters = new Map<
+  // D'abord chaque chapitre et ses passages, dans l'ordre.
+  const grouped = new Map<
     string,
-    { candidateId: string; documentUrl: string; heading: string; text: string }
+    {
+      candidateId: string;
+      documentUrl: string;
+      heading: string;
+      passages: { quote: string; position: number }[];
+    }
   >();
   for (const m of measures) {
     const d = docOf.get(m.documentId)!;
     const heading = m.article.trim();
     if (!heading || heading === d.title) continue;
     if (isVagueHeading(heading)) continue;
-    const id = createHash('sha256')
-      .update(`${d.candidateId}\n${d.url}\n${heading}`)
-      .digest('hex')
-      .slice(0, 24);
-    const c = chapters.get(id) ?? {
+    const key = `${d.candidateId}\n${d.url}\n${heading}`;
+    const g = grouped.get(key) ?? {
       candidateId: d.candidateId!,
       documentUrl: d.url ?? '',
       heading,
-      text: heading,
+      passages: [],
     };
-    if (c.text.length < CHAPTER_TEXT) c.text = `${c.text}\n${m.quote}`;
-    chapters.set(id, c);
+    g.passages.push({ quote: m.quote, position: m.position ?? 0 });
+    grouped.set(key, g);
   }
 
-  // Un chapitre déjà étiqueté n'est pas reproposé.
+  // Puis les unités à ranger : un chapitre entier, ou, s'il est long, chacun
+  // de ses blocs ; un long chapitre peut ainsi entrer dans plusieurs sujets.
+  const chapters = new Map<
+    string,
+    {
+      candidateId: string;
+      documentUrl: string;
+      heading: string;
+      fromPosition: number | null;
+      text: string;
+    }
+  >();
+  for (const g of grouped.values()) {
+    const long = g.passages.length >= LONG_CHAPTER;
+    const blocks = long
+      ? Array.from({ length: Math.ceil(g.passages.length / BLOCK) }, (_, i) =>
+          g.passages.slice(i * BLOCK, (i + 1) * BLOCK),
+        )
+      : [g.passages];
+    for (const block of blocks) {
+      const fromPosition = long ? block[0].position : null;
+      const id = createHash('sha256')
+        .update(
+          `${g.candidateId}\n${g.documentUrl}\n${g.heading}\n${fromPosition ?? ''}`,
+        )
+        .digest('hex')
+        .slice(0, 24);
+      let text = g.heading;
+      for (const p of block) {
+        if (text.length >= CHAPTER_TEXT) break;
+        text = `${text}\n${p.quote}`;
+      }
+      chapters.set(id, { ...g, fromPosition, text });
+    }
+  }
+
+  // Une unité déjà rangée n'est pas reproposée : un chapitre entier par son
+  // titre, un bloc par son titre et son premier passage.
+  const labels = await prisma.capLabel.findMany({
+    select: {
+      candidateId: true,
+      documentUrl: true,
+      heading: true,
+      fromPosition: true,
+    },
+  });
   const labelled = new Set(
-    (
-      await prisma.capLabel.findMany({
-        select: { candidateId: true, documentUrl: true, heading: true },
-      })
-    ).map((l) => `${l.candidateId}\n${l.documentUrl}\n${l.heading}`),
+    labels.map(
+      (l) =>
+        `${l.candidateId}\n${l.documentUrl}\n${l.heading}\n${l.fromPosition ?? ''}`,
+    ),
   );
   const todo = [...chapters.entries()].filter(
     ([, c]) =>
-      !labelled.has(`${c.candidateId}\n${c.documentUrl}\n${c.heading}`),
+      !labelled.has(
+        `${c.candidateId}\n${c.documentUrl}\n${c.heading}\n${c.fromPosition ?? ''}`,
+      ),
   );
   const report = { chapters: chapters.size, proposed: 0, model: '' };
   if (todo.length === 0) return report;
@@ -160,6 +213,7 @@ export async function suggestCapLabels(
             candidateId: c.candidateId,
             documentUrl: c.documentUrl,
             heading: c.heading,
+            fromPosition: c.fromPosition,
             capCode: choice.code,
             origin: LabelOrigin.model,
             model: classifier.model,

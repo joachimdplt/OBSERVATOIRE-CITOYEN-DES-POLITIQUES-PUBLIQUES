@@ -33,6 +33,7 @@ export class GetSubjectController {
         candidateId: true,
         documentUrl: true,
         heading: true,
+        fromPosition: true,
         model: true,
       },
     });
@@ -77,8 +78,7 @@ export class GetSubjectController {
     });
 
     const byCandidate = new Map<string, SubjectChapter[]>();
-    // Tous les passages des chapitres rangés, en une seule requête ; les
-    // premiers de chaque chapitre seulement.
+    // Tous les passages des chapitres rangés, en une seule requête.
     const wanted = labels.filter((l) => live.has(l.documentUrl));
     const measures = await this.prisma.measure.findMany({
       where: {
@@ -100,12 +100,18 @@ export class GetSubjectController {
     for (const m of measures) {
       const key = `${m.documentId}\n${m.article}`;
       const list = passagesOf.get(key) ?? [];
-      if (list.length < EXCERPT) list.push(m);
+      list.push(m);
       passagesOf.set(key, list);
     }
     for (const l of wanted) {
       const d = live.get(l.documentUrl)!;
-      const passages = passagesOf.get(`${d.id}\n${l.heading}`) ?? [];
+      // Les premiers passages du chapitre, ou, pour un long chapitre rangé
+      // bloc par bloc, ceux du bloc qui parle de ce sujet.
+      const passages = (passagesOf.get(`${d.id}\n${l.heading}`) ?? [])
+        .filter(
+          (p) => l.fromPosition === null || (p.position ?? 0) >= l.fromPosition,
+        )
+        .slice(0, EXCERPT);
       if (passages.length === 0) continue;
       const list = byCandidate.get(l.candidateId) ?? [];
       list.push({
