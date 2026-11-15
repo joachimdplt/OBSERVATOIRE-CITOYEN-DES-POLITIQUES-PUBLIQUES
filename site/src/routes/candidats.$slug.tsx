@@ -161,17 +161,19 @@ function CandidatePage() {
                       },
                     ]
                   : []),
-                ...others.map((d) => ({
-                  label: 'Document',
-                  value: pdfName(d.title),
-                  href: d.url,
-                  download: true,
-                })),
                 ...c.accounts.map((a) => ({
                   label: NETWORKS[a.network],
                   value: a.network === 'youtube' ? 'Sa chaîne' : `@${a.handle}`,
                   href: a.url,
                   hint: `D’après Wikidata (${a.source.replace('https://www.wikidata.org/wiki/', '')})`,
+                })),
+              ]}
+              more={[
+                ...others.map((d) => ({
+                  label: 'Document',
+                  value: pdfName(d.title),
+                  href: d.url,
+                  download: true,
                 })),
               ]}
             />
@@ -301,18 +303,15 @@ type Address = {
   hint?: string
 }
 
-/** Les premières lignes visibles ; la suite s'ouvre d'un clic. */
-const FIRST_ADDRESSES = 4
-
 /**
- * Ses adresses : son site, ses autres documents et ses réseaux, une par
- * ligne. Les premières seulement, pour que le bloc ne dépasse pas la photo ;
- * « Voir plus » ouvre la suite.
+ * Ses adresses, une par ligne : son site et tous ses réseaux d'abord ; ses
+ * autres documents s'ouvrent avec « Voir plus », pour que le bloc ne
+ * dépasse pas la photo.
  */
-function Addresses({ rows }: { rows: Address[] }) {
+function Addresses({ rows, more }: { rows: Address[]; more: Address[] }) {
   const [open, setOpen] = useState(false)
-  if (rows.length === 0) return null
-  const shown = open ? rows : rows.slice(0, FIRST_ADDRESSES)
+  if (rows.length + more.length === 0) return null
+  const shown = open ? [...rows, ...more] : rows
   return (
     <div className="mt-6 max-w-[520px]">
       <ul className="divide-y divide-[#0B1A2A]/8 overflow-hidden rounded-[18px] bg-white">
@@ -340,7 +339,7 @@ function Addresses({ rows }: { rows: Address[] }) {
           </li>
         ))}
       </ul>
-      {rows.length > FIRST_ADDRESSES && (
+      {more.length > 0 && (
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
