@@ -120,11 +120,10 @@ de documents partiels, 18 sans rien de publié.
   sociaux », « HLM », « bailleurs sociaux »). Un passage qui contient un terme,
   en mots entiers, est rattaché à l'enjeu. Un terme ajouté ou retiré relit
   tous les programmes déjà collectés.
-- **Le rangement** : la page « Enjeux » est une mosaïque des sujets, rangés
-  par le nombre de programmes où un terme apparaît, puis par le nombre de
-  passages. Dans chaque tuile, la photo d'un candidat a une surface
-  proportionnelle à son nombre de passages sur le sujet (pavage
-  « squarified »). Ce compte
+- **La mosaïque** : la page « Enjeux » pave les sujets à deux niveaux. La
+  case d'un sujet a une surface proportionnelle à son nombre de passages ;
+  dans la case, la photo d'un candidat a une surface proportionnelle à ses
+  passages sur le sujet (pavage « squarified »). Ce compte
   dit de quoi les textes parlent ; il ne dit ni ce qu'ils proposent ni ce
   qu'ils valent. Un programme sans passage trouvé est nommé : il peut traiter
   l'enjeu avec d'autres mots.
