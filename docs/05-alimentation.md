@@ -128,8 +128,10 @@ de documents partiels, 18 sans rien de publié.
   qu'ils valent. Un programme sans passage trouvé est nommé : il peut traiter
   l'enjeu avec d'autres mots.
 
-Au 15 novembre 2026 : 7 programmes (57 pages et fichiers, 4 472 passages),
-48 enjeux sur les douze piliers.
+Au 15 novembre 2026 : 18 candidats sur 25 ont publié un programme ou des
+documents (3 complets, 15 partiels), lus sur 112 pages et fichiers, soit
+environ 8 000 passages ; 48 enjeux sur les douze piliers. Une page dont le
+texte vit dans des blocs `div` est lue bloc par bloc.
 
 ## Les vidéos publiques des candidats
 
