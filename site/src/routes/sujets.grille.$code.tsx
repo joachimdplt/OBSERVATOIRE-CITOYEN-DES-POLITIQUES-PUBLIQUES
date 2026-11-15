@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { QuoteText } from '../components/molecules/QuoteText'
 import { getSubject } from '../services/public-api'
 import type { Subject } from '../types/public'
+import { smoothScrollTo } from '../utils/scroll'
 import { seo } from '../utils/seo'
 
 export const Route = createFileRoute('/sujets/grille/$code')({
@@ -17,7 +18,7 @@ export const Route = createFileRoute('/sujets/grille/$code')({
     meta: seo({
       title: loaderData?.topic.label ?? 'Sujet',
       description: loaderData
-        ? `${loaderData.topic.label} : ce que disent les programmes des candidats à la présidentielle 2027, cité mot pour mot.`
+        ? `${loaderData.topic.label} : les chapitres des programmes des candidats à la présidentielle 2027, cités mot pour mot.`
         : '',
     }),
   }),
@@ -25,6 +26,17 @@ export const Route = createFileRoute('/sujets/grille/$code')({
 })
 
 const MUTED = 'text-[#5B6470]'
+const DISPLAY = 'font-extrabold tracking-[-0.03em] text-[#0B1A2A]'
+
+type Candidate = Subject['candidates'][number]
+
+/** « LR_Produire_Plus_LIVRET.pdf » se lit « LR Produire Plus LIVRET ». */
+const documentName = (title: string) =>
+  /\.pdf$/i.test(title)
+    ? title.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ').trim()
+    : title
+
+const isPdf = (url: string) => /\.pdf(\?|#|$)/i.test(url)
 
 /** Un ordre tiré au hasard, après le chargement : aucun candidat toujours en tête. */
 function useShuffled<T>(list: T[]) {
@@ -41,57 +53,127 @@ function useShuffled<T>(list: T[]) {
 }
 
 /**
- * Un sujet de la grille : pour chaque candidat, dans un ordre tiré au
- * hasard, ses chapitres rangés dans ce sujet, leur titre exact et leurs
- * premiers passages cités mot pour mot. Le rangement est automatique.
+ * Un sujet de la grille, lu comme un programme : à gauche le sommaire des
+ * candidats, dans un ordre tiré au hasard ; à droite, pour chacun, ses
+ * chapitres rangés dans ce sujet, leur titre exact et leurs premiers
+ * passages cités mot pour mot. Le rangement est automatique.
  */
 function SubjectPage() {
   const s = Route.useLoaderData()
   const candidates = useShuffled(s.candidates)
+  const [active, setActive] = useState(0)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries)
+          if (e.isIntersecting)
+            setActive(Number(e.target.id.replace('candidat-', '')))
+      },
+      { rootMargin: '-30% 0px -65% 0px' },
+    )
+    candidates.forEach((_, i) => {
+      const el = document.getElementById(`candidat-${i}`)
+      if (el) observer.observe(el)
+    })
+    return () => observer.disconnect()
+  }, [candidates])
+
+  const go = (i: number) => {
+    const el = document.getElementById(`candidat-${i}`)
+    if (el) smoothScrollTo(el)
+  }
+
   return (
-    <main className="px-6 pt-16 pb-20 md:px-10">
-      <div className="mx-auto max-w-[960px]">
-        <Link to="/sujets" className={`text-[0.9rem] font-bold no-underline hover:underline ${MUTED}`}>
-          ← Tous les sujets
-        </Link>
-        <h1 className="mt-3 text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
-          {s.topic.label}
-        </h1>
-        <p className={`mt-4 max-w-[68ch] text-[0.95rem] leading-relaxed ${MUTED}`}>
-          Les chapitres des programmes rangés dans ce sujet de la grille du{' '}
-          {s.classification.grid}. Le rangement est automatique
-          {s.classification.model ? ` (modèle ${s.classification.model})` : ''}
-          , chapitre par chapitre : il peut se tromper, et un rangement faux
-          est retiré. Candidats dans un ordre tiré au hasard.
-        </p>
-
-        {candidates.length === 0 && (
-          <p className={`mt-10 ${MUTED}`}>
-            Aucun chapitre rangé dans ce sujet pour l’instant.
+    <main>
+      <section className="px-6 pt-16 pb-6 md:px-10">
+        <div className="mx-auto max-w-[1280px]">
+          <Link
+            to="/sujets"
+            className={`text-[0.9rem] font-bold no-underline hover:underline ${MUTED}`}
+          >
+            ← Tous les sujets
+          </Link>
+          <h1 className={`${DISPLAY} mt-3 text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.08]`}>
+            {s.topic.label}
+          </h1>
+          <p className={`mt-4 max-w-[72ch] text-[0.95rem] leading-relaxed ${MUTED}`}>
+            Les chapitres des programmes rangés dans ce sujet de la grille du{' '}
+            {s.classification.grid}. Le rangement est fait automatiquement,
+            chapitre par chapitre
+            {s.classification.model ? ` (modèle ${s.classification.model})` : ''}
+            {' '}: il peut se tromper, et un rangement faux est retiré. Les
+            candidats sont dans un ordre tiré au hasard.
           </p>
-        )}
+        </div>
+      </section>
 
-        <ol className="mt-10 space-y-6">
-          {candidates.map((c) => (
-            <Candidate key={c.slug} candidate={c} />
-          ))}
-        </ol>
+      <section className="px-6 py-6 pb-20 md:px-10">
+        <div className="mx-auto grid max-w-[1280px] gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
+          <aside className="hidden lg:block">
+            <nav className="sticky top-[110px] max-h-[calc(100vh-130px)] overflow-y-auto rounded-[28px] bg-white p-3">
+              <ul className="space-y-1">
+                {candidates.map((c, i) => (
+                  <li key={c.slug}>
+                    <button
+                      type="button"
+                      onClick={() => go(i)}
+                      className="chapter-link items-center"
+                      aria-current={active === i ? 'true' : undefined}
+                    >
+                      {c.photo && (
+                        <img
+                          src={c.photo}
+                          alt=""
+                          className="size-7 shrink-0 rounded-full object-cover object-top"
+                        />
+                      )}
+                      <span className="flex-1">{c.name}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {s.without.length > 0 && (
+                <p className={`px-3 pt-4 pb-2 text-[0.78rem] leading-snug ${MUTED}`}>
+                  Aucun chapitre rangé ici, dans ce qui a été collecté :{' '}
+                  {s.without.map((c) => c.name).join(', ')}. Cela ne dit rien de
+                  leur position.
+                </p>
+              )}
+            </nav>
+          </aside>
 
-        {s.without.length > 0 && (
-          <p className={`mt-10 text-[0.9rem] leading-relaxed ${MUTED}`}>
-            Aucun chapitre rangé dans ce sujet, dans ce qui a été collecté :{' '}
-            {s.without.map((c) => c.name).join(', ')}. Cela ne dit rien de leur
-            position.
-          </p>
-        )}
-      </div>
+          <div className="min-w-0">
+            {candidates.length === 0 && (
+              <p className={`rounded-[28px] bg-white p-8 ${MUTED}`}>
+                Aucun chapitre rangé dans ce sujet pour l’instant.
+              </p>
+            )}
+            <ol className="space-y-5">
+              {candidates.map((c, i) => (
+                <CandidateCard key={c.slug} index={i} candidate={c} />
+              ))}
+            </ol>
+            {s.without.length > 0 && (
+              <p className={`mt-6 text-[0.85rem] leading-relaxed lg:hidden ${MUTED}`}>
+                Aucun chapitre rangé ici, dans ce qui a été collecté :{' '}
+                {s.without.map((c) => c.name).join(', ')}. Cela ne dit rien de
+                leur position.
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
     </main>
   )
 }
 
-function Candidate({ candidate: c }: { candidate: Subject['candidates'][number] }) {
+function CandidateCard({ index, candidate: c }: { index: number; candidate: Candidate }) {
   return (
-    <li className="rounded-[28px] bg-white p-5 md:p-8">
+    <li
+      id={`candidat-${index}`}
+      className="scroll-mt-32 rounded-[28px] bg-white p-5 md:p-8"
+    >
       <Link
         to="/candidats/$slug"
         params={{ slug: c.slug }}
@@ -102,42 +184,50 @@ function Candidate({ candidate: c }: { candidate: Subject['candidates'][number] 
             src={c.photo}
             alt=""
             loading="lazy"
-            className="size-12 rounded-full object-cover object-top grayscale"
+            className="size-12 rounded-full object-cover object-top"
           />
         )}
         <span>
-          <span className="block text-[1.15rem] font-extrabold text-[#0B1A2A] hover:underline">
+          <span className={`${DISPLAY} block text-[1.3rem] hover:underline`}>
             {c.name}
           </span>
-          <span className={`block text-[0.85rem] ${MUTED}`}>
-            {c.party ?? 'Sans étiquette'}
+          <span className={`block text-[0.85rem] font-semibold ${MUTED}`}>
+            {c.party ?? 'Sans étiquette'} · lire tout son programme
           </span>
         </span>
       </Link>
-      <div className="mt-5 space-y-6 border-l-2 border-[#0B1A2A]/10 pl-5 md:pl-7">
-        {c.chapters.map((ch, i) => (
-          <div key={i}>
-            <p className="font-extrabold text-[#0B1A2A]">{ch.heading}</p>
-            <div className="mt-2 space-y-3">
-              {ch.excerpt.map((p, j) => (
-                <QuoteText key={j} text={p.quote} />
-              ))}
+
+      <div className="mt-6 space-y-8">
+        {c.chapters.map((ch, i) => {
+          const page = ch.excerpt[0]?.page ?? null
+          return (
+            <div key={i}>
+              <a
+                href={page ? `${ch.document.url}#page=${page}` : ch.document.url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#F4F6F8] px-3 py-1 text-[0.82rem] font-bold text-[#0B1A2A] no-underline hover:underline"
+              >
+                <span className={`shrink-0 font-semibold ${MUTED}`}>
+                  {isPdf(ch.document.url) ? 'Document' : 'Son site'} ·
+                </span>
+                <span className="truncate">{documentName(ch.document.title)}</span>
+                {page !== null && <span className="shrink-0 font-semibold">· p. {page}</span>}
+                <ArrowUpRight size={12} className="shrink-0" />
+              </a>
+              <div className="mt-4 border-l-2 border-[#0B1A2A]/10 pl-5 md:pl-7">
+                <p className="mb-2 text-[1rem] font-extrabold text-[#0B1A2A]">
+                  {ch.heading}
+                </p>
+                <div className="space-y-4">
+                  {ch.excerpt.map((p, j) => (
+                    <QuoteText key={j} text={p.quote} />
+                  ))}
+                </div>
+              </div>
             </div>
-            <a
-              href={
-                ch.excerpt[0]?.page
-                  ? `${ch.document.url}#page=${ch.excerpt[0].page}`
-                  : ch.document.url
-              }
-              target="_blank"
-              rel="noreferrer"
-              className={`mt-2 inline-flex items-center gap-1 text-[0.82rem] font-semibold no-underline hover:underline ${MUTED}`}
-            >
-              {ch.document.title}
-              <ArrowUpRight size={12} />
-            </a>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </li>
   )
