@@ -36,6 +36,7 @@ export class GetCandidateController {
         kind: DocumentKind.programme,
         candidateId: c.id,
         sourceRef: { not: null },
+        retiredAt: null,
       },
       select: { id: true, sourceRef: true, fetchedAt: true, createdAt: true },
     });

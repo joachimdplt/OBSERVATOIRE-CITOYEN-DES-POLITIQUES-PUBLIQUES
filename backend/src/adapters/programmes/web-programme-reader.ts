@@ -164,21 +164,32 @@ export class WebProgrammeReader implements ProgrammeReader {
       article && size(article) >= 0.5 * size(main)
         ? article
         : (main ?? article ?? root);
+    // Le sommaire de la page, quand elle en a un : des liens vers ses
+    // propres sections (« 01 I. Une France humaine » → #france-humaine).
+    // Ses chapitres, mot pour mot, rangent chaque passage.
+    const chapters = inPageContents(root, body);
     body
       .querySelectorAll(
         'script, style, nav, header, footer, aside, form, button, svg, noscript',
       )
       .forEach((e) => e.remove());
     const BLOCKS = 'h1, h2, h3, h4, p, li, blockquote';
+    const isBlock = (el: HTMLElement) =>
+      ['H1', 'H2', 'H3', 'H4', 'P', 'LI', 'BLOCKQUOTE'].includes(el.tagName);
     const passages: ProgrammePassage[] = [];
     let heading = title;
-    for (const el of body.querySelectorAll(BLOCKS)) {
+    let chapter: string | null = null;
+    for (const el of body.querySelectorAll('*')) {
+      const id = el.getAttribute('id');
+      if (id && chapters.has(id)) chapter = chapters.get(id)!;
+      if (!isBlock(el)) continue;
       // Un bloc qui en contient d'autres se lit par eux.
       if (el.querySelector(BLOCKS)) continue;
       const text = clean(el);
       if (!text) continue;
       if (/^H[1-4]$/.test(el.tagName)) heading = text;
-      else if (text.length >= MIN_LENGTH) passages.push({ heading, text });
+      else if (text.length >= MIN_LENGTH)
+        passages.push({ heading: chapter ?? heading, text });
     }
     // Repli : une page dont le texte vit dans des blocs <div> (cartes,
     // accordéons) est lue bloc par bloc, quand la lecture par paragraphes en
@@ -187,9 +198,9 @@ export class WebProgrammeReader implements ProgrammeReader {
     if (read < 0.5 * size(body)) {
       const walked = walk(body, title);
       if (walked.reduce((n, p) => n + p.text.length, 0) > read)
-        return { title, passages: walked, links };
+        return { title, passages: withoutChrome(walked), links };
     }
-    return { title, passages, links };
+    return { title, passages: withoutChrome(passages), links };
   }
 }
 
@@ -256,3 +267,46 @@ function walk(body: HTMLElement, title: string): ProgrammePassage[] {
 }
 
 const clean = (el: HTMLElement) => el.text.replace(/\s+/g, ' ').trim();
+
+/** Les rubriques de mise en page (« Partager cette page ») ne sont pas du programme. */
+function withoutChrome(passages: ProgrammePassage[]) {
+  return passages.filter(
+    (p) =>
+      !/^(partager|suivez|suivre|rejoindre|rejoignez|newsletter|inscrivez)/i.test(
+        p.heading.trim(),
+      ),
+  );
+}
+
+/**
+ * Le sommaire interne d'une page : le groupe d'au moins trois liens qui
+ * mènent à des sections de la page elle-même. Chaque lien donne un titre de
+ * chapitre, sans sa numérotation (« 01 », « I. »).
+ */
+function inPageContents(root: HTMLElement, body: HTMLElement) {
+  const ids = new Set(
+    body
+      .querySelectorAll('[id]')
+      .map((e) => e.getAttribute('id') ?? '')
+      .filter(Boolean),
+  );
+  const groups = new Map<HTMLElement, { id: string; title: string }[]>();
+  for (const a of root.querySelectorAll('a[href^="#"]')) {
+    const id = decodeURIComponent((a.getAttribute('href') ?? '').slice(1));
+    if (!ids.has(id)) continue;
+    const title = a.text
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/^\d{1,3}\s*/, '')
+      .replace(/^[IVXLC]+\.\s+/, '')
+      .trim();
+    if (!/\p{L}{3,}/u.test(title)) continue;
+    const group = a.parentNode;
+    if (!groups.has(group)) groups.set(group, []);
+    groups.get(group)!.push({ id, title });
+  }
+  const best = [...groups.values()].sort((x, y) => y.length - x.length)[0];
+  return new Map(
+    best && best.length >= 3 ? best.map((e) => [e.id, e.title]) : [],
+  );
+}

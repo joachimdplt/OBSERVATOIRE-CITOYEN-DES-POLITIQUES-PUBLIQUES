@@ -49,7 +49,11 @@ export class ListTopicsController {
   @Get()
   async list() {
     const documents = await this.prisma.politicalDocument.findMany({
-      where: { kind: DocumentKind.programme, sourceRef: { not: null } },
+      where: {
+        kind: DocumentKind.programme,
+        sourceRef: { not: null },
+        retiredAt: null,
+      },
       select: {
         id: true,
         sourceRef: true,

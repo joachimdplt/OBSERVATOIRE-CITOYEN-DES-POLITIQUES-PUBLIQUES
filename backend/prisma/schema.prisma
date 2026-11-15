@@ -49,6 +49,7 @@ model User {
   campaignSources      CampaignSource[]
   apiKeys              ApiKey[]
   measures             Measure[]
+  retiredDocuments     PoliticalDocument[]   @relation("DocumentRetiredBy")
 
   @@map("users")
 }
@@ -592,6 +593,13 @@ model PoliticalDocument {
   programmeSource   ProgrammeSource? @relation(fields: [programmeSourceId], references: [id])
   fileHash          String?
   fetchedAt         DateTime?
+  /// Un document ne s'efface pas : il se retire, une fois, en disant qui et
+  /// pourquoi (« remplacé par la page web du même texte »). Retiré, il ne
+  /// s'affiche plus ; ses citations restent en base.
+  retiredAt         DateTime?
+  retiredById       String?
+  retiredReason     String?
+  retiredBy         User?            @relation("DocumentRetiredBy", fields: [retiredById], references: [id])
 
   @@map("political_documents")
 }

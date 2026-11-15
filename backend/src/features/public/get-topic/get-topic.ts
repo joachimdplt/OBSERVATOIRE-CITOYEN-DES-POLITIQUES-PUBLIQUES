@@ -18,7 +18,11 @@ export class GetTopicController {
     const topic = await this.prisma.topic.findUnique({ where: { slug } });
     if (!topic) throw new NotFoundException('Enjeu inconnu');
     const documents = await this.prisma.politicalDocument.findMany({
-      where: { kind: DocumentKind.programme, sourceRef: { not: null } },
+      where: {
+        kind: DocumentKind.programme,
+        sourceRef: { not: null },
+        retiredAt: null,
+      },
       select: {
         id: true,
         sourceRef: true,
