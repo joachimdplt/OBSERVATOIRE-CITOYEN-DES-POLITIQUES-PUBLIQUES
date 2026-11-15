@@ -1,4 +1,4 @@
-import { CAP_FR, readCapCodebook } from './cap';
+import { CAP_FR, isVagueHeading, readCapCodebook } from './cap';
 
 const PAGE = [
   'CAP Topics',
@@ -63,5 +63,15 @@ describe('la grille des sujets du Comparative Agendas Project', () => {
 
   it('chaque sujet lu a son intitulé français', () => {
     for (const e of readCapCodebook(PAGE)) expect(CAP_FR[e.code]).toBeTruthy();
+  });
+});
+
+describe('les titres trop vagues pour un sujet', () => {
+  it('écarte « Avant-propos » ou « Nos mesures », garde un titre de sujet', () => {
+    expect(isVagueHeading('Avant-propos')).toBe(true);
+    expect(isVagueHeading('Nos mesures')).toBe(true);
+    expect(isVagueHeading('Introduction')).toBe(true);
+    expect(isVagueHeading('Maîtriser notre peuplement')).toBe(false);
+    expect(isVagueHeading('IMMIGRATION')).toBe(false);
   });
 });

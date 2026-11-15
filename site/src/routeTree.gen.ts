@@ -19,6 +19,7 @@ import { Route as IndicatorsCodeRouteImport } from './routes/indicators.$code'
 import { Route as PillarsPillarRouteImport } from './routes/pillars.$pillar'
 import { Route as SujetsIndexRouteImport } from './routes/sujets.index'
 import { Route as SujetsSlugRouteImport } from './routes/sujets.$slug'
+import { Route as SujetsGrilleCodeRouteImport } from './routes/sujets.grille.$code'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -70,6 +71,11 @@ const SujetsSlugRoute = SujetsSlugRouteImport.update({
   path: '/sujets/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SujetsGrilleCodeRoute = SujetsGrilleCodeRouteImport.update({
+  id: '/sujets/grille/$code',
+  path: '/sujets/grille/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/sujets/$slug': typeof SujetsSlugRoute
   '/enjeux/': typeof EnjeuxIndexRoute
   '/sujets/': typeof SujetsIndexRoute
+  '/sujets/grille/$code': typeof SujetsGrilleCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/sujets/$slug': typeof SujetsSlugRoute
   '/enjeux': typeof EnjeuxIndexRoute
   '/sujets': typeof SujetsIndexRoute
+  '/sujets/grille/$code': typeof SujetsGrilleCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   '/sujets/$slug': typeof SujetsSlugRoute
   '/enjeux/': typeof EnjeuxIndexRoute
   '/sujets/': typeof SujetsIndexRoute
+  '/sujets/grille/$code': typeof SujetsGrilleCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
     | '/sujets/$slug'
     | '/enjeux/'
     | '/sujets/'
+    | '/sujets/grille/$code'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/sujets/$slug'
     | '/enjeux'
     | '/sujets'
+    | '/sujets/grille/$code'
   id:
     | '__root__'
     | '/'
@@ -145,6 +156,7 @@ export interface FileRouteTypes {
     | '/sujets/$slug'
     | '/enjeux/'
     | '/sujets/'
+    | '/sujets/grille/$code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -158,6 +170,7 @@ export interface RootRouteChildren {
   SujetsSlugRoute: typeof SujetsSlugRoute
   EnjeuxIndexRoute: typeof EnjeuxIndexRoute
   SujetsIndexRoute: typeof SujetsIndexRoute
+  SujetsGrilleCodeRoute: typeof SujetsGrilleCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -232,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SujetsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sujets/grille/$code': {
+      id: '/sujets/grille/$code'
+      path: '/sujets/grille/$code'
+      fullPath: '/sujets/grille/$code'
+      preLoaderRoute: typeof SujetsGrilleCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -246,6 +266,7 @@ const rootRouteChildren: RootRouteChildren = {
   SujetsSlugRoute: SujetsSlugRoute,
   EnjeuxIndexRoute: EnjeuxIndexRoute,
   SujetsIndexRoute: SujetsIndexRoute,
+  SujetsGrilleCodeRoute: SujetsGrilleCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

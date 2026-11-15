@@ -1,25 +1,30 @@
-/** Un sujet à reconnaître, par son texte de définition. */
-export type TopicText = { code: string; text: string };
+/** Un grand sujet de la grille, avec ses sous-sujets et leurs définitions. */
+export type GridTopic = {
+  code: string;
+  title: string;
+  label: string;
+  subtopics: {
+    code: string;
+    title: string;
+    label: string;
+    description: string | null;
+  }[];
+};
 
 /** Un texte à ranger. */
 export type UnitText = { id: string; text: string };
 
-/** Les sujets les plus proches d'un texte, du plus proche au moins proche. */
-export type TopicSuggestion = {
-  id: string;
-  suggestions: { code: string; score: number }[];
-};
+/** Le grand sujet choisi pour un texte, ou rien si le classeur n'a pas su. */
+export type TopicChoice = { id: string; code: string | null };
 
 /**
- * Un classeur qui propose, pour chaque texte, les sujets les plus proches.
- * Il propose seulement : une personne valide.
+ * Un classeur qui range chaque texte dans un grand sujet de la grille. Il
+ * range seulement : une personne retire un rangement faux.
  */
 export interface TopicClassifier {
-  suggest(
-    topics: TopicText[],
-    units: UnitText[],
-    k: number,
-  ): Promise<{ model: string; results: TopicSuggestion[] }>;
+  /** Le modèle utilisé, pour dire d'où vient chaque rangement. */
+  readonly model: string;
+  classify(grid: GridTopic[], units: UnitText[]): Promise<TopicChoice[]>;
 }
 
 export const TOPIC_CLASSIFIER = Symbol('TOPIC_CLASSIFIER');

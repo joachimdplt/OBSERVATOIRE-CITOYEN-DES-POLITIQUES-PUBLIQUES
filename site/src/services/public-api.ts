@@ -4,6 +4,8 @@ import { z } from 'zod'
 import type { MapValue } from '../domain/classes'
 import { shuffleAvoidingFirst } from '../utils/shuffle'
 import type {
+  CapTopics,
+  Subject,
   CandidateProgramme,
   CandidateSheet,
   Updates,
@@ -198,3 +200,13 @@ export const getProgrammePassages = createServerFn({ method: 'GET' })
       `/elections/${encodeURIComponent(data.election)}/candidates/${encodeURIComponent(data.slug)}/programme/passages?start=${data.start}&count=${data.count}`,
     ),
   )
+
+/** La grille des sujets du Comparative Agendas Project. */
+export const getCapTopics = createServerFn({ method: 'GET' }).handler(() =>
+  get<CapTopics>('/cap-topics'),
+)
+
+/** Un sujet de la grille, et les chapitres de chaque candidat rangés dedans. */
+export const getSubject = createServerFn({ method: 'GET' })
+  .validator(z.object({ code: z.string().regex(/^\d{1,2}$/) }))
+  .handler(({ data }) => get<Subject>(`/subjects/${data.code}`))

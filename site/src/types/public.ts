@@ -430,3 +430,41 @@ export type CandidateProgramme = {
     document: number
   }[]
 }
+
+/** La grille des sujets du Comparative Agendas Project. */
+export type CapTopics = {
+  source: string | null
+  version: string | null
+  licence: string
+  citation: string
+  translation: string
+  topics: {
+    code: string
+    label: string
+    title: string
+    subtopics: {
+      code: string
+      label: string
+      title: string
+      description: string | null
+    }[]
+  }[]
+}
+
+/** Un sujet de la grille et les chapitres des candidats rangés dedans. */
+export type Subject = {
+  topic: { code: string; label: string; title: string }
+  classification: { grid: string; automatic: boolean; model: string | null }
+  candidates: {
+    slug: string
+    name: string
+    party: string | null
+    photo: string | null
+    chapters: {
+      heading: string
+      document: { title: string; url: string }
+      excerpt: { quote: string; page: number | null }[]
+    }[]
+  }[]
+  without: { slug: string; name: string }[]
+}

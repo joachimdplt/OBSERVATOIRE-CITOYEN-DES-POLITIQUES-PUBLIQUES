@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { Controller, HttpCode, Inject, Post, UseGuards } from '@nestjs/common';
 import { Requires, SessionGuard } from '../../../auth/session.guard';
+import { isVagueHeading } from '../../../domain/cap';
 import { currentCaptures } from '../../../domain/programme';
 import {
   DocumentKind,
@@ -13,16 +14,14 @@ import {
 } from '../../../ports/topic-classifier';
 import { PrismaService } from '../../../prisma/prisma.service';
 
-/** Les sujets proposés pour chaque chapitre. */
-const PER_CHAPTER = 3;
 /** Le texte d'un chapitre donné au classeur : son titre et son début. */
 const CHAPTER_TEXT = 1500;
 
 /**
- * Les propositions de sujets : chaque chapitre des programmes en vigueur
- * (son document et son titre exact) reçoit les trois sous-sujets CAP les
- * plus proches selon le classeur. Elles attendent une personne. Un chapitre
- * déjà étiqueté, quel que soit l'état de ses étiquettes, n'est pas reproposé.
+ * Le rangement automatique : chaque chapitre des programmes en vigueur (son
+ * document et son titre exact) reçoit le grand sujet CAP que le classeur
+ * choisit ; un chapitre au titre vague (« Avant-propos ») n'est pas rangé. Un chapitre déjà rangé, ou dont le rangement a été retiré, n'est
+ * pas rangé de nouveau.
  */
 @Controller('admin/subjects')
 @UseGuards(SessionGuard)
@@ -45,12 +44,28 @@ export async function suggestCapLabels(
   prisma: PrismaService,
   classifier: TopicClassifier,
 ) {
-  const subtopics = await prisma.capTopic.findMany({
-    where: { level: 2 },
-    include: { major: true },
-  });
-  if (subtopics.length === 0)
+  const all = await prisma.capTopic.findMany();
+  if (all.length === 0)
     throw new Error('La grille CAP n’est pas importée (npm run cap:import).');
+  const byCode = (a: { code: string }, b: { code: string }) =>
+    Number(a.code) - Number(b.code);
+  const grid = all
+    .filter((t) => t.level === 1)
+    .sort(byCode)
+    .map((t) => ({
+      code: t.code,
+      title: t.title,
+      label: t.labelFr,
+      subtopics: all
+        .filter((x) => x.majorCode === t.code)
+        .sort(byCode)
+        .map((x) => ({
+          code: x.code,
+          title: x.title,
+          label: x.labelFr,
+          description: x.description,
+        })),
+    }));
 
   // Les documents de programme en vigueur, chacun dans sa dernière version.
   const documents = await prisma.politicalDocument.findMany({
@@ -95,7 +110,7 @@ export async function suggestCapLabels(
     const d = docOf.get(m.documentId)!;
     const heading = m.article.trim();
     if (!heading || heading === d.title) continue;
-    if (/^(table des mati[eè]res|sommaire)$/i.test(heading)) continue;
+    if (isVagueHeading(heading)) continue;
     const id = createHash('sha256')
       .update(`${d.candidateId}\n${d.url}\n${heading}`)
       .digest('hex')
@@ -122,37 +137,39 @@ export async function suggestCapLabels(
     ([, c]) =>
       !labelled.has(`${c.candidateId}\n${c.documentUrl}\n${c.heading}`),
   );
-  const report = { chapters: chapters.size, proposed: 0, labels: 0, model: '' };
+  const report = { chapters: chapters.size, proposed: 0, model: '' };
   if (todo.length === 0) return report;
 
-  const { model, results } = await classifier.suggest(
-    subtopics.map((t) => ({
-      code: t.code,
-      text: `${t.major?.title ?? ''}: ${t.title}. ${t.description ?? ''}`,
-    })),
-    todo.map(([id, c]) => ({ id, text: c.text.slice(0, CHAPTER_TEXT) })),
-    PER_CHAPTER,
-  );
-  report.model = model;
-  const byId = new Map(todo);
-  for (const r of results) {
-    const c = byId.get(r.id);
-    if (!c) continue;
-    await prisma.capLabel.createMany({
-      data: r.suggestions.map((s) => ({
-        candidateId: c.candidateId,
-        documentUrl: c.documentUrl,
-        heading: c.heading,
-        capCode: s.code,
-        origin: LabelOrigin.model,
-        score: s.score,
-        model,
-        status: LabelStatus.proposed,
-      })),
-      skipDuplicates: true,
-    });
-    report.proposed++;
-    report.labels += r.suggestions.length;
+  report.model = classifier.model;
+  // Par paquets de dix chapitres, enregistrés au fur et à mesure : une
+  // coupure ne fait rien perdre, et une relance reprend où elle s'était
+  // arrêtée.
+  for (let i = 0; i < todo.length; i += 10) {
+    const batch = todo.slice(i, i + 10);
+    const choices = await classifier.classify(
+      grid,
+      batch.map(([id, c]) => ({ id, text: c.text.slice(0, CHAPTER_TEXT) })),
+    );
+    const byId = new Map(batch);
+    for (const choice of choices) {
+      const c = byId.get(choice.id);
+      if (!c || !choice.code) continue;
+      await prisma.capLabel.createMany({
+        data: [
+          {
+            candidateId: c.candidateId,
+            documentUrl: c.documentUrl,
+            heading: c.heading,
+            capCode: choice.code,
+            origin: LabelOrigin.model,
+            model: classifier.model,
+            status: LabelStatus.proposed,
+          },
+        ],
+        skipDuplicates: true,
+      });
+      report.proposed++;
+    }
   }
   return report;
 }

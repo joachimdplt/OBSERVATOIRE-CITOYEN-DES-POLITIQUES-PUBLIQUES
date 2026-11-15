@@ -311,3 +311,14 @@ export const CAP_FR: Record<string, string> = {
   '23': 'Culture',
   '2300': 'Culture',
 };
+
+/**
+ * Un titre de chapitre trop vague pour un sujet : il annonce un passage qui
+ * parle de tout (« Avant-propos », « Nos mesures »). Un tel chapitre n'est
+ * pas rangé.
+ */
+export function isVagueHeading(heading: string): boolean {
+  return /^(avant[- ]propos|introduction|pr[ée]ambule|[ée]dito(rial)?|conclusion|sommaire|table des mati[eè]res|nos (mesures|constats|propositions|engagements|priorit[ée]s)|en (r[ée]sum[ée]|bref)|notre (projet|vision|programme)|mes (principes|engagements)|ma vision|le projet|le programme|qui sommes-nous|pourquoi|partager cette page)\b/i.test(
+    heading.trim(),
+  );
+}
