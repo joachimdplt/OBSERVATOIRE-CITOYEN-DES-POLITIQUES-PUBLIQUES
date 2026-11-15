@@ -75,17 +75,18 @@ function CandidatePage() {
   const outline = c.programmeProfile?.outline ?? []
   const pdfs = outline
     .filter((d) => isPdf(d.url))
-    .map((d) => ({ title: d.title, url: d.url }))
+    .map((d) => ({ title: d.title, url: d.url, principal: d.principal }))
   if (
     c.programmeUrl &&
     isPdf(c.programmeUrl) &&
     !pdfs.some((d) => d.url === c.programmeUrl)
   )
-    pdfs.unshift({ title: 'programme', url: c.programmeUrl })
-  // Le premier document est le programme ; les autres (livrets par thème)
-  // vont dans la liste.
-  const main = pdfs.at(0)
-  const others = pdfs.slice(1)
+    pdfs.unshift({ title: 'programme', url: c.programmeUrl, principal: true })
+  // Le bouton télécharge le programme désigné comme principal, s'il est un
+  // document ; les autres documents (livrets, textes plus anciens) vont
+  // dans la liste.
+  const main = pdfs.find((d) => d.principal)
+  const others = pdfs.filter((d) => d !== main)
   const site =
     c.programmeUrl && !isPdf(c.programmeUrl)
       ? c.programmeUrl

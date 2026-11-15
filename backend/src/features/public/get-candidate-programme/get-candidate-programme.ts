@@ -70,7 +70,10 @@ export class GetCandidateProgrammeController {
         counts: c.snapshots[0].figures as ParticipationCount[],
       }));
 
-    const { own, mine, passages, served } = await this.reading(candidate.id);
+    const { own, mine, passages, served } = await this.reading(
+      candidate.id,
+      candidate.programmeUrl,
+    );
 
     // La structure : chaque document, puis ses rubriques dans l'ordre.
     // Un document qui ne donne aucun passage (une page d'entrée faite de
@@ -89,6 +92,11 @@ export class GetCandidateProgrammeController {
         return {
           title: d.title,
           url: d.url,
+          // Le document désigné comme programme principal, ou une page de
+          // sa source.
+          principal:
+            d.url === candidate.programmeUrl ||
+            d.programmeSource?.url === candidate.programmeUrl,
           fetchedAt: d.fetchedAt?.toISOString().slice(0, 10) ?? null,
           passages: inDoc.length,
           headings,
@@ -149,7 +157,7 @@ export class GetCandidateProgrammeController {
     )
       throw new BadRequestException('Début ou nombre de passages invalide');
     const candidate = await this.candidate(slug, candidateSlug);
-    const { served } = await this.reading(candidate.id);
+    const { served } = await this.reading(candidate.id, candidate.programmeUrl);
     return { start: from, passages: served.slice(from, from + size) };
   }
 
@@ -162,7 +170,7 @@ export class GetCandidateProgrammeController {
   }
 
   /** Ses documents en vigueur et ses passages, dans l'ordre du programme. */
-  private async reading(candidateId: string) {
+  private async reading(candidateId: string, programmeUrl: string | null) {
     const all = await this.prisma.politicalDocument.findMany({
       where: {
         kind: DocumentKind.programme,
@@ -195,11 +203,15 @@ export class GetCandidateProgrammeController {
     for (const d of live)
       if (d.programmeSource && !sourceRank.has(d.programmeSource.id))
         sourceRank.set(d.programmeSource.id, sourceRank.size);
+    // Le programme que l'équipe a désigné comme principal passe en premier.
+    const principal = (d: (typeof live)[number]) =>
+      d.url === programmeUrl || d.programmeSource?.url === programmeUrl ? 0 : 1;
     const own = live
       .filter((d) => d.candidateId === candidateId)
       .map((d, i) => ({ d, i }))
       .sort(
         (x, y) =>
+          principal(x.d) - principal(y.d) ||
           (sourceRank.get(x.d.programmeSource?.id ?? '') ?? 0) -
             (sourceRank.get(y.d.programmeSource?.id ?? '') ?? 0) ||
           Number(x.d.url !== x.d.programmeSource?.url) -

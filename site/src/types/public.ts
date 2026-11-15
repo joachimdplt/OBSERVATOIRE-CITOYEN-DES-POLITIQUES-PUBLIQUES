@@ -406,6 +406,8 @@ export type CandidateProgramme = {
   outline: {
     title: string
     url: string
+    /** Le programme désigné comme principal, ou une page de sa source. */
+    principal: boolean
     fetchedAt: string | null
     passages: number
     headings: { heading: string; passages: number }[]
