@@ -126,26 +126,27 @@ function CandidatePage() {
               </p>
             )}
             {c.accounts.length > 0 && (
-              <p className="mt-5 flex flex-wrap items-center gap-2">
+              <ul className="mt-6 max-w-[520px] divide-y divide-[#0B1A2A]/8 overflow-hidden rounded-[18px] bg-white">
                 {c.accounts.map((a) => (
-                  <a
-                    key={`${a.network}-${a.handle}`}
-                    href={a.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    title={`D’après Wikidata (${a.source.replace('https://www.wikidata.org/wiki/', '')})`}
-                    className="inline-flex h-9 items-center gap-2 rounded-full bg-white px-4 text-[0.88rem] font-bold text-[#0B1A2A] no-underline hover:bg-[#E8ECF0]"
-                  >
-                    {NETWORKS[a.network]}
-                    {a.network !== 'youtube' && (
-                      <span className={`font-semibold ${MUTED}`}>
-                        @{a.handle}
+                  <li key={`${a.network}-${a.handle}`}>
+                    <a
+                      href={a.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      title={`D’après Wikidata (${a.source.replace('https://www.wikidata.org/wiki/', '')})`}
+                      className="flex items-center gap-4 px-4 py-2.5 text-[0.9rem] no-underline hover:bg-[#F4F6F8]"
+                    >
+                      <span className="w-[90px] shrink-0 font-bold text-[#0B1A2A]">
+                        {NETWORKS[a.network]}
                       </span>
-                    )}
-                    <ArrowUpRight size={13} />
-                  </a>
+                      <span className={`flex-1 truncate font-semibold ${MUTED}`}>
+                        {a.network === 'youtube' ? 'Sa chaîne' : `@${a.handle}`}
+                      </span>
+                      <ArrowUpRight size={14} className="shrink-0 text-[#0B1A2A]" />
+                    </a>
+                  </li>
                 ))}
-              </p>
+              </ul>
             )}
           </div>
         </div>
