@@ -9,9 +9,9 @@ import type {
 const URL = process.env.OLLAMA_URL ?? 'http://localhost:11434';
 
 const SYSTEM =
-  'Tu ranges des chapitres de programmes politiques dans la grille internationale du Comparative Agendas Project (CAP). ' +
-  'Tu choisis le sujet dont le chapitre parle principalement. Tu ne juges pas, tu ne résumes pas, tu ne donnes aucune position. ' +
-  'Tu réponds uniquement par le code demandé.';
+  'Tu ranges des extraits de programmes politiques français dans la grille du Comparative Agendas Project (CAP). ' +
+  'Tu choisis le grand sujet dont l’extrait parle principalement, d’après les mesures proposées, pas d’après les mots employés. ' +
+  'Tu ne juges pas, tu ne résumes pas, tu ne donnes aucune position. Tu réponds uniquement par le code.';
 
 /**
  * Le classeur local servi par Ollama (Qwen3 par défaut, licence Apache 2.0) :
@@ -25,25 +25,22 @@ export class OllamaTopicClassifier implements TopicClassifier {
   readonly model = process.env.CLASSIFIER_MODEL ?? 'qwen3:8b';
 
   async classify(grid: GridTopic[], units: UnitText[]): Promise<TopicChoice[]> {
-    // Chaque grand sujet avec ses sous-sujets en exemples ; un sujet qui
-    // n'a qu'un sous-sujet (Immigration) est décrit par sa définition, sans
-    // quoi l'exemple « Migrant and Seasonal » du sujet Travail l'emporte.
+    // Chaque grand sujet en français, avec ses sous-sujets en exemples :
+    // des extraits français se rangent mieux dans une grille en français
+    // (19 bons sur 26 extraits relus, contre 15 avec les intitulés anglais).
     const majors = grid
-      .map((t) => {
-        const named = t.subtopics.filter(
-          (s) => !/^(General|Other)$/.test(s.title),
-        );
-        const examples =
-          named.length > 1
-            ? named.map((s) => s.title).join(', ')
-            : (named[0]?.description ?? t.title);
-        return `${t.code} — ${t.title} (${t.label}) : ${examples}`;
-      })
+      .map(
+        (t) =>
+          `${t.code} — ${t.label} : ${t.subtopics
+            .filter((s) => !/^(General|Other)$/.test(s.title))
+            .map((s) => s.label)
+            .join(', ')}`,
+      )
       .join('\n');
     const out: TopicChoice[] = [];
     for (const unit of units) {
       const major = await this.choose(
-        `Grands sujets de la grille CAP (code — intitulé : exemples) :\n${majors}\n\nChapitre :\n« ${unit.text} »\n\nQuel est le grand sujet principal de ce chapitre ?`,
+        `Grands sujets (code — intitulé : sous-sujets) :\n${majors}\n\nExtrait :\n« ${unit.text} »\n\nQuel est le grand sujet principal de cet extrait ?`,
         grid.map((t) => t.code),
       );
       out.push({ id: unit.id, code: major });
