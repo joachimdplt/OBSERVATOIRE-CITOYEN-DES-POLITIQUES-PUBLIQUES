@@ -1,16 +1,18 @@
 /**
- * L'échelle thermique de la page Enjeux, de la glace à la braise. Aucune
- * teinte ne rappelle un parti : ni rouge franc, ni bleu franc, ni vert, ni
- * violet ; un gris bleuté très pâle pour le froid, de l'ambre et de l'orange
- * brûlé pour le chaud.
+ * L'échelle de la page Enjeux, du blanc au noir : blanc pour le sujet dont
+ * on parle le moins, bleu nuit presque noir pour celui dont on parle le
+ * plus. Monochrome, comme le reste du site : aucune teinte ne rappelle un
+ * parti.
  */
 const STOPS: [number, [number, number, number]][] = [
-  [0, [226, 233, 240]], // glace
-  [0.35, [238, 236, 230]], // tiède
-  [0.6, [245, 216, 160]], // sable
-  [0.8, [242, 168, 72]], // ambre
-  [1, [226, 104, 38]], // braise
+  [0, [255, 255, 255]], // blanc
+  [0.4, [214, 219, 225]], // gris clair
+  [0.7, [92, 104, 118]], // gris ardoise
+  [1, [8, 18, 30]], // presque noir
 ]
+
+/** Sur une case aussi foncée, le texte passe en blanc. */
+export const isDark = (t: number) => t > 0.55
 
 /** La couleur d'une chaleur entre 0 (le moins) et 1 (le plus). */
 export function heatColor(t: number, alpha = 1): string {

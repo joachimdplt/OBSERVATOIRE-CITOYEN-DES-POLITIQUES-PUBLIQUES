@@ -195,10 +195,9 @@ collectées, et à quels indicateurs elles sont reliées.
   visite, et le même candidat n'ouvre jamais la liste deux fois de suite pour
   un lecteur. Les photos des candidats sont sous licence libre, créditées, et
   traitées de la même façon (cadre carré, noir et blanc).
-- **Une seule échelle de couleur, thermique et sans parti** : la page des
-  enjeux colore les sujets de la glace (gris bleuté pâle, on en parle le
-  moins) à la braise (ambre, orange brûlé, on en parle le plus). Ni rouge
-  franc, ni bleu franc, ni aucune teinte qui rappelle un parti
+- **Une seule échelle, du blanc au noir** : la page des enjeux colore les
+  sujets du blanc (on en parle le moins) au bleu nuit presque noir (on en
+  parle le plus). Monochrome : aucune teinte ne rappelle un parti
   (`site/src/utils/heat.ts`).
 - **Avant un scrutin, deux relecteurs au lieu d'un.** Pendant une période
   fixée par la méthode publiée, toute publication, correction comprise, est

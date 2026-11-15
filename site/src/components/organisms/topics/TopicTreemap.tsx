@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { motion, useReducedMotion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import type { TopicList } from '../../../types/public'
-import { HEAT_GRADIENT, heatColor } from '../../../utils/heat'
+import { HEAT_GRADIENT, heatColor, isDark } from '../../../utils/heat'
 import { squarify } from '../../../utils/treemap'
 
 type Topic = TopicList['topics'][number]
@@ -25,8 +25,8 @@ const HEADER = 46
  * Les sujets des programmes en une seule mosaïque, à deux niveaux : la
  * surface de chaque sujet est proportionnelle à son nombre de passages, et
  * dans chaque sujet, la photo de chaque candidat l'est aussi. La couleur
- * suit la même mesure, de la glace (le moins) à la braise (le plus) ; les
- * cases s'allument de la plus chaude à la plus froide. Le pavage se
+ * suit la même mesure, du blanc (le moins) au noir (le plus) ; les cases
+ * apparaissent de la plus présente à la moins présente. Le pavage se
  * recalcule à la largeur de l'écran ; une case trop petite ne garde que le
  * nom du sujet, le détail au survol.
  */
@@ -113,6 +113,7 @@ function TopicCell({
   const reduce = useReducedMotion()
   const hot = heat > 0.95
   const cold = heat < 0.15
+  const dark = isDark(heat)
   const roomy = width > 130 && height > 130
   const inner = { w: width - 12, h: height - 12 - HEADER }
   const people = roomy
@@ -134,7 +135,7 @@ function TopicCell({
         delay: reduce ? 0 : Math.min(order * 0.035, 1.6),
       }}
     >
-      {/* Les plus chauds rayonnent : une lueur de braise qui respire. */}
+      {/* Les plus présents rayonnent : un halo sombre qui respire. */}
       {hot && !reduce && (
         <motion.span
           aria-hidden
@@ -142,7 +143,7 @@ function TopicCell({
           animate={{
             boxShadow: [
               `0 0 0px 0px ${heatColor(1, 0)}`,
-              `0 0 26px 4px ${heatColor(1, 0.55)}`,
+              `0 0 28px 6px ${heatColor(1, 0.45)}`,
               `0 0 0px 0px ${heatColor(1, 0)}`,
             ],
           }}
@@ -156,10 +157,8 @@ function TopicCell({
         className="group relative flex size-full flex-col overflow-hidden rounded-[16px] p-1.5 no-underline transition-shadow hover:shadow-[0_8px_30px_rgba(11,26,42,0.12)]"
         style={{
           backgroundColor: heatColor(heat),
-          // Les plus froids se givrent : un voile blanc qui descend du haut.
-          backgroundImage: cold
-            ? 'linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0) 75%)'
-            : undefined,
+          // Les moins présents, blancs, se détachent du fond par un filet.
+          boxShadow: cold ? 'inset 0 0 0 1px rgba(11,26,42,0.08)' : undefined,
         }}
       >
         <div
@@ -167,13 +166,19 @@ function TopicCell({
           style={{ height: roomy ? HEADER : '100%' }}
         >
           <p
-            className={`leading-tight font-extrabold tracking-[-0.01em] text-[#0B1A2A] group-hover:underline ${
+            className={`leading-tight font-extrabold tracking-[-0.01em] group-hover:underline ${
+              dark ? 'text-white' : 'text-[#0B1A2A]'
+            } ${
               roomy ? 'truncate text-[0.95rem]' : 'line-clamp-3 text-[0.72rem]'
             }`}
           >
             {topic.name}
           </p>
-          <p className="truncate text-[0.68rem] font-semibold text-[#0B1A2A]/65 tabular-nums">
+          <p
+            className={`truncate text-[0.68rem] font-semibold tabular-nums ${
+              dark ? 'text-white/70' : 'text-[#0B1A2A]/65'
+            }`}
+          >
             {topic.passages} passages
           </p>
         </div>
