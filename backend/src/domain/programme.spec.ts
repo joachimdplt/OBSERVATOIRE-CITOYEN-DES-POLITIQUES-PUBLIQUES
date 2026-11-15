@@ -1,6 +1,7 @@
 import {
   currentCaptures,
   pdfParagraphs,
+  tableRows,
   splitProgramme,
   topicsOf,
 } from './programme';
@@ -99,5 +100,34 @@ describe('currentCaptures', () => {
         },
       ]),
     ).toEqual(new Set(['a2', 'b1']));
+  });
+});
+
+describe('les tableaux chiffrés d’un PDF', () => {
+  it('lit chaque ligne avec son montant et son unité, sous sa catégorie', () => {
+    const page = [
+      'Contre-budget 2026 (base PLF 2026)                                  en Mds€',
+      '                       Remplacement AME par AMU                                    1,300',
+      '      Immigration      Suppression visa pour soins                                 1,000',
+      '                                                                                   2,300',
+      '                       Suppression des CESER                                       0,040',
+      '   Dépenses inutiles',
+      '                       Suppression du plan vélo                                    0,031',
+    ].join('\n');
+    expect(tableRows(page)).toEqual([
+      { heading: 'Immigration', text: 'Remplacement AME par AMU : 1,300 Mds€' },
+      {
+        heading: 'Immigration',
+        text: 'Suppression visa pour soins : 1,000 Mds€',
+      },
+      {
+        heading: 'Dépenses inutiles',
+        text: 'Suppression des CESER : 0,040 Mds€',
+      },
+      {
+        heading: 'Dépenses inutiles',
+        text: 'Suppression du plan vélo : 0,031 Mds€',
+      },
+    ]);
   });
 });

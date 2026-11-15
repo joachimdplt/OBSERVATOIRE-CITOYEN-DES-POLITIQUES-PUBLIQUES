@@ -12,6 +12,7 @@ const KINDS = [
   { kind: 'accounts', label: 'Comptes publics des candidats' },
   { kind: 'videos', label: 'Vidéos des chaînes suivies' },
   { kind: 'photos', label: 'Photos des candidats' },
+  { kind: 'sites', label: 'Pages des sites de campagne' },
 ];
 
 /**

@@ -5,6 +5,7 @@ import { collectCandidateAccounts } from '../features/elections/collect-candidat
 import { collectCandidatePhotos } from '../features/elections/collect-candidate-photos/collect-candidate-photos';
 import { collectParliamentTexts } from '../features/politics/collect-parliament-texts/collect-parliament-texts';
 import { collectProgrammes } from '../features/programmes/collect-programmes/collect-programmes';
+import { discoverSitePages } from '../features/campaign/discover-site-pages/discover-site-pages';
 import { collectVideos } from '../features/videos/collect-videos/collect-videos';
 import { Role } from '../generated/prisma/enums';
 import {
@@ -18,6 +19,8 @@ import {
   type SiteAccountSource,
 } from '../ports/account-source';
 import { PHOTO_SOURCE, type PhotoSource } from '../ports/photo-source';
+import { SITE_CRAWLER, type SiteCrawler } from '../ports/site-crawler';
+import { SITEMAP_SOURCE, type SitemapSource } from '../ports/sitemap-source';
 import {
   PROGRAMME_READER,
   type ProgrammeReader,
@@ -45,6 +48,8 @@ export class DailyCollection {
     @Inject(PHOTO_SOURCE) private photos: PhotoSource,
     @Inject(ACCOUNT_SOURCE) private accounts: AccountSource,
     @Inject(SITE_ACCOUNT_SOURCE) private sites: SiteAccountSource,
+    @Inject(SITEMAP_SOURCE) private sitemaps: SitemapSource,
+    @Inject(SITE_CRAWLER) private crawler: SiteCrawler,
   ) {}
 
   @Cron(`0 ${DAILY_HOUR} * * *`, {
@@ -63,6 +68,8 @@ export class DailyCollection {
         photos: this.photos,
         accounts: this.accounts,
         sites: this.sites,
+        sitemaps: this.sitemaps,
+        crawler: this.crawler,
       },
       this.log,
     );
@@ -78,6 +85,8 @@ export type CollectionDeps = {
   photos: PhotoSource;
   accounts: AccountSource;
   sites: SiteAccountSource;
+  sitemaps: SitemapSource;
+  crawler: SiteCrawler;
 };
 
 /** La collecte de chaque source, l'une après l'autre, chacune datée et gardée. */
@@ -129,4 +138,8 @@ export async function runDailyCollection(
   );
   await step('videos', () => collectVideos(prisma, deps.videos));
   await step('photos', () => collectCandidatePhotos(prisma, deps.photos));
+  // Les pages des sites, à lire ensuite peu à peu (voir SiteReading).
+  await step('sites', () =>
+    discoverSitePages(prisma, deps.sitemaps, deps.crawler),
+  );
 }

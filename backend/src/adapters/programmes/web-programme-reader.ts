@@ -9,6 +9,7 @@ import { HTMLElement, Node, TextNode, parse } from 'node-html-parser';
 import {
   pdfParagraphs,
   splitProgramme,
+  tableRows,
   type ProgrammePassage,
 } from '../../domain/programme';
 import type {
@@ -72,11 +73,26 @@ export class WebProgrammeReader implements ProgrammeReader {
       const { stdout } = await run('pdftotext', ['-enc', 'UTF-8', file, '-'], {
         maxBuffer: 64 * 1024 * 1024,
       });
+      // La même conversion, en gardant la mise en page : les tableaux chiffrés
+      // s'y lisent ligne par ligne.
+      const layout = await run(
+        'pdftotext',
+        ['-layout', '-enc', 'UTF-8', file, '-'],
+        { maxBuffer: 64 * 1024 * 1024 },
+      );
       const info = await run('pdfinfo', [file]).catch(() => ({ stdout: '' }));
       const title =
         /^Title:\s+(.+)$/m.exec(info.stdout)?.[1]?.trim() ||
         decodeURIComponent(url.split('/').pop() ?? url);
-      return { title, passages: splitProgramme(pdfParagraphs(stdout)) };
+      // Page par page : une page qui porte un tableau chiffré se lit ligne
+      // par ligne, les autres en paragraphes.
+      const flowPages = stdout.split('\f');
+      const layoutPages = layout.stdout.split('\f');
+      const passages = flowPages.flatMap((flow, i) => {
+        const rows = tableRows(layoutPages[i] ?? '');
+        return rows.length >= 5 ? rows : splitProgramme(pdfParagraphs(flow));
+      });
+      return { title, passages };
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

@@ -994,6 +994,13 @@ model CampaignSnapshot {
   @@map("campaign_snapshots")
 }
 
+/// Où en est la lecture d'une page.
+enum SitePageStatus {
+  pending
+  read
+  failed
+}
+
 /// Ce qu'une page de site de campagne est, d'après son adresse et son titre.
 enum SitePageKind {
   programme // programme, projet, propositions, priorités
@@ -1019,9 +1026,17 @@ model SitePage {
   dates      String[]
   firstSeen  DateTime       @default(now())
   lastSeen   DateTime       @default(now())
+  /// La date de modification que donne le plan du site (sitemap).
+  lastmod    DateTime?
+  /// À lire, lue, ou en échec ; une page modifiée repasse « à lire ».
+  status     SitePageStatus @default(pending)
+  readAt     DateTime?
+  error      String?
   source     CampaignSource @relation(fields: [sourceId], references: [id])
+  texts      SitePageText[]
 
   @@unique([sourceId, url])
+  @@index([status, lastmod])
   @@map("site_pages")
 }
 
@@ -1048,4 +1063,20 @@ model CofogFunction {
   children    CofogFunction[] @relation("CofogTree")
 
   @@map("cofog_functions")
+}
+
+/// Le texte d'une page lue, découpé en passages mot pour mot. Une page dont
+/// le texte change donne une nouvelle version ; l'ancienne reste.
+model SitePageText {
+  id          String   @id @default(uuid())
+  pageId      String
+  contentHash String
+  title       String
+  /// [{ heading, text }], dans l'ordre de la page.
+  passages    Json
+  readAt      DateTime @default(now())
+  page        SitePage @relation(fields: [pageId], references: [id])
+
+  @@unique([pageId, contentHash])
+  @@map("site_page_texts")
 }

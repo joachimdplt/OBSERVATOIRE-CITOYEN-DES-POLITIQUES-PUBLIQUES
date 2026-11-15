@@ -130,3 +130,11 @@ export function writtenDates(text: string): string[] {
   }
   return [...out].sort();
 }
+
+/**
+ * Les pages qui ne sont pas la parole du candidat : contributions de
+ * citoyens à une consultation, comptes, dons, mentions légales. Elles ne
+ * sont pas lues.
+ */
+export const NOT_CANDIDATE_WORDS =
+  /\/(probleme|problemes|solution|solutions|contribution|contributions|doleance)\/[\w-]*\d|\/(espace|connexion|login|compte|don|dons|faire-un-don|adherer|mentions-legales|confidentialite|politique-de-confidentialite|cgu|conditions-generales[\w-]*|cookies)(\/|$)|\.(pdf|jpe?g|png|webp|svg|zip|mp4)(\?|$)/i;

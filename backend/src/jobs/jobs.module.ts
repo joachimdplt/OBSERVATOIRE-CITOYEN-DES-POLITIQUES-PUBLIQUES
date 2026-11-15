@@ -12,6 +12,11 @@ import { PHOTO_SOURCE } from '../ports/photo-source';
 import { PROGRAMME_READER } from '../ports/programme-reader';
 import { VIDEO_FEED } from '../ports/video-feed';
 import { RawFileStore } from '../storage/raw-file-store';
+import { FetchSiteCrawler } from '../adapters/web/fetch-site-crawler';
+import { FetchSitemap } from '../adapters/web/fetch-sitemap';
+import { SITE_CRAWLER } from '../ports/site-crawler';
+import { SITEMAP_SOURCE } from '../ports/sitemap-source';
+import { SiteReading } from './site-reading';
 import { DailyCollection } from './daily-collection';
 
 /** Les tâches planifiées de l'API : la collecte quotidienne. */
@@ -19,6 +24,9 @@ import { DailyCollection } from './daily-collection';
   imports: [ScheduleModule.forRoot()],
   providers: [
     DailyCollection,
+    SiteReading,
+    { provide: SITEMAP_SOURCE, useClass: FetchSitemap },
+    { provide: SITE_CRAWLER, useClass: FetchSiteCrawler },
     RawFileStore,
     { provide: PARLIAMENT_SOURCE, useClass: AssembleeOpenData },
     { provide: PROGRAMME_READER, useClass: WebProgrammeReader },

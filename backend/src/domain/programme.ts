@@ -157,3 +157,83 @@ export function currentCaptures(captures: ProgrammeCapture[]): Set<string> {
 /** « Jean-Luc Mélenchon » se range à « Mélenchon ». */
 export const surnameOf = (name: string) =>
   name.split(' ').slice(1).join(' ') || name;
+
+/**
+ * Les lignes d'un tableau chiffré, sur une page de PDF convertie en
+ * conservant la mise en page (pdftotext -layout) : chaque ligne qui porte un
+ * libellé et un montant en fin de ligne devient un passage, mot pour mot
+ * (« Suppression du plan vélo : 0,031 Mds€ »), sous la catégorie qui la
+ * précède ou l'encadre dans la colonne de gauche. Un sous-total seul sur sa
+ * ligne clôt un bloc. L'unité est lue en tête de page (« en Mds€ »).
+ */
+export function tableRows(page: string): ProgrammePassage[] {
+  const unit =
+    /\ben\s+(Mds?\s?€|M€|milliards? d['’]euros|millions? d['’]euros|€)/i.exec(
+      page,
+    )?.[1];
+  const out: ProgrammePassage[] = [];
+  // Un bloc : des lignes chiffrées et les catégories écrites à leur hauteur.
+  let rows: { line: number; text: string }[] = [];
+  let labels: { line: number; col: number; text: string }[] = [];
+  // Un en-tête de colonne n'est pas une catégorie.
+  const isHeader = (t: string) =>
+    /^(cat[ée]gorie|th[èe]me|mesures?|montant|total)$/i.test(t);
+  // Le titre du tableau : la première ligne écrite de la page.
+  const title =
+    page
+      .split('\n')
+      .map((l) => l.trim().split(/\s{3,}/)[0])
+      .find((l) => /\p{L}{3,}/u.test(l)) ?? null;
+  const flush = () => {
+    // Une catégorie n'est donnée que si elle est certaine : écrite sur la
+    // ligne même, ou seule dans le bloc. Sinon, le titre du tableau.
+    const deepest = Math.max(...labels.map((l) => l.col), 0);
+    const column = labels.filter((l) => l.col >= deepest - 6);
+    for (const r of rows) {
+      const same = column.find((l) => l.line === r.line);
+      const heading =
+        same?.text ?? (column.length === 1 ? column[0].text : (title ?? ''));
+      out.push({ heading, text: r.text });
+    }
+    rows = [];
+    labels = [];
+  };
+  page.split('\n').forEach((line, index) => {
+    const segments = [...line.matchAll(/\S(?:.*?\S)?(?=\s{3,}|\s*$)/g)].map(
+      (m) => ({ col: m.index ?? 0, text: m[0].trim() }),
+    );
+    if (segments.length === 0) return;
+    const last = segments.at(-1)!;
+    const amount = /^-?\d{1,3}(?:\s?\d{3})*(?:[.,]\d+)?$/.test(last.text);
+    if (amount && segments.length === 1) {
+      flush(); // un sous-total clôt un bloc
+      return;
+    }
+    const texts = segments.slice(0, amount ? -1 : undefined);
+    if (!amount) {
+      // Une catégorie seule sur sa ligne, dans la colonne de gauche.
+      if (texts.length === 1 && last.text.length < 40 && !isHeader(last.text))
+        labels.push({ line: index, col: last.col, text: last.text });
+      return;
+    }
+    // Le libellé de la mesure : le plus long des textes de la ligne.
+    const measure = texts.reduce((a, b) =>
+      b.text.length > a.text.length ? b : a,
+    );
+    // Une mesure commence par une majuscule : les fragments d'infographie
+    // (« prestations de solidarité. ») ne sont pas des lignes de tableau.
+    if (measure.text.length < 12 || !/^\p{Lu}/u.test(measure.text)) return;
+    const category = texts.find(
+      (t) => t !== measure && t.text.length < 40 && !isHeader(t.text),
+    );
+    if (category)
+      labels.push({ line: index, col: category.col, text: category.text });
+    rows.push({
+      line: index,
+      text: `${measure.text} : ${last.text}${unit ? ` ${unit}` : ''}`,
+    });
+  });
+  flush();
+  // Un tableau annonce son unité, ou compte au moins dix lignes.
+  return unit || out.length >= 10 ? out : [];
+}

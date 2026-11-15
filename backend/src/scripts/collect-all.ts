@@ -12,6 +12,8 @@ import { WebProgrammeReader } from '../adapters/programmes/web-programme-reader'
 import { WikimediaPhotos } from '../adapters/wikimedia/wikimedia-photos';
 import { WikidataAccounts } from '../adapters/wikimedia/wikidata-accounts';
 import { WebsiteAccounts } from '../adapters/web/website-accounts';
+import { FetchSiteCrawler } from '../adapters/web/fetch-site-crawler';
+import { FetchSitemap } from '../adapters/web/fetch-sitemap';
 import { YoutubeFeed } from '../adapters/youtube/youtube-feed';
 import configuration from '../config/configuration';
 import { PrismaClient } from '../generated/prisma/client';
@@ -35,6 +37,8 @@ async function main() {
         photos: new WikimediaPhotos(),
         accounts: new WikidataAccounts(),
         sites: new WebsiteAccounts(),
+        sitemaps: new FetchSitemap(),
+        crawler: new FetchSiteCrawler(),
       },
       console,
     );
