@@ -12,5 +12,9 @@ describe('le profil d’un programme', () => {
     expect(isFigured('Suppression du plan vélo : 0,031 Mds€')).toBe(true);
     expect(isFigured('Justice sociale : 5,6 Md€')).toBe(true);
     expect(isFigured('Réformer la justice.')).toBe(false);
+    // Une année seule n'est pas un chiffre.
+    expect(isFigured('Adopter la loi de 1905 et la réformer en 2027.')).toBe(
+      false,
+    );
   });
 });
