@@ -4,6 +4,12 @@ import { SiteFrame } from '../layouts/SiteFrame'
 import appCss from '../styles.css?url'
 
 export const Route = createRootRoute({
+  // Les pages publiques changent une fois par jour (la collecte de 6 h) et
+  // aux décisions de l'équipe : un CDN ou un cache les resert pendant cinq
+  // minutes, et encore dix le temps d'en préparer une nouvelle.
+  headers: () => ({
+    'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
+  }),
   head: () => ({
     meta: [
       { charSet: 'utf-8' },

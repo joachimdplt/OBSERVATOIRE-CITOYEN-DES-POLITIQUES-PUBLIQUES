@@ -1,3 +1,4 @@
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
@@ -19,6 +20,7 @@ import configuration from './config/configuration';
 import { SessionModule } from './features/session/session.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { PublicModule } from './features/public/public.module';
+import { PublicCacheInterceptor } from './common/public-cache.interceptor';
 
 @Module({
   imports: [
@@ -42,5 +44,7 @@ import { PublicModule } from './features/public/public.module';
     SubjectsModule,
     PublicModule,
   ],
+  // Les réponses publiques se resservent pendant cinq minutes.
+  providers: [{ provide: APP_INTERCEPTOR, useClass: PublicCacheInterceptor }],
 })
 export class AppModule {}
