@@ -8,9 +8,12 @@ type Piece = {
   page: number;
   top: number;
   left: number;
+  width: number;
   height: number;
   size: number;
   text: string;
+  /** Le texte tel qu'écrit, espaces compris (un sommaire aligne ses numéros). */
+  raw: string;
 };
 
 const decode = (s: string) =>
@@ -31,21 +34,24 @@ export function piecesOf(xml: string): Piece[] {
   const pieces: Piece[] = [];
   let page = 0;
   for (const m of xml.matchAll(
-    /<page number="(\d+)"|<text top="(-?[\d.]+)" left="(-?[\d.]+)" width="[\d.]+" height="([\d.]+)" font="(\d+)">(.*?)<\/text>/g,
+    /<page number="(\d+)"|<text top="(-?[\d.]+)" left="(-?[\d.]+)" width="([\d.]+)" height="([\d.]+)" font="(\d+)">(.*?)<\/text>/g,
   )) {
     if (m[1]) {
       page = Number(m[1]);
       continue;
     }
-    const text = decode(m[6]).replace(/\s+/g, ' ').trim();
+    const raw = decode(m[7]).trim();
+    const text = raw.replace(/\s+/g, ' ');
     if (!text) continue;
     pieces.push({
       page,
       top: Number(m[2]),
       left: Number(m[3]),
-      height: Number(m[4]),
-      size: sizes.get(m[5]) ?? 0,
+      width: Number(m[4]),
+      height: Number(m[5]),
+      size: sizes.get(m[6]) ?? 0,
       text,
+      raw,
     });
   }
   return pieces;
