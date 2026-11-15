@@ -1,3 +1,4 @@
+import { isRefusedAccount } from '../../../domain/refused-accounts';
 import { Controller, HttpCode, Inject, Post, UseGuards } from '@nestjs/common';
 import { Requires, SessionGuard } from '../../../auth/session.guard';
 import { accountUrl } from '../../../domain/accounts';
@@ -67,7 +68,10 @@ export async function collectCandidateAccounts(
     for (const { origin, read } of origins) {
       let found: FoundAccount[];
       try {
-        found = await read();
+        // Un compte refusé par l'équipe (faux compte) n'est jamais relevé.
+        found = (await read()).filter(
+          (a) => !isRefusedAccount(a.network, a.handle),
+        );
       } catch (e) {
         report.failed.push(`${c.name} (${origin}) : ${String(e)}`);
         continue;
