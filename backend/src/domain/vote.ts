@@ -3,7 +3,8 @@
  * modèle, et le classement du candidat lui-même (le titre de son document,
  * et ce titre avec sa rubrique).
  */
-export type Method = 'grille' | 'voisins' | 'modele' | 'titre' | 'rubrique';
+export type Method =
+  'grille' | 'voisins' | 'classeur' | 'modele' | 'titre' | 'rubrique';
 
 export type Proposal = { method: Method; code: string | null };
 

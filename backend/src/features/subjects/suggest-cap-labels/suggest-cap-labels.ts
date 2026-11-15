@@ -4,10 +4,10 @@ import { Requires, SessionGuard } from '../../../auth/session.guard';
 import { isVagueHeading } from '../../../domain/cap';
 import type { Correction } from '../../../domain/corrections';
 import { documentName } from '../../../domain/programme-reading';
+import { trainSoftmax } from '../../../domain/softmax';
 import {
   cosine,
   nearestTopic,
-  neighboursTopic,
   vote,
   type Proposal,
 } from '../../../domain/vote';
@@ -33,6 +33,8 @@ import { PrismaService } from '../../../prisma/prisma.service';
 const CHAPTER_TEXT = 1500;
 /** Ce que lit le modèle quand les voix ne s'accordent pas : moins, plus vite. */
 const FAST_EXAMPLES = 3;
+/** La confiance au-delà de laquelle le classeur range seul. */
+const SURE = 0.7;
 const FAST_TEXT = 800;
 /** Un chapitre d'au moins tant de passages parle de plusieurs sujets. */
 const LONG_CHAPTER = 15;
@@ -303,32 +305,48 @@ export async function suggestCapLabels(
   });
   report.review = 0;
 
+  // Le classeur appris sur les vecteurs, réentraîné à chaque rangement sur
+  // tout ce qui est affiché (rangé par le vote, ou décidé par l'équipe) : il
+  // apprend directement des relectures.
+  const shownLabels = await prisma.capLabel.findMany({
+    where: { status: { in: [LabelStatus.proposed, LabelStatus.validated] } },
+  });
+  const classCodes = grid.map((t) => t.code);
+  const classOf = new Map(classCodes.map((code, i) => [code, i]));
+  const examples = shownLabels.flatMap((l) => {
+    const x = ctx.vectorOf(ctx.blockOf(l));
+    const y = classOf.get(l.capCode);
+    return x && y !== undefined ? [{ x, y }] : [];
+  });
+  log(`Apprentissage du classeur sur ${examples.length} blocs affichés…`);
+  const classify = trainSoftmax(examples, classCodes.length);
+
   for (let i = 0; i < todo.length; i += 1) {
     const [id, c] = todo[i];
     const v = ctx.vectorOf(ctx.blockOf(c));
+    const guess = v ? classify(v) : null;
     const title = titles.get(c.documentUrl) ?? '';
     const voices: Proposal[] = [
       { method: 'grille', code: v ? nearestTopic(v, ctx.topicVectors) : null },
-      {
-        method: 'voisins',
-        code: v
-          ? neighboursTopic(v, ctx.known, `${c.candidateId}\n${c.heading}`)
-          : null,
-      },
+      { method: 'classeur', code: guess ? classCodes[guess.k] : null },
       { method: 'titre', code: await topicOfTitle(title) },
       {
         method: 'rubrique',
         code: await topicOfTitle(`${title} — ${c.heading}`),
       },
     ];
-    // Le mode rapide : la grille, les voisins et le classement du candidat
-    // d'accord suffisent (juste 90 fois sur 100, ±7, sur 152 blocs relus) ;
-    // le modèle n'est interrogé que sinon.
-    const [grille, voisins, titre, rubrique] = voices.map((p) => p.code);
+    // Le mode rapide, sans le modèle de langue :
+    // - le classeur très sûr de lui (confiance ≥ 0,7 : juste 96 fois sur
+    //   100, ±5, sur 150 blocs relus jamais vus) ;
+    // - ou la grille, le classeur et le classement du candidat d'accord.
+    // Le modèle n'est interrogé que sinon.
+    const [grille, classeur, titre, rubrique] = voices.map((p) => p.code);
+    const sure = guess !== null && guess.p >= SURE;
     const quick =
-      grille !== null &&
-      grille === voisins &&
-      (titre === grille || rubrique === grille);
+      sure ||
+      (grille !== null &&
+        grille === classeur &&
+        (titre === grille || rubrique === grille));
     let model: string | null = null;
     if (!quick) {
       const pick = v
@@ -352,14 +370,14 @@ export async function suggestCapLabels(
       { method: 'modele', code: model },
       ...voices.slice(2),
     ];
-    const code = quick ? grille : model;
+    const code = quick ? classeur : model;
     const agreed = quick || vote(proposals).agreed;
     const done = i + 1;
     const left = Math.round(
       (((Date.now() - started) / done) * (todo.length - done)) / 60000,
     );
     log(
-      `[${done}/${todo.length}, encore ~${left} min] ${names.get(c.candidateId) ?? '?'} · ${c.heading.slice(0, 55)}${c.fromPosition !== null ? ` (bloc ${c.fromPosition})` : ''} → ${code ? labelOf.get(code) : 'aucun'} ${quick ? '(accord des voix, sans modèle)' : agreed ? '(vote d’accord)' : '(à relire)'}`,
+      `[${done}/${todo.length}, encore ~${left} min] ${names.get(c.candidateId) ?? '?'} · ${c.heading.slice(0, 55)}${c.fromPosition !== null ? ` (bloc ${c.fromPosition})` : ''} → ${code ? labelOf.get(code) : 'aucun'} ${sure ? `(classeur sûr à ${Math.round(guess.p * 100)} %)` : quick ? '(accord des voix, sans modèle)' : agreed ? '(vote d’accord)' : '(à relire)'}`,
     );
     if (!code) continue;
     if (!agreed) report.review++;

@@ -1,6 +1,7 @@
 export type ReviewMethod =
   | 'grille'
   | 'voisins'
+  | 'classeur'
   | 'modele'
   | 'titre'
   | 'rubrique'

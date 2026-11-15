@@ -5,6 +5,7 @@ import type { ReviewItem, ReviewMethod } from '../../../types/subjects'
 const METHODS: Record<ReviewMethod, string> = {
   grille: 'Grille (sens le plus proche)',
   voisins: 'Voisins (passages déjà rangés)',
+  classeur: 'Classeur (appris sur les rangements)',
   modele: 'Modèle (Qwen3)',
   titre: 'Titre du document',
   rubrique: 'Titre et rubrique',
