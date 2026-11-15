@@ -394,6 +394,7 @@ export type CandidateProgramme = {
     title: string
     fetchedAt: string
     chapters: {
+      anchor: string | null
       label: string
       title: string
       intro: string
@@ -414,7 +415,6 @@ export type CandidateProgramme = {
     passages: number
     headings: { heading: string; passages: number }[]
   }[]
-  vocabulary: { word: string; count: number; ratio: number }[]
   /** Tout le programme, dans l'ordre ; la page vaut pour un PDF. */
   passages: {
     heading: string

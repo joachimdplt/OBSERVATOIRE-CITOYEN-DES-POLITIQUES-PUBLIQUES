@@ -70,16 +70,21 @@ export function CandidateProgramme({
 }) {
   const { summary: s } = p
   if (s.passages === 0) return null
-  const maxCount = Math.max(...p.vocabulary.map((v) => v.count), 1)
   const headings = ownHeadings(p.outline)
+  // Un candidat qui procède par état des lieux et consultation : ses
+  // comptes sont ceux de sa démarche, plus haut ; ici, ses textes seuls.
+  const approach = p.approach.length > 0
   return (
     <section className="px-6 py-12 md:px-10">
       <div className="mx-auto max-w-[1280px] space-y-5">
         <h2 className={`${DISPLAY} text-[clamp(1.6rem,3vw,2.2rem)]`}>
-          {p.approach.length > 0 ? 'Ses textes, lus en entier' : 'Son programme, lu en entier'}
+          {approach
+            ? 'Ses textes et ses prises de position'
+            : 'Son programme, lu en entier'}
         </h2>
 
         {/* Le résumé : rien que des comptes. */}
+        {!approach && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Fact value={s.passages} label="passages lus" />
           <Fact value={s.proposals} label="propositions" />
@@ -89,8 +94,9 @@ export function CandidateProgramme({
             label="des passages rangés dans un sujet"
           />
         </div>
+        )}
 
-        {headings.length >= 3 ? (
+        {approach ? null : headings.length >= 3 ? (
           <div className="rounded-[28px] bg-white p-4 md:p-6">
             <p className="px-2 font-extrabold text-[#0B1A2A]">
               De quoi parle son programme, sous ses propres titres
@@ -114,27 +120,6 @@ export function CandidateProgramme({
               </div>
             </div>
           )
-        )}
-
-        {p.vocabulary.length > 0 && (
-          <div className="rounded-[28px] bg-white p-6 md:p-8">
-            <p className="font-extrabold text-[#0B1A2A]">Son vocabulaire</p>
-            <ul className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-2">
-              {p.vocabulary.map((v) => (
-                <li
-                  key={v.word}
-                  title={`${v.count} emplois`}
-                  className="leading-tight font-extrabold tracking-[-0.02em] text-[#0B1A2A]"
-                  style={{
-                    fontSize: `${0.95 + 1.15 * Math.sqrt(v.count / maxCount)}rem`,
-                    opacity: 0.55 + 0.45 * Math.sqrt(v.count / maxCount),
-                  }}
-                >
-                  {v.word}
-                </li>
-              ))}
-            </ul>
-          </div>
         )}
 
         <Outline outline={p.outline} />
@@ -407,6 +392,7 @@ function Chapter({
   )
   const from = pages.length ? Math.min(...pages) : 0
   const to = pages.length ? Math.max(...pages) : 0
+  let lastPage: number | null = null
   return (
     <li
       ref={card}
@@ -451,21 +437,28 @@ function Chapter({
               </a>
             )}
             <div className="space-y-4">
-              {s.quotes.map((q, j) => (
-                <div key={j}>
-                  <QuoteText text={q.text} terms={figuresIn(q.text)} />
-                  {q.page && (
-                    <a
-                      href={`${g.url}#page=${q.page}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`mt-1 inline-block text-[0.78rem] font-semibold ${MUTED} no-underline hover:text-[#0B1A2A] hover:underline`}
-                    >
-                      p. {q.page}
-                    </a>
-                  )}
-                </div>
-              ))}
+              {s.quotes.map((q, j) => {
+                // Un repère au changement de page seulement ; un chapitre
+                // d'une seule page a déjà la sienne dans sa pastille.
+                const mark =
+                  q.page !== null && from !== to && q.page !== lastPage
+                lastPage = q.page
+                return (
+                  <div key={j}>
+                    {mark && (
+                      <a
+                        href={`${g.url}#page=${q.page}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={`mb-2 inline-block rounded-full bg-[#F4F6F8] px-2.5 py-0.5 text-[0.75rem] font-bold ${MUTED} no-underline hover:text-[#0B1A2A] hover:underline`}
+                      >
+                        Page {q.page}
+                      </a>
+                    )}
+                    <QuoteText text={q.text} terms={figuresIn(q.text)} />
+                  </div>
+                )
+              })}
             </div>
           </div>
         ))}

@@ -1,10 +1,6 @@
 import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
 import { currentCaptures } from '../../../domain/programme';
-import {
-  distinctiveVocabulary,
-  isFigured,
-  isProposal,
-} from '../../../domain/programme-profile';
+import { isFigured, isProposal } from '../../../domain/programme-profile';
 import type {
   DiagnosisChapter,
   ParticipationCount,
@@ -31,7 +27,7 @@ const meaningful = (h: string) =>
 /**
  * Le programme d'un candidat, lu en entier et sans rien reformuler : sa
  * structure (ses documents et leurs rubriques, dans l'ordre, avec le nombre
- * de passages), son vocabulaire propre comparé aux autres programmes, ses
+ * de passages), ses
  * propositions (passages qui commencent par un verbe d'action) et ses
  * passages chiffrés, cités mot pour mot. Le résumé n'est fait que de comptes.
  */
@@ -73,7 +69,11 @@ export class GetCandidateProgrammeController {
       }));
 
     const all = await this.prisma.politicalDocument.findMany({
-      where: { kind: DocumentKind.programme, sourceRef: { not: null } },
+      where: {
+        kind: DocumentKind.programme,
+        sourceRef: { not: null },
+        retiredAt: null,
+      },
       select: {
         id: true,
         sourceRef: true,
@@ -119,7 +119,6 @@ export class GetCandidateProgrammeController {
           (docRank.get(a.documentId) ?? 0) - (docRank.get(b.documentId) ?? 0) ||
           (a.position ?? 0) - (b.position ?? 0),
       );
-    const others = measures.filter((m) => !ownIds.has(m.documentId));
 
     // La structure : chaque document, puis ses rubriques dans l'ordre.
     const outline = own.map((d) => {
@@ -175,11 +174,6 @@ export class GetCandidateProgrammeController {
       },
       approach,
       outline,
-      vocabulary: distinctiveVocabulary(
-        mine.map((m) => m.quote),
-        others.map((m) => m.quote),
-        { exclude: [candidate.name] },
-      ),
       // Tout le programme, dans l'ordre, chaque passage avec sa page : le
       // site le lit chapitre par chapitre, chiffres surlignés.
       passages: mine.map((m) => ({
