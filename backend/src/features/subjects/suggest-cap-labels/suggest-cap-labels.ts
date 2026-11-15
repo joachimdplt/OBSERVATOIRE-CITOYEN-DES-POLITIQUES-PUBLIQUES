@@ -239,8 +239,14 @@ export async function suggestCapLabels(
         `${l.candidateId}\n${l.documentUrl}\n${l.heading}\n${l.fromPosition ?? ''}`,
     ),
   );
+  const filed = new Set(
+    (await prisma.filedUnit.findMany({ select: { id: true } })).map(
+      (u) => u.id,
+    ),
+  );
   const todo = [...chapters.entries()].filter(
-    ([, c]) =>
+    ([id, c]) =>
+      !filed.has(id) &&
       !labelled.has(
         `${c.candidateId}\n${c.documentUrl}\n${c.heading}\n${c.fromPosition ?? ''}`,
       ),
@@ -379,6 +385,12 @@ export async function suggestCapLabels(
     log(
       `[${done}/${todo.length}, encore ~${left} min] ${names.get(c.candidateId) ?? '?'} · ${c.heading.slice(0, 55)}${c.fromPosition !== null ? ` (bloc ${c.fromPosition})` : ''} → ${code ? labelOf.get(code) : 'aucun'} ${sure ? `(classeur sûr à ${Math.round(guess.p * 100)} %)` : quick ? '(accord des voix, sans modèle)' : agreed ? '(vote d’accord)' : '(à relire)'}`,
     );
+    // Le morceau est noté comme rangé, quel que soit le résultat.
+    await prisma.filedUnit.upsert({
+      where: { id },
+      create: { id },
+      update: {},
+    });
     if (!code) continue;
     if (!agreed) report.review++;
     await prisma.capLabel.createMany({

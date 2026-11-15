@@ -15,7 +15,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { RawFileStore } from '../../../storage/raw-file-store';
 
 /** Une table des matières ne mène pas à plus de pages que cela. */
-const MAX_PAGES = 80;
+const MAX_PAGES = 150;
 
 /**
  * Le collecteur des programmes : pour chaque adresse indiquée par l'équipe,

@@ -1205,3 +1205,13 @@ model TopicVector {
   @@id([code, model])
   @@map("topic_vectors")
 }
+
+/// Un morceau de programme déjà passé au rangement (chapitre, ou bloc d'un
+/// long chapitre), par son empreinte : il n'est pas rangé de nouveau, même
+/// quand son sujet était déjà celui d'un autre bloc du même chapitre.
+model FiledUnit {
+  id      String   @id
+  filedAt DateTime @default(now())
+
+  @@map("filed_units")
+}
