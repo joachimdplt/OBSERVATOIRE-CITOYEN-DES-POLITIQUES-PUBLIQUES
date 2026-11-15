@@ -22,12 +22,18 @@ export function CandidateApproach({ approach }: { approach: Approach[] }) {
         <h2 className={`${DISPLAY} text-[clamp(1.6rem,3vw,2.2rem)]`}>
           Sa démarche
         </h2>
-        <p className={`max-w-[68ch] text-[1rem] leading-relaxed ${MUTED}`}>
-          Sa campagne ne publie pas de programme d’ensemble. Elle publie un
-          état des lieux chiffré et tient une consultation ouverte. Les deux
-          sont repris ici tels qu’ils sont publiés, avec la date du relevé.
+        <p className={`text-justify text-[1rem] leading-relaxed hyphens-auto ${MUTED}`}>
+          Pas de programme d’ensemble : un état des lieux chiffré et une
+          consultation ouverte, repris tels qu’ils sont publiés (relevé le{' '}
+          {frenchDate(
+            approach
+              .map((a) => a.fetchedAt)
+              .sort()
+              .at(-1)!
+              .slice(0, 10),
+          )}
+          ).
         </p>
-        <Facts approach={approach} />
         {approach.map((a) =>
           a.kind === 'method' ? (
             <Diagnosis key={a.url} approach={a} />
@@ -53,27 +59,18 @@ function Head({ kicker, approach: a }: { kicker: string; approach: Approach }) {
         {a.title}
         <ArrowUpRight size={18} />
       </a>
-      <p className={`mt-1 text-[0.85rem] ${MUTED}`}>
-        Relevé le {frenchDate(a.fetchedAt.slice(0, 10))}
-      </p>
     </div>
   )
 }
 
 function Diagnosis({ approach: a }: { approach: Approach }) {
-  const indicators = a.chapters.reduce((n, c) => n + c.indicators.length, 0)
   return (
     <div className="rounded-[28px] bg-white p-6 md:p-8">
       <Head kicker="Son état des lieux" approach={a} />
-      <p className={`mt-3 text-[0.95rem] ${MUTED}`}>
-        {a.chapters.length} chapitres, {indicators} indicateurs, chacun avec
-        la source que sa campagne cite.
-      </p>
       <ol className="mt-8 space-y-10">
         {a.chapters.map((c) => (
           <li key={c.title}>
-            <p className={`text-[0.85rem] font-bold ${MUTED}`}>{c.label}</p>
-            <h3 className={`${DISPLAY} mt-1 text-[1.25rem] leading-snug`}>
+            <h3 className={`${DISPLAY} text-[1.25rem] leading-snug`}>
               «&nbsp;{c.title}&nbsp;»
             </h3>
             {c.intro && (
@@ -102,8 +99,7 @@ function Diagnosis({ approach: a }: { approach: Approach }) {
               rel="noreferrer"
               className="mt-4 inline-flex items-center gap-1.5 text-[0.9rem] font-bold text-[#0B1A2A] no-underline hover:underline"
             >
-              Ses {c.indicators.length} indicateurs, chiffres et sources, sur
-              son site
+              Chiffres et sources
               <ArrowUpRight size={14} />
             </a>
           </li>
@@ -170,40 +166,3 @@ function countsOf(text: string) {
   return parts.map((m) => ({ value: m![1].trim(), what: m![2] }))
 }
 
-/**
- * Les comptes de sa démarche : ce que contient son état des lieux, et les
- * totaux que sa consultation publie, cités tels quels.
- */
-function Facts({ approach }: { approach: Approach[] }) {
-  const facts: { value: string; label: string }[] = []
-  for (const a of approach) {
-    if (a.kind === 'method') {
-      const indicators = a.chapters.reduce(
-        (n, c) => n + c.indicators.length,
-        0,
-      )
-      facts.push({ value: String(a.chapters.length), label: 'chapitres d’état des lieux' })
-      facts.push({ value: String(indicators), label: 'indicateurs, sources citées' })
-    }
-    for (const c of a.counts.filter((x) => !x.label)) {
-      const m = /^(\D*?)(\d[\d\s]*)\s+(.*)$/.exec(c.text)
-      if (m) facts.push({ value: m[2].trim(), label: `${m[3]} (consultation)` })
-    }
-    const subjects = a.counts.filter((c) => c.label).length
-    if (subjects)
-      facts.push({ value: String(subjects), label: 'sujets ouverts à la consultation' })
-  }
-  if (facts.length === 0) return null
-  return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      {facts.map((f) => (
-        <div key={f.label} className="rounded-[22px] bg-white p-5">
-          <p className="text-[2rem] leading-none font-extrabold tracking-[-0.03em] text-[#0B1A2A] tabular-nums">
-            {f.value}
-          </p>
-          <p className={`mt-2 text-[0.9rem] leading-snug ${MUTED}`}>{f.label}</p>
-        </div>
-      ))}
-    </div>
-  )
-}
