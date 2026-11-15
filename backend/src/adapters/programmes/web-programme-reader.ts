@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { gunzipSync } from 'node:zlib';
 import { HTMLElement, Node, TextNode, parse } from 'node-html-parser';
+import { readPdfLayout } from '../../domain/pdf-layout';
 import {
   pdfParagraphs,
   splitProgramme,
@@ -81,13 +82,20 @@ export class WebProgrammeReader implements ProgrammeReader {
         ['-layout', '-enc', 'UTF-8', file, '-'],
         { maxBuffer: 64 * 1024 * 1024 },
       );
+      // Et avec la taille de chaque ligne : les titres s'y reconnaissent.
+      const xml = await run(
+        'pdftohtml',
+        ['-xml', '-i', '-q', '-stdout', '-enc', 'UTF-8', file],
+        { maxBuffer: 128 * 1024 * 1024 },
+      ).catch(() => ({ stdout: '' }));
+      const fonts = readPdfLayout(xml.stdout);
       const info = await run('pdfinfo', [file]).catch(() => ({ stdout: '' }));
       const title =
         /^Title:\s+(.+)$/m.exec(info.stdout)?.[1]?.trim() ||
         decodeURIComponent(url.split('/').pop() ?? url);
       // Page par page : une page qui porte un tableau chiffré se lit ligne
       // par ligne, une infographie carte par carte, les autres en
-      // paragraphes.
+      // paragraphes sous leurs titres.
       const flowPages = stdout.split('\f');
       const layoutPages = layout.stdout.split('\f');
       const passages = flowPages.flatMap((flow, i) => {
@@ -97,6 +105,8 @@ export class WebProgrammeReader implements ProgrammeReader {
         const cards = cardRows(page);
         const figured = cards.filter((c) => /\s:\s[+\-−]?\d/.test(c.text));
         if (figured.length >= 3) return cards;
+        // Les titres lus par leur taille ; à défaut, devinés dans le texte.
+        if (fonts) return fonts[i] ?? [];
         return splitProgramme(pdfParagraphs(flow));
       });
       return { title, passages };
