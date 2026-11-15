@@ -84,16 +84,15 @@ function Diagnosis({ approach: a }: { approach: Approach }) {
             {/* Les indicateurs, par leur nom : leurs chiffres et leurs
                 sources se lisent sur sa page, à laquelle chaque chapitre
                 mène. */}
-            <ul className="mt-4 flex flex-wrap gap-2">
+            <ul className="mt-4 divide-y divide-[#0B1A2A]/8 border-y border-[#0B1A2A]/8">
               {c.indicators.map((i) => (
-                <li
-                  key={i.name}
-                  title={[i.unit, i.source && `Source citée : ${i.source}`]
-                    .filter(Boolean)
-                    .join(' · ')}
-                  className="rounded-full bg-[#F4F6F8] px-3 py-1 text-[0.82rem] font-semibold text-[#0B1A2A]"
-                >
+                <li key={i.name} className="py-2 text-[0.95rem] text-[#0B1A2A]">
                   {i.name}
+                  {i.unit && (
+                    <span className={`ml-2 text-[0.82rem] ${MUTED}`}>
+                      {i.unit}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -133,11 +132,11 @@ function Consultation({ approach: a }: { approach: Approach }) {
         et solutions déposés sont les mots des participants, pas ceux de la
         candidate : ils ne sont pas cités ici.
       </p>
-      <ul className="mt-6 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-6 max-w-[720px] divide-y divide-[#0B1A2A]/8 border-y border-[#0B1A2A]/8">
         {subjects.map((s) => (
           <li
             key={s.label}
-            className="flex items-baseline justify-between gap-3 rounded-[14px] bg-[#F4F6F8] px-4 py-3"
+            className="flex items-baseline justify-between gap-4 py-2.5"
           >
             <span className="font-bold text-[#0B1A2A]">{s.label}</span>
             <span className={`shrink-0 text-[0.85rem] tabular-nums ${MUTED}`}>

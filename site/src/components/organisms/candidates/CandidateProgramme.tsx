@@ -60,6 +60,10 @@ export function CandidateProgramme({
 
 
 type Passage = Programme['passages'][number]
+
+/** D'où vient un document : un fichier (PDF) ou une page de son site. */
+const kindOf = (url: string) =>
+  /\.pdf(\?|#|$)/i.test(url) ? 'En document' : 'Sur son site internet'
 type ReadingChapter = Programme['chapters'][number]
 
 /** L'adresse d'un passage : la page du PDF, ou le texte dans la page web. */
@@ -171,6 +175,17 @@ function Reader({
             <ul className="space-y-1">
               {groups.map((g, i) => (
                 <li key={i}>
+                  {/* Le programme en document et les pages de son site se
+                      distinguent : un intertitre à chaque changement. */}
+                  {(i === 0 ||
+                    kindOf(p.outline[g.document].url) !==
+                      kindOf(p.outline[groups[i - 1].document].url)) && (
+                    <p
+                      className={`px-3 pt-3 pb-1 text-[0.75rem] font-bold ${MUTED}`}
+                    >
+                      {kindOf(p.outline[g.document].url)}
+                    </p>
+                  )}
                   <button
                     type="button"
                     onClick={() => go(i)}
@@ -276,6 +291,9 @@ function Chapter({
         rel="noreferrer"
         className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#F4F6F8] px-3 py-1 text-[0.82rem] font-bold text-[#0B1A2A] no-underline hover:underline"
       >
+        <span className={`shrink-0 font-semibold ${MUTED}`}>
+          {kindOf(d.url) === 'En document' ? 'Document' : 'Son site'} ·
+        </span>
         <span className="truncate">{documentName(d.title)}</span>
         {g.from !== null && (
           <span className="shrink-0 font-semibold">
