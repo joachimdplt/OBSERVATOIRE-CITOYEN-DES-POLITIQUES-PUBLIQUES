@@ -25,21 +25,18 @@ const MUTED = 'text-[#5B6470]'
 function TopicsPage() {
   const data = Route.useLoaderData()
   if (!data) return null
-  const { programmes, topics } = data
+  const { topics } = data
   return (
     <main className="px-6 pt-16 pb-20 md:px-10">
       <div className="mx-auto max-w-[1280px]">
         <h1 className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
-          Les sujets des programmes
+          De quoi parlent les programmes ?
         </h1>
         <p
-          className={`mt-4 max-w-[68ch] text-[1.08rem] leading-relaxed ${MUTED}`}
+          className={`mt-4 max-w-[60ch] text-[1.15rem] leading-relaxed ${MUTED}`}
         >
-          {topics.length} sujets, cherchés dans les {programmes.candidates}{' '}
-          programmes publiés ({programmes.complete} complets,{' '}
-          {programmes.partial} partiels). Plus un sujet compte de passages, plus
-          sa case est grande ; dans chaque case, la photo d’un candidat grandit
-          avec le nombre de ses passages sur le sujet.
+          Grande case : sujet très présent. Grande photo : candidat qui en parle
+          beaucoup.
         </p>
 
         <div className="mt-10">
