@@ -468,5 +468,5 @@ export type Subject = {
       excerpt: { quote: string; page: number | null }[]
     }[]
   }[]
-  without: { slug: string; name: string }[]
+  without: { slug: string; name: string; collected: boolean }[]
 }

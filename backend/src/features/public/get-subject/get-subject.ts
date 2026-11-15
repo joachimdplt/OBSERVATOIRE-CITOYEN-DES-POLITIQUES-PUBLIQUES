@@ -123,6 +123,21 @@ export class GetSubjectController {
       byCandidate.set(l.candidateId, list);
     }
 
+    // Les candidats qui ont au moins un programme collecté et lu.
+    const collected = new Set(
+      (
+        await this.prisma.politicalDocument.findMany({
+          where: {
+            kind: DocumentKind.programme,
+            retiredAt: null,
+            measures: { some: {} },
+          },
+          select: { candidateId: true },
+          distinct: ['candidateId'],
+        })
+      ).map((d) => d.candidateId),
+    );
+
     const model = labels.find((l) => l.model)?.model ?? null;
     return {
       topic: { code: topic.code, label: topic.labelFr, title: topic.title },
@@ -144,9 +159,15 @@ export class GetSubjectController {
           programmeNote: c.programmeNote,
           chapters: subjectChapters(byCandidate.get(c.id)!),
         })),
+      // Ceux qui n'ont rien ici : sans aucun programme collecté, ou avec
+      // un programme collecté mais aucun chapitre rangé dans ce sujet.
       without: candidates
         .filter((c) => !byCandidate.has(c.id))
-        .map((c) => ({ slug: c.slug, name: c.name })),
+        .map((c) => ({
+          slug: c.slug,
+          name: c.name,
+          collected: collected.has(c.id),
+        })),
     };
   }
 }

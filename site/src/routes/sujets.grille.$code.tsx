@@ -230,20 +230,46 @@ function CandidateCard({ index, candidate: c }: { index: number; candidate: Cand
 }
 
 /**
- * Les candidats dont aucun chapitre n'est rangé dans ce sujet : leurs noms,
- * chacun vers son programme, et ce que cela veut dire, sans plus.
+ * Les candidats qui n'ont rien dans ce sujet, en deux listes : ceux dont
+ * aucun programme n'est collecté, et ceux dont le programme collecté n'a
+ * aucun chapitre rangé ici. Chaque nom mène à sa page.
  */
 function Without({ list }: { list: Subject['without'] }) {
+  const read = list.filter((c) => c.collected)
+  const none = list.filter((c) => !c.collected)
   return (
-    <div className="pt-3">
-      <p className="px-3 pb-1 text-[0.75rem] font-bold text-[#5B6470]">
-        Pas de chapitre sur ce sujet
-      </p>
-      <p className="px-3 pb-2 text-[0.78rem] leading-snug text-[#5B6470]">
-        Dans leur programme, aucun chapitre n’est consacré à ce sujet pour
-        l’instant. Cela ne veut pas dire qu’ils n’en parlent jamais, ni
-        qu’ils n’ont pas d’avis.
-      </p>
+    <div className="space-y-4 pt-3">
+      {read.length > 0 && (
+        <Names
+          title="Rien de rangé dans ce sujet"
+          note="Leur programme collecté n’a aucun chapitre rangé ici. Ils peuvent en parler ailleurs, ou dans un document pas encore collecté."
+          list={read}
+        />
+      )}
+      {none.length > 0 && (
+        <Names
+          title="Aucun programme collecté"
+          note="Rien n’a encore été publié, ou rien n’a encore été trouvé."
+          list={none}
+        />
+      )}
+    </div>
+  )
+}
+
+function Names({
+  title,
+  note,
+  list,
+}: {
+  title: string
+  note: string
+  list: Subject['without']
+}) {
+  return (
+    <div>
+      <p className="px-3 pb-1 text-[0.75rem] font-bold text-[#5B6470]">{title}</p>
+      <p className="px-3 pb-2 text-[0.78rem] leading-snug text-[#5B6470]">{note}</p>
       <ul>
         {list.map((c) => (
           <li key={c.slug}>
