@@ -32,7 +32,7 @@ function SubjectsPage() {
         <h1 className={`${DISPLAY} text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.08]`}>
           De quoi parlent les programmes ?
         </h1>
-        <p className={`mt-4 max-w-[68ch] text-[1.05rem] leading-relaxed ${MUTED}`}>
+        <p className={`mt-4 text-[1.05rem] leading-relaxed ${MUTED}`}>
           Choisissez un sujet : vous lirez ce que chaque candidat en dit dans
           son programme, avec ses propres mots.
         </p>
