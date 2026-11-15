@@ -25,14 +25,20 @@ export class OllamaTopicClassifier implements TopicClassifier {
   readonly model = process.env.CLASSIFIER_MODEL ?? 'qwen3:8b';
 
   async classify(grid: GridTopic[], units: UnitText[]): Promise<TopicChoice[]> {
+    // Chaque grand sujet avec ses sous-sujets en exemples ; un sujet qui
+    // n'a qu'un sous-sujet (Immigration) est décrit par sa définition, sans
+    // quoi l'exemple « Migrant and Seasonal » du sujet Travail l'emporte.
     const majors = grid
-      .map(
-        (t) =>
-          `${t.code} — ${t.title} (${t.label}) : ${t.subtopics
-            .filter((s) => !/^(General|Other)$/.test(s.title))
-            .map((s) => s.title)
-            .join(', ')}`,
-      )
+      .map((t) => {
+        const named = t.subtopics.filter(
+          (s) => !/^(General|Other)$/.test(s.title),
+        );
+        const examples =
+          named.length > 1
+            ? named.map((s) => s.title).join(', ')
+            : (named[0]?.description ?? t.title);
+        return `${t.code} — ${t.title} (${t.label}) : ${examples}`;
+      })
       .join('\n');
     const out: TopicChoice[] = [];
     for (const unit of units) {
