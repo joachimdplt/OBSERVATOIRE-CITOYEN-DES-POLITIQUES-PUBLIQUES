@@ -72,10 +72,4 @@ body {
   .chapter-link[aria-current='true'] {
     @apply bg-[#0B1A2A] text-white hover:bg-[#0B1A2A];
   }
-  .chapter-link-count {
-    @apply shrink-0 text-[#5B6470] tabular-nums;
-  }
-  .chapter-link[aria-current='true'] .chapter-link-count {
-    @apply text-white/70;
-  }
 }

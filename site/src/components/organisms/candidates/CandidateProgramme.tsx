@@ -178,7 +178,6 @@ function Reader({
                     aria-current={active === i ? 'true' : undefined}
                   >
                     <span className="flex-1">{g.label}</span>
-                    <span className="chapter-link-count">{g.count}</span>
                   </button>
                 </li>
               ))}
@@ -206,7 +205,7 @@ function Reader({
                     : 'bg-white text-[#0B1A2A]'
                 }`}
               >
-                {g.label} · {g.count}
+                {g.label}
               </button>
             ))}
           </nav>
@@ -283,9 +282,6 @@ function Chapter({
             · {g.from === g.to ? `p. ${g.from}` : `p. ${g.from} à ${g.to}`}
           </span>
         )}
-        <span className={`shrink-0 font-semibold ${MUTED}`}>
-          · {g.count} passage{g.count > 1 ? 's' : ''}
-        </span>
         <ArrowUpRight size={12} className="shrink-0" />
       </a>
       {passages && (

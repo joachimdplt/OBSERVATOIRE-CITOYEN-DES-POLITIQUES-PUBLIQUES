@@ -44,4 +44,16 @@ describe('les chapitres de lecture d’un programme', () => {
     ]);
     expect(chapters.map((c) => c.label)).toEqual(['Page 1', 'Page 2']);
   });
+
+  it('un passage sans titre reste dans le chapitre en cours', () => {
+    const chapters = readingChapters([
+      { heading: 'Énergie', page: 3, document: doc },
+      { heading: doc.title, page: 4, document: doc },
+      { heading: 'École', page: 5, document: doc },
+    ]);
+    expect(chapters.map((c) => [c.label, c.count])).toEqual([
+      ['Énergie', 2],
+      ['École', 1],
+    ]);
+  });
 });

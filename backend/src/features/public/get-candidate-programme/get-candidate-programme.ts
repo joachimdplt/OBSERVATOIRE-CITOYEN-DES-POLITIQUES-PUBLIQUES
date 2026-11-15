@@ -224,8 +224,12 @@ export class GetCandidateProgrammeController {
     // Dans l'ordre du programme : ses documents tels que collectés, puis le
     // rang de chaque passage dans son document.
     const docRank = new Map(own.map((d, i) => [d.id, i]));
+    // Les lignes d'un sommaire lu comme du texte ne sont pas du programme.
     const mine = measures
       .filter((m) => ownIds.has(m.documentId))
+      .filter(
+        (m) => !/^(table des mati[eè]res|sommaire)$/i.test(m.article.trim()),
+      )
       .sort(
         (a, b) =>
           (docRank.get(a.documentId) ?? 0) - (docRank.get(b.documentId) ?? 0) ||

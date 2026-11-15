@@ -39,13 +39,26 @@ export const documentName = (title: string) =>
  */
 export function readingChapters(passages: ReadingPassage[]): ReadingChapter[] {
   const byHeading = new Set(passages.map((p) => p.document.url)).size < 3;
+  // Un document qui a des titres : un passage sans titre reste dans le
+  // chapitre en cours. Seul un PDF sans aucun titre se lit page par page.
+  const titled = new Set(
+    passages
+      .filter((p) => p.heading && p.heading !== p.document.title)
+      .map((p) => p.document.url),
+  );
   const chapters: ReadingChapter[] = [];
   passages.forEach((p, i) => {
     const heading = p.heading === p.document.title ? '' : p.heading;
+    let c = chapters.at(-1);
+    const inChapter = c?.url === p.document.url && titled.has(p.document.url);
     const label = !byHeading
       ? documentName(p.document.title)
-      : heading || (p.page ? `Page ${p.page}` : documentName(p.document.title));
-    let c = chapters.at(-1);
+      : heading ||
+        (inChapter && c
+          ? c.label
+          : p.page
+            ? `Page ${p.page}`
+            : documentName(p.document.title));
     if (!c || c.url !== p.document.url || (byHeading && c.label !== label)) {
       c = {
         label,
