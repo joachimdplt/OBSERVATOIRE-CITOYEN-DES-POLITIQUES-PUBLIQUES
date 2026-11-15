@@ -3,7 +3,7 @@ import { ArrowUpRight } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { TopicSheet } from '../../../types/public'
 import { frenchDate } from '../../../utils/date'
-import { meaningfulHeading } from '../../../utils/highlight'
+import { atText, meaningfulHeading } from '../../../utils/highlight'
 import {
   goTo,
   scrollToHashedCandidate,
@@ -324,9 +324,14 @@ function CandidateCard({ c, terms }: { c: Candidate; terms: string[] }) {
                 <div key={k}>
                   {meaningfulHeading(section.heading) &&
                     section.heading !== g.document.title && (
-                      <p className={`mb-2 text-[0.85rem] font-bold ${MUTED}`}>
+                      <a
+                        href={atText(g.document.url, section.heading)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={`mb-2 block text-[0.85rem] font-bold ${MUTED} no-underline hover:text-[#0B1A2A] hover:underline`}
+                      >
                         {section.heading}
-                      </p>
+                      </a>
                     )}
                   <div className="space-y-4">
                     {section.quotes.map((q, j) => (

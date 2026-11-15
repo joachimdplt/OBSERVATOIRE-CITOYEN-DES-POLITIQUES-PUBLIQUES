@@ -77,7 +77,7 @@ export function HomeFront({ articles }: { articles: PublicationSheet[] }) {
               return (
                 <li key={a.slug}>
                   <Link
-                    to="/enjeux/$slug"
+                    to="/sujets/$slug"
                     params={{ slug: a.slug }}
                     className="group block rounded-[28px] bg-white p-6 no-underline shadow-[0_1px_2px_rgba(11,26,42,0.04)] transition-shadow hover:shadow-[0_8px_30px_rgba(11,26,42,0.08)] md:p-9"
                   >

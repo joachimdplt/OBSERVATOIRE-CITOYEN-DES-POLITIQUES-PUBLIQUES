@@ -168,7 +168,7 @@ function TopicCell({
         />
       )}
       <Link
-        to="/enjeux/$slug"
+        to="/sujets/$slug"
         params={{ slug: topic.slug }}
         title={`${topic.name} : ${topic.passages} passages, ${topic.candidates.length} candidats`}
         className="group relative flex size-full flex-col overflow-hidden rounded-[16px] p-1.5 no-underline transition-shadow hover:shadow-[0_8px_30px_rgba(11,26,42,0.12)]"
@@ -237,7 +237,7 @@ function Person({
         e.preventDefault()
         e.stopPropagation()
         void navigate({
-          to: '/enjeux/$slug',
+          to: '/sujets/$slug',
           params: { slug: topic },
           hash: `candidat-${c.slug}`,
           hashScrollIntoView: false,

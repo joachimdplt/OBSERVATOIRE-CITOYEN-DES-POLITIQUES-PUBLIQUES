@@ -65,3 +65,12 @@ export function figuresIn(text: string): string[] {
   )
   return [...new Set((found ?? []).map((f) => f.trim()))]
 }
+
+/**
+ * L'adresse d'un document ouverte à un passage : le navigateur fait défiler
+ * jusqu'au texte cité (fragment de texte), sinon ouvre la page en haut.
+ */
+export const atText = (url: string, text: string) =>
+  /\.pdf($|\?)/i.test(url)
+    ? url
+    : `${url.split('#')[0]}#:~:text=${encodeURIComponent(text.trim().slice(0, 80))}`

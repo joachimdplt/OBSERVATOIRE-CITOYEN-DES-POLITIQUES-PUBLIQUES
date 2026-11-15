@@ -239,7 +239,7 @@ function MapPage() {
         <MeasureComparison
           sections={publication.sections}
           collected={publication.collected}
-          href={`/enjeux/${publication.slug}`}
+          href={`/sujets/${publication.slug}`}
           title={`Textes déposés sur l’enjeu « ${publication.title} »`}
         />
       )}

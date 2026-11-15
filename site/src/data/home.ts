@@ -17,7 +17,7 @@ export const HOME = {
 
   comment: {
     title: 'Comment [[ça marche]]',
-    lead: 'Chaque jour, l’observatoire relève les publications des candidats et des partis, les cite mot pour mot et les range par enjeu, à côté des chiffres officiels.',
+    lead: 'Chaque jour, l’observatoire relève les publications des candidats et des partis, les cite mot pour mot et les range par sujet, à côté des chiffres officiels.',
     steps: [
       {
         title: 'On relève tout',
@@ -28,8 +28,8 @@ export const HOME = {
         text: 'Chaque proposition est reprise telle quelle, avec le lien vers son document. Aucune reformulation.',
       },
       {
-        title: 'On range par enjeu',
-        text: 'Logement, retraites, accès aux médecins : chaque passage rejoint l’enjeu dont il parle.',
+        title: 'On range par sujet',
+        text: 'Logement, retraites, accès aux médecins : chaque passage rejoint le sujet dont il parle.',
       },
       {
         title: 'On pose les chiffres à côté',
@@ -41,10 +41,10 @@ export const HOME = {
       },
       {
         title: 'Vous comparez',
-        text: 'Enjeu par enjeu, candidat par candidat. Aucune note, aucun classement.',
+        text: 'Sujet par sujet, candidat par candidat. Aucune note, aucun classement.',
       },
     ],
-    cta: 'Voir les enjeux',
+    cta: 'Voir les sujets',
     technical: 'La construction technique',
   },
 

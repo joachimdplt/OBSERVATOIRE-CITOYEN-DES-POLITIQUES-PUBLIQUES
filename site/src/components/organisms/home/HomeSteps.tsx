@@ -140,7 +140,7 @@ export function HomeSteps() {
         >
           <span className="relative">
             <Link
-              to="/enjeux"
+              to="/sujets"
               className="inline-flex h-14 items-center gap-3 rounded-full bg-[#0B1A2A] px-7 text-[1.05rem] font-extrabold text-white no-underline hover:opacity-90"
             >
               {comment.cta}

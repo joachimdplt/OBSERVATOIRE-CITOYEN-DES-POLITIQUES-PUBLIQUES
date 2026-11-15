@@ -96,10 +96,10 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
 
         <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
           <Link
-            to="/enjeux"
+            to="/sujets"
             className="inline-flex h-12 items-center gap-2 rounded-full bg-[#0B1A2A] px-6 font-extrabold text-white no-underline hover:opacity-90"
           >
-            Les enjeux dans leurs programmes <ArrowRight size={17} />
+            Les sujets de leurs programmes <ArrowRight size={17} />
           </Link>
         </div>
       </div>

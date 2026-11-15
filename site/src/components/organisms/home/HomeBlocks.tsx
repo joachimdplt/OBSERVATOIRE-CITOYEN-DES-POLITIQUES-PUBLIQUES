@@ -70,7 +70,7 @@ function ActionPill({
   slug?: string
 }) {
   const target = slug
-    ? ({ to: '/enjeux/$slug', params: { slug } } as const)
+    ? ({ to: '/sujets/$slug', params: { slug } } as const)
     : ({ to: '/carte' } as const)
   return (
     <Link

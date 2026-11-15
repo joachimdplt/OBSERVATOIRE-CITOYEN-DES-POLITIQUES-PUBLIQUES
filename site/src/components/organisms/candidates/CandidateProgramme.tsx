@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { ArrowUpRight, ChevronDown } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { CandidateProgramme as Programme } from '../../../types/public'
-import { figuresIn } from '../../../utils/highlight'
+import { atText, figuresIn } from '../../../utils/highlight'
 import { smoothScrollTo } from '../../../utils/scroll'
 import { QuoteText } from '../../molecules/QuoteText'
 
@@ -43,7 +43,7 @@ export function CandidateProgramme({ programme: p }: { programme: Programme }) {
           <Fact value={s.figured} label="passages chiffrés" />
           <Fact
             value={`${percent(s.covered, s.passages)} %`}
-            label="couverts par nos sujets"
+            label="des passages rangés dans un sujet"
           />
         </div>
 
@@ -56,7 +56,7 @@ export function CandidateProgramme({ programme: p }: { programme: Programme }) {
               {s.topTopics.map((t) => (
                 <li key={t.slug}>
                   <Link
-                    to="/enjeux/$slug"
+                    to="/sujets/$slug"
                     params={{ slug: t.slug }}
                     className="inline-flex items-center gap-2 rounded-full bg-[#F4F6F8] px-4 py-2 text-[0.9rem] font-bold text-[#0B1A2A] no-underline hover:bg-[#E8ECF0]"
                   >
@@ -155,7 +155,14 @@ function Outline({ outline }: { outline: Programme['outline'] }) {
                       key={i}
                       className="flex items-baseline justify-between gap-4 py-1.5 text-[0.92rem]"
                     >
-                      <span className="text-[#0B1A2A]">{h.heading}</span>
+                      <a
+                        href={atText(d.url, h.heading)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[#0B1A2A] no-underline hover:underline"
+                      >
+                        {h.heading}
+                      </a>
                       <span className={`shrink-0 tabular-nums ${MUTED}`}>
                         {h.passages}
                       </span>
@@ -356,9 +363,14 @@ function Chapter({
         {sections.map((s, k) => (
           <div key={k}>
             {s.heading && (
-              <p className={`mb-2 text-[0.85rem] font-bold ${MUTED}`}>
+              <a
+                href={atText(g.url, s.heading)}
+                target="_blank"
+                rel="noreferrer"
+                className={`mb-2 block text-[0.85rem] font-bold ${MUTED} no-underline hover:text-[#0B1A2A] hover:underline`}
+              >
                 {s.heading}
-              </p>
+              </a>
             )}
             <div className="space-y-4">
               {s.quotes.map((q, j) => (

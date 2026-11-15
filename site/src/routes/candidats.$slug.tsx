@@ -27,7 +27,7 @@ export const Route = createFileRoute('/candidats/$slug')({
     meta: seo({
       title: loaderData?.name ?? 'Candidat',
       description: loaderData
-        ? `${loaderData.name}, candidat à l’${loaderData.election.name.toLowerCase()} : déclaration, programme, enjeux abordés et vidéos publiques, avec leurs sources.`
+        ? `${loaderData.name}, candidat à l’${loaderData.election.name.toLowerCase()} : déclaration, programme, sujets abordés et vidéos publiques, avec leurs sources.`
         : '',
     }),
   }),
@@ -176,7 +176,7 @@ function Topics({ candidate: c }: { candidate: CandidateSheet }) {
     <section className="px-6 py-12 md:px-10">
       <div className="mx-auto max-w-[1120px]">
         <h2 className={`${DISPLAY} text-[clamp(1.6rem,3vw,2.2rem)]`}>
-          Les enjeux dans son programme
+          Les sujets de son programme
         </h2>
         {c.programme.passages === 0 ? (
           <p className={`mt-4 ${MUTED}`}>
@@ -192,7 +192,7 @@ function Topics({ candidate: c }: { candidate: CandidateSheet }) {
               {c.topics.map((t) => (
                 <li key={t.slug}>
                   <Link
-                    to="/enjeux/$slug"
+                    to="/sujets/$slug"
                     params={{ slug: t.slug }}
                     className="group flex items-center justify-between gap-4 rounded-[20px] bg-white px-5 py-4 no-underline"
                   >
