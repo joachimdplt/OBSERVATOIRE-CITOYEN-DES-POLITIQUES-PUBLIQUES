@@ -1031,17 +1031,21 @@ model SitePage {
 /// l'observatoire suivent cette liste officielle, la même pour tous.
 model CofogFunction {
   /// Le code Eurostat : « GF07 » (fonction), « GF0703 » (sous-fonction).
-  code       String          @id
+  code        String          @id
   /// Le code usuel : « 07 », « 07.3 ».
-  display    String          @unique
-  level      Int
-  parentCode String?
-  label      String
+  display     String          @unique
+  level       Int
+  parentCode  String?
+  label       String
+  /// La note explicative officielle (manuel COFOG de l'ONU, en anglais) :
+  /// ce que la sous-fonction comprend et exclut, classe par classe.
+  notes       String?
+  notesSource String?
   /// D'où vient la liste, et quand elle a été lue.
-  source     String
-  importedAt DateTime        @default(now())
-  parent     CofogFunction?  @relation("CofogTree", fields: [parentCode], references: [code])
-  children   CofogFunction[] @relation("CofogTree")
+  source      String
+  importedAt  DateTime        @default(now())
+  parent      CofogFunction?  @relation("CofogTree", fields: [parentCode], references: [code])
+  children    CofogFunction[] @relation("CofogTree")
 
   @@map("cofog_functions")
 }
