@@ -151,7 +151,7 @@ function CandidatePage() {
 
       <Videos candidate={c} />
       {c.programmeProfile && (
-        <CandidateProgramme programme={c.programmeProfile} />
+        <CandidateProgramme programme={c.programmeProfile} candidate={c.slug} />
       )}
       <Topics candidate={c} />
       <section className="px-6 pb-16 md:px-10">
@@ -194,6 +194,8 @@ function Topics({ candidate: c }: { candidate: CandidateSheet }) {
                   <Link
                     to="/sujets/$slug"
                     params={{ slug: t.slug }}
+                    hash={`candidat-${c.slug}`}
+                    hashScrollIntoView={false}
                     className="group flex items-center justify-between gap-4 rounded-[20px] bg-white px-5 py-4 no-underline"
                   >
                     <span className="font-bold text-[#0B1A2A] group-hover:underline">

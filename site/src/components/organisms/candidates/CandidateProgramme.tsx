@@ -25,7 +25,14 @@ const percent = (part: number, whole: number) =>
  * Le programme d'un candidat, lu en entier, sans une phrase écrite par une
  * machine : des comptes, ses propres titres, ses mots, ses citations.
  */
-export function CandidateProgramme({ programme: p }: { programme: Programme }) {
+export function CandidateProgramme({
+  programme: p,
+  candidate,
+}: {
+  programme: Programme
+  /** Le candidat : un sujet s'ouvre sur ses citations. */
+  candidate: string
+}) {
   const { summary: s } = p
   if (s.passages === 0) return null
   const maxCount = Math.max(...p.vocabulary.map((v) => v.count), 1)
@@ -58,6 +65,8 @@ export function CandidateProgramme({ programme: p }: { programme: Programme }) {
                   <Link
                     to="/sujets/$slug"
                     params={{ slug: t.slug }}
+                    hash={`candidat-${candidate}`}
+                    hashScrollIntoView={false}
                     className="inline-flex items-center gap-2 rounded-full bg-[#F4F6F8] px-4 py-2 text-[0.9rem] font-bold text-[#0B1A2A] no-underline hover:bg-[#E8ECF0]"
                   >
                     {t.name}
