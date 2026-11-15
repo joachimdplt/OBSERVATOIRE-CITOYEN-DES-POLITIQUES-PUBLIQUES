@@ -5,7 +5,14 @@ import type { ReactNode } from 'react'
  * navy, texte blanc. Aucune couleur de marque : un observatoire qui parle des
  * partis n'en porte aucune qui rappelle l'un d'eux.
  */
-export function Highlight({ text }: { text: string }) {
+export function Highlight({
+  text,
+  dark = false,
+}: {
+  text: string
+  /** Sur fond sombre : pastille blanche, texte navy. */
+  dark?: boolean
+}) {
   const parts = text.split(/\[\[(.+?)\]\]/)
   const out: ReactNode[] = []
   parts.forEach((part, i) =>
@@ -15,7 +22,9 @@ export function Highlight({ text }: { text: string }) {
       ) : (
         <span
           key={i}
-          className="rounded-[0.22em] bg-[#0B1A2A] px-[0.22em] text-white [box-decoration-break:clone]"
+          className={`rounded-[0.22em] px-[0.22em] [box-decoration-break:clone] ${
+            dark ? 'bg-white text-[#0B1A2A]' : 'bg-[#0B1A2A] text-white'
+          }`}
         >
           {part}
         </span>

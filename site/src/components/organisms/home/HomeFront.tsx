@@ -9,33 +9,44 @@ import { groupOf } from '../publications/MeasureComparison'
 
 const MUTED = 'text-[#5B6470]'
 
-/** L'ouverture : le nom de l'observatoire et sa phrase. */
+/**
+ * L'ouverture, sur fond sombre : le nom de l'observatoire, sa phrase en
+ * écriture manuscrite, ses trois garanties, et le coq qui observe les
+ * données, détouré sur le bleu nuit.
+ */
 export function HomeHero() {
   const { hero } = HOME
   return (
-    <section className="bg-white px-6 pt-16 pb-6 md:px-10">
-      <div className="mx-auto max-w-[1080px]">
-        <h1 className="text-[clamp(2.2rem,5vw,3.8rem)] leading-[1.08] font-extrabold tracking-[-0.03em] whitespace-pre-line text-[#0B1A2A]">
-          <Highlight text={hero.title} />
-        </h1>
-        <p
-          className={`mt-5 max-w-[60ch] text-[1.15rem] leading-relaxed ${MUTED}`}
-        >
-          {hero.lead}
-        </p>
-        <ul className="mt-6 flex flex-wrap gap-2">
-          {hero.guarantees.map((g) => (
-            <li
-              key={g}
-              className="inline-flex items-center gap-2 rounded-full bg-[#F4F6F8] py-1.5 pr-4 pl-1.5 text-[0.9rem] font-semibold text-[#0B1A2A]"
-            >
-              <span className="flex size-6 items-center justify-center rounded-full bg-[#0B1A2A] text-white">
-                <Check size={13} strokeWidth={3} aria-hidden />
-              </span>
-              {g}
-            </li>
-          ))}
-        </ul>
+    <section className="overflow-hidden bg-[#0B1A2A] px-6 md:px-10">
+      <div className="mx-auto grid max-w-[1080px] items-center gap-4 py-12 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:py-10">
+        <img
+          src="/images/coq-observateur.png"
+          alt="Un coq qui observe un graphique à la loupe"
+          width={1000}
+          height={667}
+          className="mx-auto w-full max-w-[600px] md:-ml-16 md:scale-125"
+        />
+        <div>
+          <h1 className="text-[clamp(2.2rem,5vw,3.8rem)] leading-[1.08] font-extrabold tracking-[-0.03em] whitespace-pre-line text-white">
+            <Highlight text={hero.title} dark />
+          </h1>
+          <p className="font-script mt-5 text-[clamp(1.9rem,3.4vw,2.6rem)] leading-tight text-white/85">
+            {hero.lead}
+          </p>
+          <ul className="mt-7 flex flex-wrap gap-2">
+            {hero.guarantees.map((g) => (
+              <li
+                key={g}
+                className="inline-flex items-center gap-2 rounded-full bg-white/10 py-1.5 pr-4 pl-1.5 text-[0.88rem] font-semibold text-white"
+              >
+                <span className="flex size-6 items-center justify-center rounded-full bg-white text-[#0B1A2A]">
+                  <Check size={13} strokeWidth={3} aria-hidden />
+                </span>
+                {g}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   )
