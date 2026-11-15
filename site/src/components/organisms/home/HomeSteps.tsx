@@ -39,9 +39,10 @@ function Entree({
 }
 
 /**
- * Comment ça marche, raconté dans l'ordre : on relève, on cite, on range par
- * enjeu, on pose les chiffres, on suit les vidéos, vous comparez. Le bouton
- * mène aux enjeux, là où tout se lit.
+ * Comment ça marche, raconté dans l'ordre et tel que le site le fait
+ * aujourd'hui : on suit chaque candidat, on lit tout ce qu'il publie, on
+ * cite, on garde chaque version, on dit où il en est, vous lisez autour de
+ * lui. Le bouton mène aux candidats, juste en dessous.
  *
  * Quand le bloc entre à l'écran, un cadre glisse d'un carré à l'autre et
  * chaque étape parcourue se remplit, puis le cadre va entourer le bouton
@@ -140,7 +141,8 @@ export function HomeSteps() {
         >
           <span className="relative">
             <Link
-              to="/sujets"
+              to="/"
+              hash="candidats"
               className="inline-flex h-14 items-center gap-3 rounded-full bg-[#0B1A2A] px-7 text-[1.05rem] font-extrabold text-white no-underline hover:opacity-90"
             >
               {comment.cta}

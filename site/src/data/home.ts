@@ -17,34 +17,34 @@ export const HOME = {
 
   comment: {
     title: 'Comment [[ça marche]]',
-    lead: 'Chaque jour, l’observatoire relève les publications des candidats et des partis, les cite mot pour mot et les range par sujet, à côté des chiffres officiels.',
+    lead: 'Une lecture de l’ensemble de la campagne de chaque candidat, au fil de sa publication : ses programmes en cours, ses livrets, ses sites, ses vidéos, cités mot pour mot.',
     steps: [
       {
-        title: 'On relève tout',
-        text: 'Programmes, livrets, textes déposés à l’Assemblée : collectés chaque jour sur leurs sites et les données ouvertes du Parlement.',
+        title: 'On suit chaque candidat',
+        text: 'Les vingt-cinq candidats déclarés : leurs sites, ceux de leurs partis, leurs chaînes vidéo. Relus chaque jour.',
+      },
+      {
+        title: 'On lit tout, en cours',
+        text: 'Programmes complets ou partiels, livrets, contre-budgets, états des lieux, consultations : lus au fil de leur publication, chapitre par chapitre.',
       },
       {
         title: 'On cite, mot pour mot',
-        text: 'Chaque proposition est reprise telle quelle, avec le lien vers son document. Aucune reformulation.',
+        text: 'Chaque passage est repris tel quel, avec son document et sa page. Aucun résumé, aucune reformulation.',
       },
       {
-        title: 'On range par sujet',
-        text: 'Logement, retraites, accès aux médecins : chaque passage rejoint le sujet dont il parle.',
+        title: 'On garde chaque version',
+        text: 'Un texte qui change entre comme une nouvelle version, daté. L’ancienne reste ; rien ne s’efface.',
       },
       {
-        title: 'On pose les chiffres à côté',
-        text: 'INSEE, DREES, ministères : la situation réelle, commune par commune, lue à la source.',
+        title: 'On dit où en est chacun',
+        text: 'Programme complet, documents partiels ou rien de publié : constaté et daté, la même règle pour tous.',
       },
       {
-        title: 'On suit leurs vidéos',
-        text: 'Leurs chaînes officielles, l’Assemblée et le Sénat : leurs mots, sans commentaire de tiers.',
-      },
-      {
-        title: 'Vous comparez',
-        text: 'Sujet par sujet, candidat par candidat. Aucune note, aucun classement.',
+        title: 'Vous lisez autour de chacun',
+        text: 'Candidat par candidat, sans note ni classement. Le rangement par sujet, selon la classification officielle de l’ONU, est en préparation.',
       },
     ],
-    cta: 'Voir les sujets',
+    cta: 'Lire les candidats',
     technical: 'La construction technique',
   },
 
