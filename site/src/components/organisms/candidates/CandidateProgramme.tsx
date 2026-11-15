@@ -401,9 +401,12 @@ function Chapter({
     window.addEventListener(OPEN_HEADING, open)
     return () => window.removeEventListener(OPEN_HEADING, open)
   }, [g])
-  const pages = g.sections.flatMap((s) => s.quotes.map((q) => q.page ?? 0))
-  const from = Math.min(...pages.filter(Boolean))
-  const to = Math.max(...pages)
+  // Les pages du chapitre, quand il vient d'un PDF ; une page web n'en a pas.
+  const pages = g.sections.flatMap((s) =>
+    s.quotes.flatMap((q) => (q.page ? [q.page] : [])),
+  )
+  const from = pages.length ? Math.min(...pages) : 0
+  const to = pages.length ? Math.max(...pages) : 0
   return (
     <li
       ref={card}
