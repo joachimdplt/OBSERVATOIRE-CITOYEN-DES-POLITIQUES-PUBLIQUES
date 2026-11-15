@@ -1,7 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
 import type { ElectionSheet, ProgrammeStatus } from '../../../types/public'
-import { frenchDate } from '../../../utils/date'
 import { CandidatePortrait } from '../../molecules/CandidatePortrait'
 
 const MUTED = 'text-[#5B6470]'
@@ -25,11 +24,6 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
   const { candidates } = election
   const count = (s: ProgrammeStatus) =>
     candidates.filter((c) => c.programmeStatus === s).length
-  const checkedAt = candidates
-    .map((c) => c.programmeCheckedAt)
-    .filter((d): d is string => d !== null)
-    .sort()
-    .at(-1)
 
   return (
     <section id="candidats" className="scroll-mt-14 px-6 py-16 md:px-10">
@@ -40,10 +34,6 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
         <p className={`mt-1.5 text-[0.85rem] ${MUTED}`}>
           Ordre tiré au hasard à chaque visite. Photos sous licence libre,
           créditées sur la page de chaque candidat.
-        </p>
-        <p className="mt-3 text-[1.15rem] font-semibold text-[#0B1A2A]">
-          {count('none')} sur {candidates.length} n’ont publié aucun programme
-          {checkedAt ? ` au ${frenchDate(checkedAt)}` : ''}.
         </p>
         <p className="mt-4 flex flex-wrap gap-2 text-[0.9rem] font-semibold text-[#0B1A2A]">
           {STATES.map((s) => (
