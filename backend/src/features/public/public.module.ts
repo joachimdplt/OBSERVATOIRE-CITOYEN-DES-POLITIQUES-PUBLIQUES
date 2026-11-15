@@ -10,6 +10,7 @@ import { ListPublicationsPublicController } from './list-publications/list-publi
 import { GetPublicationController } from './get-publication/get-publication';
 import { GetElectionController } from './get-election/get-election';
 import { GetCandidateController } from './get-candidate/get-candidate';
+import { GetCandidateProgrammeController } from './get-candidate-programme/get-candidate-programme';
 import { GetUpdatesController } from './get-updates/get-updates';
 import { GetTopicController } from './get-topic/get-topic';
 import { ListTopicsController } from './list-topics/list-topics';
@@ -29,6 +30,7 @@ const CONTROLLERS = [
   GetPublicationController,
   GetElectionController,
   GetCandidateController,
+  GetCandidateProgrammeController,
   ListTopicsController,
   GetTopicController,
   GetIndicatorController,
