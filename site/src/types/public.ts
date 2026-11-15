@@ -383,7 +383,6 @@ export type CandidateProgramme = {
     documents: number
     passages: number
     proposals: number
-    figured: number
     covered: number
     topTopics: { slug: string; name: string; passages: number; share: number }[]
   }
@@ -431,7 +430,6 @@ export type CandidateProgramme = {
     heading: string
     quote: string
     page: number | null
-    figured: boolean
     /** Son document, par son rang dans `outline`. */
     document: number
   }[]

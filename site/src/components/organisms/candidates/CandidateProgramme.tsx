@@ -3,7 +3,7 @@ import { ArrowUpRight } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { CandidateProgramme as Programme } from '../../../types/public'
 import { HEAT_GRADIENT, heatColor, isDark } from '../../../utils/heat'
-import { atText, figuresIn } from '../../../utils/highlight'
+import { atText } from '../../../utils/highlight'
 import { squarify } from '../../../utils/treemap'
 import { smoothScrollTo } from '../../../utils/scroll'
 import { getProgrammePassages } from '../../../services/public-api'
@@ -21,9 +21,6 @@ const documentName = (title: string) =>
         .trim()
     : title
 
-const percent = (part: number, whole: number) =>
-  whole > 0 ? Math.round((part / whole) * 100) : 0
-
 /**
  * La clé d'un titre : « Dépenses inéfficaces » et « Dépenses inefficaces »,
  * écrits dans deux pages du même document, sont un seul titre.
@@ -37,7 +34,7 @@ const headingKey = (heading: string) =>
     .replace(/\s+/g, ' ')
     .trim()
 
-/** Un clic sur un titre de la mosaïque ouvre ses passages chiffrés. */
+/** Un clic sur un titre de la mosaïque ouvre ses passages. */
 const OPEN_HEADING = 'ouvrir-rubrique'
 
 /** Les titres du candidat, tous documents confondus, avec leurs passages. */
@@ -87,18 +84,6 @@ export function CandidateProgramme({
             : 'Son programme, lu en entier'}
         </h2>
 
-        {/* Le résumé : rien que des comptes. */}
-        {!approach && (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Fact value={s.passages} label="passages lus" />
-          <Fact value={s.proposals} label="propositions" />
-          <Fact value={s.figured} label="passages chiffrés" />
-          <Fact
-            value={`${percent(s.covered, s.passages)} %`}
-            label="des passages rangés dans un sujet"
-          />
-        </div>
-        )}
 
         {approach ? null : headings.length >= 3 ? (
           <div className="rounded-[28px] bg-white p-4 md:p-6">
@@ -134,16 +119,6 @@ export function CandidateProgramme({
   )
 }
 
-function Fact({ value, label }: { value: number | string; label: string }) {
-  return (
-    <div className="rounded-[24px] bg-white p-5">
-      <p className="text-[2.2rem] leading-none font-extrabold text-[#0B1A2A] tabular-nums">
-        {value}
-      </p>
-      <p className="mt-1 font-bold text-[#0B1A2A]">{label}</p>
-    </div>
-  )
-}
 
 
 type Passage = Programme['passages'][number]
@@ -444,7 +419,7 @@ function Chapter({
                           Page {q.page}
                         </a>
                       )}
-                      <QuoteText text={q.text} terms={figuresIn(q.text)} />
+                      <QuoteText text={q.text} />
                     </div>
                   )
                 })}
@@ -561,7 +536,7 @@ function OwnTopics({
 /**
  * La mosaïque des titres du candidat : chaque case est un titre de ses
  * documents, mot pour mot, à la taille de ses passages, du blanc au noir.
- * Un clic ouvre ses passages chiffrés plus bas dans la page.
+ * Un clic ouvre ses passages plus bas dans la page.
  */
 function OwnHeadings({
   headings,

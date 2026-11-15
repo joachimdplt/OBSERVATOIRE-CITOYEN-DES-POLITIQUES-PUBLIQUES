@@ -3,7 +3,14 @@ import { splitOnTerms } from '../../utils/highlight'
 /**
  * Une citation mot pour mot, en entier, les termes cherchés surlignés.
  */
-export function QuoteText({ text, terms }: { text: string; terms: string[] }) {
+export function QuoteText({
+  text,
+  terms = [],
+}: {
+  text: string
+  /** Les termes cherchés, surlignés ; aucun par défaut. */
+  terms?: string[]
+}) {
   const parts = splitOnTerms(text, terms)
   return (
     <blockquote className="text-[1rem] leading-[1.65] text-[#0B1A2A]">

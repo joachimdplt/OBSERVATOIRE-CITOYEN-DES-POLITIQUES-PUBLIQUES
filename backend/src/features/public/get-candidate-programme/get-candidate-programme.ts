@@ -7,7 +7,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { currentCaptures } from '../../../domain/programme';
-import { isFigured, isProposal } from '../../../domain/programme-profile';
+import { isProposal } from '../../../domain/programme-profile';
 import { readingChapters } from '../../../domain/programme-reading';
 import type {
   DiagnosisChapter,
@@ -34,10 +34,8 @@ const meaningful = (h: string) =>
 
 /**
  * Le programme d'un candidat, lu en entier et sans rien reformuler : sa
- * structure (ses documents et leurs rubriques, dans l'ordre, avec le nombre
- * de passages), ses
- * propositions (passages qui commencent par un verbe d'action) et ses
- * passages chiffrés, cités mot pour mot. Le résumé n'est fait que de comptes.
+ * structure (ses documents et leurs rubriques, dans l'ordre), son plan de
+ * lecture chapitre par chapitre, et ses passages cités mot pour mot.
  */
 @Controller('public/elections')
 export class GetCandidateProgrammeController {
@@ -137,7 +135,6 @@ export class GetCandidateProgrammeController {
         documents: own.length,
         passages: mine.length,
         proposals: mine.filter((m) => isProposal(m.quote)).length,
-        figured: mine.filter((m) => isFigured(m.quote)).length,
         covered: mine.filter((m) => m._count.topics > 0).length,
         // Tous ses sujets, avec leur part dans son programme (elles font 1).
         topTopics: topics.map((t) => ({
@@ -267,7 +264,6 @@ export class GetCandidateProgrammeController {
       heading: m.article,
       quote: m.quote,
       page: m.page,
-      figured: isFigured(m.quote),
       document: {
         title: docOf.get(m.documentId)?.title ?? '',
         url: docOf.get(m.documentId)?.url ?? '',
@@ -283,7 +279,6 @@ export class GetCandidateProgrammeController {
       heading: p.heading,
       quote: p.quote,
       page: p.page,
-      figured: p.figured,
       document: rank.get(p.document.url) ?? 0,
     }));
     return { own, mine, passages, served };
