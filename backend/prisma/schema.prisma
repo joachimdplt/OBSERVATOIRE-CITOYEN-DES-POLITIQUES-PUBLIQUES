@@ -50,6 +50,7 @@ model User {
   apiKeys              ApiKey[]
   measures             Measure[]
   retiredDocuments     PoliticalDocument[]   @relation("DocumentRetiredBy")
+  decidedCapLabels     CapLabel[]            @relation("LabelDecidedBy")
 
   @@map("users")
 }
@@ -729,6 +730,7 @@ model Candidate {
   accounts           CandidateAccount[]
   campaignSources    CampaignSource[]
   campaignItems      CampaignItem[]
+  capLabels          CapLabel[]
 
   @@unique([electionId, slug])
   @@map("candidates")
@@ -1116,6 +1118,51 @@ model CapTopic {
   importedAt  DateTime   @default(now())
   major       CapTopic?  @relation("CapTree", fields: [majorCode], references: [code])
   subtopics   CapTopic[] @relation("CapTree")
+  labels      CapLabel[]
 
   @@map("cap_topics")
+}
+
+/// Qui a proposé une étiquette de sujet.
+enum LabelOrigin {
+  model
+  person
+}
+
+/// Où en est une étiquette de sujet.
+enum LabelStatus {
+  /// Rangé automatiquement, affiché.
+  proposed
+  /// Confirmé par une personne.
+  validated
+  /// Retiré par une personne : gardé en base, plus affiché.
+  rejected
+}
+
+/// Un chapitre d'un candidat rangé dans un sous-sujet de la grille CAP. Le
+/// chapitre se désigne par son document et son titre exact, pour survivre aux
+/// nouvelles versions du document. Le rangement est automatique ; une
+/// personne retire celui qui est faux.
+model CapLabel {
+  id          String      @id @default(uuid())
+  candidateId String
+  documentUrl String
+  /// Le titre du chapitre, mot pour mot.
+  heading     String
+  capCode     String
+  origin      LabelOrigin
+  /// La similarité donnée par le modèle (elle classe, elle ne prouve rien).
+  score       Float?
+  model       String?
+  status      LabelStatus @default(proposed)
+  proposedAt  DateTime    @default(now())
+  decidedById String?
+  decidedAt   DateTime?
+  candidate   Candidate   @relation(fields: [candidateId], references: [id])
+  topic       CapTopic    @relation(fields: [capCode], references: [code])
+  decidedBy   User?       @relation("LabelDecidedBy", fields: [decidedById], references: [id])
+
+  @@unique([candidateId, documentUrl, heading, capCode])
+  @@index([capCode, status])
+  @@map("cap_labels")
 }

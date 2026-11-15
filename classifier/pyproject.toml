@@ -1,0 +1,9 @@
+[project]
+name = "observatoire-classifier"
+version = "0.1.0"
+description = "Propose les sujets CAP d'un chapitre de programme par similarité avec leurs descriptions officielles (BGE-M3)."
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "sentence-transformers>=3.0",
+  "torch>=2.2",
+]
