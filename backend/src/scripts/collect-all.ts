@@ -12,6 +12,7 @@ import { WebProgrammeReader } from '../adapters/programmes/web-programme-reader'
 import { WikimediaPhotos } from '../adapters/wikimedia/wikimedia-photos';
 import { WikidataAccounts } from '../adapters/wikimedia/wikidata-accounts';
 import { WebsiteAccounts } from '../adapters/web/website-accounts';
+import { FetchCampaignPageReader } from '../adapters/web/campaign-page-reader';
 import { FetchSiteCrawler } from '../adapters/web/fetch-site-crawler';
 import { FetchSitemap } from '../adapters/web/fetch-sitemap';
 import { YoutubeFeed } from '../adapters/youtube/youtube-feed';
@@ -39,6 +40,7 @@ async function main() {
         sites: new WebsiteAccounts(),
         sitemaps: new FetchSitemap(),
         crawler: new FetchSiteCrawler(),
+        campaign: new FetchCampaignPageReader(),
       },
       console,
     );

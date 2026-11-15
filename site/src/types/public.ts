@@ -387,6 +387,26 @@ export type CandidateProgramme = {
     covered: number
     topTopics: { slug: string; name: string; passages: number; share: number }[]
   }
+  /** Sa démarche, quand elle n'est pas un programme : relevés datés. */
+  approach: {
+    kind: 'method' | 'consultation'
+    url: string
+    title: string
+    fetchedAt: string
+    chapters: {
+      label: string
+      title: string
+      intro: string
+      indicators: {
+        name: string
+        unit: string
+        sentence: string
+        source: string
+        sourceUrl: string | null
+      }[]
+    }[]
+    counts: { label: string | null; text: string }[]
+  }[]
   outline: {
     title: string
     url: string

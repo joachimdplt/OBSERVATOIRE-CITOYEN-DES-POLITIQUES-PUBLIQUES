@@ -4,6 +4,7 @@ import { CandidatePortrait } from '../components/molecules/CandidatePortrait'
 import { LiveBadge } from '../components/molecules/LiveBadge'
 import { Carousel } from '../components/molecules/Carousel'
 import { VideoEmbed } from '../components/molecules/VideoEmbed'
+import { CandidateApproach } from '../components/organisms/candidates/CandidateApproach'
 import { CandidateProgramme } from '../components/organisms/candidates/CandidateProgramme'
 import { getCandidate, getCandidateProgramme } from '../services/public-api'
 import type { CandidateSheet } from '../types/public'
@@ -151,6 +152,9 @@ function CandidatePage() {
       </section>
 
       <Videos candidate={c} />
+      {c.programmeProfile && (
+        <CandidateApproach approach={c.programmeProfile.approach} />
+      )}
       {c.programmeProfile && (
         <CandidateProgramme programme={c.programmeProfile} candidate={c.slug} />
       )}

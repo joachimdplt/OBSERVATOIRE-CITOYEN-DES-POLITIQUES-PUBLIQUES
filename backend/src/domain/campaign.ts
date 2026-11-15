@@ -51,3 +51,40 @@ export function consultationFigures(
     .filter((p) => p.text.length <= 160 && /^\d[\d\s.]*\s*\p{L}/u.test(p.text))
     .map((p) => ({ label: p.heading, text: p.text }));
 }
+
+/** Un indicateur d'un diagnostic de campagne, tel que la campagne le publie. */
+export type DiagnosisIndicator = {
+  name: string;
+  unit: string;
+  /** La phrase de la campagne, mot pour mot (« 11,7 % en 1975, 0,9 % en 2025. »). */
+  sentence: string;
+  /** La source que la campagne cite, et son lien. */
+  source: string;
+  sourceUrl: string | null;
+};
+
+/** Un chapitre d'un diagnostic : son nom, son titre, son introduction, ses indicateurs. */
+export type DiagnosisChapter = {
+  label: string;
+  title: string;
+  intro: string;
+  indicators: DiagnosisIndicator[];
+};
+
+/**
+ * Un compte qu'une consultation publie sur elle-même : il commence par un
+ * nombre suivi d'un mot de participation (« 161 problèmes · 223 solutions »,
+ * « 4459 problèmes signalés et publiés. »). Les mots des participants ne
+ * sont jamais repris : seuls ces comptes le sont.
+ */
+export function isParticipationCount(text: string): boolean {
+  return (
+    text.length <= 200 &&
+    /^(déjà\s+)?\d[\d\s]*\s+(problèmes?|solutions?|contributions?|propositions?|doléances?|participants?|signataires?|inscrits?|réponses?)\b/iu.test(
+      text.trim(),
+    )
+  );
+}
+
+/** Un compte de consultation, et le sujet qu'il compte quand il en a un. */
+export type ParticipationCount = { label: string | null; text: string };

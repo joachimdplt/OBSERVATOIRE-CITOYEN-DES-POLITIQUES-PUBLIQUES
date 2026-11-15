@@ -5,7 +5,14 @@ import {
   isFigured,
   isProposal,
 } from '../../../domain/programme-profile';
-import { DocumentKind } from '../../../generated/prisma/enums';
+import type {
+  DiagnosisChapter,
+  ParticipationCount,
+} from '../../../domain/campaign';
+import {
+  CampaignSourceKind,
+  DocumentKind,
+} from '../../../generated/prisma/enums';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 /** Un intitulé qui tient lieu d'étape : au moins deux mots, ou un mot de sujet. */
@@ -41,6 +48,29 @@ export class GetCandidateProgrammeController {
       where: { slug: candidateSlug, election: { slug } },
     });
     if (!candidate) throw new NotFoundException('Candidat inconnu');
+
+    // Sa démarche, quand elle n'est pas un programme : un diagnostic chiffré
+    // ou une consultation, chacun par son dernier relevé daté.
+    const campaign = await this.prisma.campaignSource.findMany({
+      where: {
+        candidateId: candidate.id,
+        kind: {
+          in: [CampaignSourceKind.method, CampaignSourceKind.consultation],
+        },
+      },
+      include: { snapshots: { orderBy: { fetchedAt: 'desc' }, take: 1 } },
+      orderBy: { createdAt: 'asc' },
+    });
+    const approach = campaign
+      .filter((c) => c.snapshots.length > 0)
+      .map((c) => ({
+        kind: c.kind,
+        url: c.url,
+        title: c.snapshots[0].title,
+        fetchedAt: c.snapshots[0].fetchedAt.toISOString(),
+        chapters: c.snapshots[0].passages as DiagnosisChapter[],
+        counts: c.snapshots[0].figures as ParticipationCount[],
+      }));
 
     const all = await this.prisma.politicalDocument.findMany({
       where: { kind: DocumentKind.programme, sourceRef: { not: null } },
@@ -143,6 +173,7 @@ export class GetCandidateProgrammeController {
           share: topicTotal ? t._count.measureId / topicTotal : 0,
         })),
       },
+      approach,
       outline,
       vocabulary: distinctiveVocabulary(
         mine.map((m) => m.quote),

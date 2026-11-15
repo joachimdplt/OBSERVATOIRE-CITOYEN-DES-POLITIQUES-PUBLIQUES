@@ -6,6 +6,7 @@ import { collectCandidatePhotos } from '../features/elections/collect-candidate-
 import { collectParliamentTexts } from '../features/politics/collect-parliament-texts/collect-parliament-texts';
 import { collectProgrammes } from '../features/programmes/collect-programmes/collect-programmes';
 import { discoverSitePages } from '../features/campaign/discover-site-pages/discover-site-pages';
+import { readCampaignSources } from '../features/campaign/read-campaign-sources/read-campaign-sources';
 import { collectVideos } from '../features/videos/collect-videos/collect-videos';
 import { Role } from '../generated/prisma/enums';
 import {
@@ -18,6 +19,10 @@ import {
   type AccountSource,
   type SiteAccountSource,
 } from '../ports/account-source';
+import {
+  CAMPAIGN_PAGE_READER,
+  type CampaignPageReader,
+} from '../ports/campaign-page-reader';
 import { PHOTO_SOURCE, type PhotoSource } from '../ports/photo-source';
 import { SITE_CRAWLER, type SiteCrawler } from '../ports/site-crawler';
 import { SITEMAP_SOURCE, type SitemapSource } from '../ports/sitemap-source';
@@ -50,6 +55,7 @@ export class DailyCollection {
     @Inject(SITE_ACCOUNT_SOURCE) private sites: SiteAccountSource,
     @Inject(SITEMAP_SOURCE) private sitemaps: SitemapSource,
     @Inject(SITE_CRAWLER) private crawler: SiteCrawler,
+    @Inject(CAMPAIGN_PAGE_READER) private campaign: CampaignPageReader,
   ) {}
 
   @Cron(`0 ${DAILY_HOUR} * * *`, {
@@ -70,6 +76,7 @@ export class DailyCollection {
         sites: this.sites,
         sitemaps: this.sitemaps,
         crawler: this.crawler,
+        campaign: this.campaign,
       },
       this.log,
     );
@@ -87,6 +94,7 @@ export type CollectionDeps = {
   sites: SiteAccountSource;
   sitemaps: SitemapSource;
   crawler: SiteCrawler;
+  campaign: CampaignPageReader;
 };
 
 /** La collecte de chaque source, l'une après l'autre, chacune datée et gardée. */
@@ -142,4 +150,5 @@ export async function runDailyCollection(
   await step('sites', () =>
     discoverSitePages(prisma, deps.sitemaps, deps.crawler),
   );
+  await step('campaign', () => readCampaignSources(prisma, deps.campaign));
 }

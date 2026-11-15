@@ -1,3 +1,5 @@
+import { FetchCampaignPageReader } from '../adapters/web/campaign-page-reader';
+import { CAMPAIGN_PAGE_READER } from '../ports/campaign-page-reader';
 import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AssembleeOpenData } from '../adapters/assemblee/assemblee-open-data';
@@ -27,6 +29,7 @@ import { DailyCollection } from './daily-collection';
     SiteReading,
     { provide: SITEMAP_SOURCE, useClass: FetchSitemap },
     { provide: SITE_CRAWLER, useClass: FetchSiteCrawler },
+    { provide: CAMPAIGN_PAGE_READER, useClass: FetchCampaignPageReader },
     RawFileStore,
     { provide: PARLIAMENT_SOURCE, useClass: AssembleeOpenData },
     { provide: PROGRAMME_READER, useClass: WebProgrammeReader },

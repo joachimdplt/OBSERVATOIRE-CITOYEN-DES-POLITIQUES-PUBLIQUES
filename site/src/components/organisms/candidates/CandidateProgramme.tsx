@@ -76,7 +76,7 @@ export function CandidateProgramme({
     <section className="px-6 py-12 md:px-10">
       <div className="mx-auto max-w-[1280px] space-y-5">
         <h2 className={`${DISPLAY} text-[clamp(1.6rem,3vw,2.2rem)]`}>
-          Son programme, lu en entier
+          {p.approach.length > 0 ? 'Ses textes, lus en entier' : 'Son programme, lu en entier'}
         </h2>
 
         {/* Le résumé : rien que des comptes. */}

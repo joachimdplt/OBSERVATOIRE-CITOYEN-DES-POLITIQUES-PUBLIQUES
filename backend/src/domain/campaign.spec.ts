@@ -1,4 +1,8 @@
-import { consultationFigures, isCampaignEvent } from './campaign';
+import {
+  isParticipationCount,
+  consultationFigures,
+  isCampaignEvent,
+} from './campaign';
 
 describe('la campagne, d’après ses propres publications', () => {
   it('reconnaît un déplacement à ses mots, publiés et les mêmes pour tous', () => {
@@ -39,5 +43,18 @@ describe('la campagne, d’après ses propres publications', () => {
         text: '4451 problèmes signalés et publiés. Cliquez sur un territoire.',
       },
     ]);
+  });
+});
+
+describe('les comptes publiés par une consultation', () => {
+  it('reconnaît un compte de participation, jamais une contribution', () => {
+    expect(isParticipationCount('161 problèmes · 223 solutions')).toBe(true);
+    expect(
+      isParticipationCount('Déjà 4458 problèmes et 5664 solutions publiés.'),
+    ).toBe(true);
+    expect(
+      isParticipationCount('348 sénateurs, 577 députés… à supprimer'),
+    ).toBe(false);
+    expect(isParticipationCount('Quand et sur quelle chaîne…')).toBe(false);
   });
 });
