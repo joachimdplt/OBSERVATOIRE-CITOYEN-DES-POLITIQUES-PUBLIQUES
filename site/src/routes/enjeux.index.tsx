@@ -1,6 +1,5 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
-import { ArrowRight } from 'lucide-react'
-import { pillarLabel } from '../data/pillars'
+import { createFileRoute } from '@tanstack/react-router'
+import { TopicTile } from '../components/organisms/topics/TopicMosaic'
 import { listTopics } from '../services/public-api'
 import { seo } from '../utils/seo'
 
@@ -10,7 +9,7 @@ export const Route = createFileRoute('/enjeux/')({
     meta: seo({
       title: 'Enjeux',
       description:
-        'Les enjeux dont parlent les programmes publiés des candidats à la présidentielle 2027, rangés par le nombre de programmes qui les abordent.',
+        'Les sujets des programmes des candidats à la présidentielle 2027 : pour chacun, qui en parle et combien de fois, cité mot pour mot.',
     }),
   }),
   component: TopicsPage,
@@ -19,71 +18,48 @@ export const Route = createFileRoute('/enjeux/')({
 const MUTED = 'text-[#5B6470]'
 
 /**
- * Les enjeux, rangés par le nombre de programmes publiés qui en parlent,
- * puis par le nombre de passages. Chaque ligne donne ses comptes ; les termes
- * recherchés sont sur la page de l'enjeu.
+ * Les enjeux : les sujets des programmes, en mosaïque. Chaque tuile montre
+ * les candidats qui en parlent, la photo d'autant plus grande que le
+ * candidat y consacre de passages. Les sujets abordés par le plus de
+ * programmes viennent en premier.
  */
 function TopicsPage() {
   const data = Route.useLoaderData()
   if (!data) return null
   const { programmes, topics } = data
   return (
-    <main>
-      <section className="px-6 pt-16 pb-6 md:px-10">
-        <div className="mx-auto max-w-[1120px]">
-          <h1 className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
-            Les enjeux dans les programmes
-          </h1>
-          <p
-            className={`mt-5 max-w-[64ch] text-[1.1rem] leading-relaxed ${MUTED}`}
-          >
-            {programmes.candidates} candidats à la présidentielle 2027 ont
-            publié un programme ({programmes.complete} complets,{' '}
-            {programmes.partial} partiels). Chaque enjeu est cherché dans leurs
-            textes par des termes publiés, les mêmes pour tous ; il est rangé
-            par le nombre de programmes où un terme apparaît, puis par le nombre
-            de passages.
-          </p>
-        </div>
-      </section>
-      <section className="px-6 pb-16 md:px-10">
-        <ol className="mx-auto max-w-[1120px] divide-y divide-[#0B1A2A]/8 rounded-[28px] bg-white px-6 md:px-8">
+    <main className="px-6 pt-16 pb-20 md:px-10">
+      <div className="mx-auto max-w-[1280px]">
+        <h1 className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
+          Les sujets des programmes
+        </h1>
+        <p
+          className={`mt-4 max-w-[68ch] text-[1.08rem] leading-relaxed ${MUTED}`}
+        >
+          {topics.length} sujets, cherchés dans les {programmes.candidates}{' '}
+          programmes publiés ({programmes.complete} complets,{' '}
+          {programmes.partial} partiels). Dans chaque tuile, la photo d’un
+          candidat grandit avec le nombre de ses passages sur le sujet.
+        </p>
+
+        <ul className="mt-10 grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {topics.map((t) => (
-            <li key={t.slug}>
-              <Link
-                to="/enjeux/$slug"
-                params={{ slug: t.slug }}
-                className="group grid grid-cols-[3.2rem_minmax(0,1fr)_auto] items-center gap-4 py-4 no-underline"
-              >
-                <span className="text-[1.6rem] font-extrabold text-[#0B1A2A] tabular-nums">
-                  {t.programmes}
-                  <span className={`text-[0.85rem] font-semibold ${MUTED}`}>
-                    /{programmes.candidates}
-                  </span>
-                </span>
-                <span>
-                  <span className="block font-bold text-[#0B1A2A] group-hover:underline">
-                    {t.name}
-                  </span>
-                  <span className={`block text-[0.85rem] ${MUTED}`}>
-                    {pillarLabel(t.pillar)} · {t.passages} passages
-                    {t.publication ? ' · article publié' : ''}
-                  </span>
-                </span>
-                <ArrowRight
-                  size={17}
-                  className="text-[#0B1A2A] transition-transform group-hover:translate-x-0.5"
-                />
-              </Link>
+            <li key={t.slug} className="min-w-0">
+              <TopicTile topic={t} />
             </li>
           ))}
-        </ol>
-        <p className={`mx-auto mt-6 max-w-[1120px] text-[0.88rem] ${MUTED}`}>
-          Le chiffre de gauche compte les programmes où un terme de l’enjeu
-          apparaît. Il dit de quoi les textes parlent, pas ce qu’ils proposent
-          ni ce qu’ils valent.
+        </ul>
+
+        <p
+          className={`mt-8 max-w-[80ch] text-[0.85rem] leading-relaxed ${MUTED}`}
+        >
+          Un passage compte quand il contient l’un des termes publiés du sujet,
+          les mêmes pour tous. La taille dit combien un programme en parle, pas
+          ce qu’il propose ni ce qu’il vaut ; un programme partiel en dit moins
+          par construction. Ordre : les sujets abordés par le plus de programmes
+          d’abord.
         </p>
-      </section>
+      </div>
     </main>
   )
 }

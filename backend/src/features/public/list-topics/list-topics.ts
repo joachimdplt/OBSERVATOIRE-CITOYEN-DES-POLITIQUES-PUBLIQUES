@@ -3,6 +3,37 @@ import { currentCaptures } from '../../../domain/programme';
 import { DocumentKind } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../../prisma/prisma.service';
 
+type Match = {
+  measure: {
+    document: {
+      candidate: { slug: string; name: string; photoUrl: string | null } | null;
+    };
+  };
+};
+
+/** Pour un enjeu : chaque candidat qui en parle et son nombre de passages, le plus grand d'abord. */
+function perCandidate(matches: Match[]) {
+  const counts = new Map<
+    string,
+    { slug: string; name: string; photo: string | null; passages: number }
+  >();
+  for (const m of matches) {
+    const c = m.measure.document.candidate;
+    if (!c) continue;
+    const seen = counts.get(c.slug) ?? {
+      slug: c.slug,
+      name: c.name,
+      photo: c.photoUrl,
+      passages: 0,
+    };
+    seen.passages++;
+    counts.set(c.slug, seen);
+  }
+  return [...counts.values()].sort(
+    (a, b) => b.passages - a.passages || a.name.localeCompare(b.name, 'fr'),
+  );
+}
+
 /**
  * Les enjeux, rangés par le nombre de programmes publiés qui en parlent,
  * puis par le nombre de passages. Le compte est une recherche des termes
@@ -44,7 +75,13 @@ export class ListTopicsController {
           select: {
             measure: {
               select: {
-                document: { select: { candidate: { select: { slug: true } } } },
+                document: {
+                  select: {
+                    candidate: {
+                      select: { slug: true, name: true, photoUrl: true },
+                    },
+                  },
+                },
               },
             },
           },
@@ -75,6 +112,7 @@ export class ListTopicsController {
           programmes: new Set(
             t.matches.map((m) => m.measure.document.candidate?.slug),
           ).size,
+          candidates: perCandidate(t.matches),
           passages: t.matches.length,
           publication: publications.has(t.slug) ? t.slug : null,
         }))

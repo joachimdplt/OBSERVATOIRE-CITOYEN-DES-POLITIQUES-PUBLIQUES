@@ -290,6 +290,13 @@ export type TopicList = {
     programmes: number
     passages: number
     publication: string | null
+    /** Les candidats qui en parlent, et leur nombre de passages. */
+    candidates: {
+      slug: string
+      name: string
+      photo: string | null
+      passages: number
+    }[]
   }[]
 }
 
