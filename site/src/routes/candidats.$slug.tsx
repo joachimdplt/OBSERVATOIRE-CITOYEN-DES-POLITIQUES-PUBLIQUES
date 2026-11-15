@@ -1,5 +1,6 @@
 import { Link, createFileRoute, notFound } from '@tanstack/react-router'
 import { ArrowRight, ArrowUpRight, Download } from 'lucide-react'
+import { useState } from 'react'
 import { CandidatePortrait } from '../components/molecules/CandidatePortrait'
 import { LiveBadge } from '../components/molecules/LiveBadge'
 import { Carousel } from '../components/molecules/Carousel'
@@ -149,65 +150,31 @@ function CandidatePage() {
                 {c.programmeNote}
               </p>
             )}
-            {(site || others.length > 0 || c.accounts.length > 0) && (
-              <ul className="mt-6 max-w-[520px] divide-y divide-[#0B1A2A]/8 overflow-hidden rounded-[18px] bg-white">
-                {site && (
-                  <li>
-                    <a
-                      href={site}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-4 px-4 py-2.5 text-[0.9rem] no-underline hover:bg-[#F4F6F8]"
-                    >
-                      <span className="w-[90px] shrink-0 font-bold text-[#0B1A2A]">
-                        Site
-                      </span>
-                      <span className={`flex-1 truncate font-semibold ${MUTED}`}>
-                        {new URL(site).hostname.replace(/^www\./, '')}
-                      </span>
-                      <ArrowUpRight size={14} className="shrink-0 text-[#0B1A2A]" />
-                    </a>
-                  </li>
-                )}
-                {others.map((d) => (
-                  <li key={d.url}>
-                    <a
-                      href={d.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-4 px-4 py-2.5 text-[0.9rem] no-underline hover:bg-[#F4F6F8]"
-                    >
-                      <span className="w-[90px] shrink-0 font-bold text-[#0B1A2A]">
-                        Document
-                      </span>
-                      <span className={`flex-1 truncate font-semibold ${MUTED}`}>
-                        {pdfName(d.title)}
-                      </span>
-                      <Download size={14} className="shrink-0 text-[#0B1A2A]" />
-                    </a>
-                  </li>
-                ))}
-                {c.accounts.map((a) => (
-                  <li key={`${a.network}-${a.handle}`}>
-                    <a
-                      href={a.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      title={`D’après Wikidata (${a.source.replace('https://www.wikidata.org/wiki/', '')})`}
-                      className="flex items-center gap-4 px-4 py-2.5 text-[0.9rem] no-underline hover:bg-[#F4F6F8]"
-                    >
-                      <span className="w-[90px] shrink-0 font-bold text-[#0B1A2A]">
-                        {NETWORKS[a.network]}
-                      </span>
-                      <span className={`flex-1 truncate font-semibold ${MUTED}`}>
-                        {a.network === 'youtube' ? 'Sa chaîne' : `@${a.handle}`}
-                      </span>
-                      <ArrowUpRight size={14} className="shrink-0 text-[#0B1A2A]" />
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <Addresses
+              rows={[
+                ...(site
+                  ? [
+                      {
+                        label: 'Site',
+                        value: new URL(site).hostname.replace(/^www\./, ''),
+                        href: site,
+                      },
+                    ]
+                  : []),
+                ...others.map((d) => ({
+                  label: 'Document',
+                  value: pdfName(d.title),
+                  href: d.url,
+                  download: true,
+                })),
+                ...c.accounts.map((a) => ({
+                  label: NETWORKS[a.network],
+                  value: a.network === 'youtube' ? 'Sa chaîne' : `@${a.handle}`,
+                  href: a.url,
+                  hint: `D’après Wikidata (${a.source.replace('https://www.wikidata.org/wiki/', '')})`,
+                })),
+              ]}
+            />
           </div>
         </div>
       </section>
@@ -323,5 +290,65 @@ function Videos({ candidate: c }: { candidate: CandidateSheet }) {
         )}
       </div>
     </section>
+  )
+}
+
+type Address = {
+  label: string
+  value: string
+  href: string
+  download?: boolean
+  hint?: string
+}
+
+/** Les premières lignes visibles ; la suite s'ouvre d'un clic. */
+const FIRST_ADDRESSES = 4
+
+/**
+ * Ses adresses : son site, ses autres documents et ses réseaux, une par
+ * ligne. Les premières seulement, pour que le bloc ne dépasse pas la photo ;
+ * « Voir plus » ouvre la suite.
+ */
+function Addresses({ rows }: { rows: Address[] }) {
+  const [open, setOpen] = useState(false)
+  if (rows.length === 0) return null
+  const shown = open ? rows : rows.slice(0, FIRST_ADDRESSES)
+  return (
+    <div className="mt-6 max-w-[520px]">
+      <ul className="divide-y divide-[#0B1A2A]/8 overflow-hidden rounded-[18px] bg-white">
+        {shown.map((r) => (
+          <li key={r.href}>
+            <a
+              href={r.href}
+              target="_blank"
+              rel="noreferrer"
+              title={r.hint}
+              className="flex items-center gap-4 px-4 py-2.5 text-[0.9rem] no-underline hover:bg-[#F4F6F8]"
+            >
+              <span className="w-[90px] shrink-0 font-bold text-[#0B1A2A]">
+                {r.label}
+              </span>
+              <span className={`flex-1 truncate font-semibold ${MUTED}`}>
+                {r.value}
+              </span>
+              {r.download ? (
+                <Download size={14} className="shrink-0 text-[#0B1A2A]" />
+              ) : (
+                <ArrowUpRight size={14} className="shrink-0 text-[#0B1A2A]" />
+              )}
+            </a>
+          </li>
+        ))}
+      </ul>
+      {rows.length > FIRST_ADDRESSES && (
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="mt-2 px-4 text-[0.88rem] font-bold text-[#0B1A2A] hover:underline"
+        >
+          {open ? 'Voir moins' : 'Voir plus'}
+        </button>
+      )}
+    </div>
   )
 }

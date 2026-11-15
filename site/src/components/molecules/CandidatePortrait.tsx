@@ -34,7 +34,7 @@ export function CandidatePortrait({
           title={credit}
           loading="lazy"
           className={`aspect-square w-full rounded-[18px] bg-[#E8ECF0] object-cover object-top grayscale ${
-            fill ? 'md:aspect-auto md:min-h-[260px] md:flex-1' : ''
+            fill ? 'md:aspect-auto md:max-h-[460px] md:min-h-[260px] md:flex-1' : ''
           }`}
         />
       ) : (
