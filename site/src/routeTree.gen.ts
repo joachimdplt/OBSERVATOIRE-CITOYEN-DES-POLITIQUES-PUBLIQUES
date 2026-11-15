@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CarteRouteImport } from './routes/carte'
 import { Route as DeveloppeursRouteImport } from './routes/developpeurs'
+import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as CandidatsSlugRouteImport } from './routes/candidats.$slug'
 import { Route as EnjeuxIndexRouteImport } from './routes/enjeux.index'
 import { Route as EnjeuxSlugRouteImport } from './routes/enjeux.$slug'
@@ -34,6 +35,11 @@ const CarteRoute = CarteRouteImport.update({
 const DeveloppeursRoute = DeveloppeursRouteImport.update({
   id: '/developpeurs',
   path: '/developpeurs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SourcesRoute = SourcesRouteImport.update({
+  id: '/sources',
+  path: '/sources',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CandidatsSlugRoute = CandidatsSlugRouteImport.update({
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/carte': typeof CarteRoute
   '/developpeurs': typeof DeveloppeursRoute
+  '/sources': typeof SourcesRoute
   '/candidats/$slug': typeof CandidatsSlugRoute
   '/enjeux/$slug': typeof EnjeuxSlugRoute
   '/indicators/$code': typeof IndicatorsCodeRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/carte': typeof CarteRoute
   '/developpeurs': typeof DeveloppeursRoute
+  '/sources': typeof SourcesRoute
   '/candidats/$slug': typeof CandidatsSlugRoute
   '/enjeux/$slug': typeof EnjeuxSlugRoute
   '/indicators/$code': typeof IndicatorsCodeRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/carte': typeof CarteRoute
   '/developpeurs': typeof DeveloppeursRoute
+  '/sources': typeof SourcesRoute
   '/candidats/$slug': typeof CandidatsSlugRoute
   '/enjeux/$slug': typeof EnjeuxSlugRoute
   '/indicators/$code': typeof IndicatorsCodeRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/'
     | '/carte'
     | '/developpeurs'
+    | '/sources'
     | '/candidats/$slug'
     | '/enjeux/$slug'
     | '/indicators/$code'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/'
     | '/carte'
     | '/developpeurs'
+    | '/sources'
     | '/candidats/$slug'
     | '/enjeux/$slug'
     | '/indicators/$code'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/'
     | '/carte'
     | '/developpeurs'
+    | '/sources'
     | '/candidats/$slug'
     | '/enjeux/$slug'
     | '/indicators/$code'
@@ -163,6 +175,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CarteRoute: typeof CarteRoute
   DeveloppeursRoute: typeof DeveloppeursRoute
+  SourcesRoute: typeof SourcesRoute
   CandidatsSlugRoute: typeof CandidatsSlugRoute
   EnjeuxSlugRoute: typeof EnjeuxSlugRoute
   IndicatorsCodeRoute: typeof IndicatorsCodeRoute
@@ -194,6 +207,13 @@ declare module '@tanstack/react-router' {
       path: '/developpeurs'
       fullPath: '/developpeurs'
       preLoaderRoute: typeof DeveloppeursRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sources': {
+      id: '/sources'
+      path: '/sources'
+      fullPath: '/sources'
+      preLoaderRoute: typeof SourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/candidats/$slug': {
@@ -259,6 +279,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CarteRoute: CarteRoute,
   DeveloppeursRoute: DeveloppeursRoute,
+  SourcesRoute: SourcesRoute,
   CandidatsSlugRoute: CandidatsSlugRoute,
   EnjeuxSlugRoute: EnjeuxSlugRoute,
   IndicatorsCodeRoute: IndicatorsCodeRoute,

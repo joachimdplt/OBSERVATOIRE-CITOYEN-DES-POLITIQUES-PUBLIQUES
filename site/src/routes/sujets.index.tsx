@@ -33,10 +33,8 @@ function SubjectsPage() {
           De quoi parlent les programmes ?
         </h1>
         <p className={`mt-4 max-w-[68ch] text-[1.05rem] leading-relaxed ${MUTED}`}>
-          Les grands sujets d’une grille internationale, utilisée par des
-          chercheurs de nombreux pays pour ranger programmes, lois et discours.
-          Chaque sujet ouvre les chapitres des programmes qui en parlent, cités
-          mot pour mot.
+          Choisissez un sujet : vous lirez ce que chaque candidat en dit dans
+          son programme, avec ses propres mots.
         </p>
 
         <nav className="mt-10 rounded-[28px] bg-white p-3">
@@ -72,17 +70,24 @@ function SubjectsPage() {
               >
                 Comparative Agendas Project
               </a>
-              . Des chercheurs de nombreux pays s’en servent pour ranger de la
+              .
+            </p>
+            <p>
+              Des chercheurs de nombreux pays s’en servent pour ranger de la
               même façon les lois, les discours et les programmes.
             </p>
             <p>
               La liste originale est en anglais ; l’équipe de l’observatoire a
               traduit les intitulés en français.
             </p>
-            <p className="text-[0.8rem]">
-              Source : {data.citation} Version {data.version}, publiée sous
-              licence {data.licence} (réutilisation libre, sans usage
-              commercial, en citant les auteurs).
+            <p>
+              <Link
+                to="/sources"
+                hash="sujets"
+                className="font-semibold text-[#0B1A2A] hover:underline"
+              >
+                Voir la référence complète et la licence
+              </Link>
             </p>
           </div>
         </section>
