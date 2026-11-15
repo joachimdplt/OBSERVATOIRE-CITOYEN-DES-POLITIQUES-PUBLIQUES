@@ -9,6 +9,7 @@ import { ProgrammesModule } from './features/programmes/programmes.module';
 import { VideosModule } from './features/videos/videos.module';
 import { ApiKeysModule } from './features/api-keys/api-keys.module';
 import { JobsModule } from './jobs/jobs.module';
+import { CampaignModule } from './features/campaign/campaign.module';
 import { LiveModule } from './features/live/live.module';
 import { PoliticsModule } from './features/politics/politics.module';
 import { PublicationsModule } from './features/publications/publications.module';
@@ -36,6 +37,7 @@ import { PublicModule } from './features/public/public.module';
     VideosModule,
     ApiKeysModule,
     JobsModule,
+    CampaignModule,
     PublicModule,
   ],
 })

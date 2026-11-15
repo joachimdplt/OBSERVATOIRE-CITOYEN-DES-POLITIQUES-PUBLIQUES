@@ -46,6 +46,7 @@ model User {
   programmeSources     ProgrammeSource[]
   topics               Topic[]
   videoChannels        VideoChannel[]
+  campaignSources      CampaignSource[]
   apiKeys              ApiKey[]
   measures             Measure[]
 
@@ -715,6 +716,8 @@ model Candidate {
   videoChannels      VideoChannel[]
   videos             VideoCandidate[]
   accounts           CandidateAccount[]
+  campaignSources    CampaignSource[]
+  campaignItems      CampaignItem[]
 
   @@unique([electionId, slug])
   @@map("candidates")
@@ -927,4 +930,97 @@ model CandidateAccount {
 
   @@unique([candidateId, network, handle])
   @@map("candidate_accounts")
+}
+
+/// Ce que la campagne publie d'elle-même : son fil d'actualités, sa méthode,
+/// ses consultations.
+enum CampaignSourceKind {
+  site // un site à parcourir en entier : campagne ou parti
+  feed // le fil du site de campagne (flux RSS ou page de liste)
+  method // une page qui décrit la démarche
+  consultation // une page qui publie les comptes d'une consultation
+}
+
+/// Une page de campagne suivie, indiquée par l'équipe.
+model CampaignSource {
+  id          String             @id @default(uuid())
+  candidateId String
+  kind        CampaignSourceKind
+  url         String
+  createdById String
+  createdAt   DateTime           @default(now())
+  candidate   Candidate          @relation(fields: [candidateId], references: [id])
+  createdBy   User               @relation(fields: [createdById], references: [id])
+  items       CampaignItem[]
+  snapshots   CampaignSnapshot[]
+  pages       SitePage[]
+
+  @@unique([candidateId, url])
+  @@map("campaign_sources")
+}
+
+/// Un article ou un récit du fil de campagne : titre, date, lien, tels que
+/// publiés. « event » quand il raconte ou annonce un déplacement, un meeting.
+model CampaignItem {
+  id          String         @id @default(uuid())
+  sourceId    String
+  candidateId String
+  url         String         @unique
+  title       String
+  publishedAt DateTime?
+  excerpt     String?
+  event       Boolean        @default(false)
+  fetchedAt   DateTime       @default(now())
+  source      CampaignSource @relation(fields: [sourceId], references: [id])
+  candidate   Candidate      @relation(fields: [candidateId], references: [id])
+
+  @@map("campaign_items")
+}
+
+/// Une lecture datée d'une page de méthode ou de consultation : ses passages
+/// cités mot pour mot et les comptes qu'elle publie. Une page changée donne
+/// une nouvelle lecture ; l'ancienne reste.
+model CampaignSnapshot {
+  id          String         @id @default(uuid())
+  sourceId    String
+  contentHash String
+  title       String
+  passages    Json
+  figures     Json
+  fetchedAt   DateTime       @default(now())
+  source      CampaignSource @relation(fields: [sourceId], references: [id])
+
+  @@unique([sourceId, contentHash])
+  @@map("campaign_snapshots")
+}
+
+/// Ce qu'une page de site de campagne est, d'après son adresse et son titre.
+enum SitePageKind {
+  programme // programme, projet, propositions, priorités
+  agenda // agenda, déplacements, meetings, tournée
+  news // actualités, communiqués, presse
+  method // démarche, méthode, comités, participer
+  consultation // doléances, consultation, contributions
+  other
+}
+
+/// Une page d'un site parcouru : la carte du site, page par page, mise à jour
+/// à chaque passage.
+model SitePage {
+  id         String         @id @default(uuid())
+  sourceId   String
+  url        String
+  title      String
+  kind       SitePageKind
+  /// La profondeur : le nombre de clics depuis l'accueil.
+  depth      Int
+  textLength Int
+  /// Les dates lues sur la page (balises <time>, dates écrites), AAAA-MM-JJ.
+  dates      String[]
+  firstSeen  DateTime       @default(now())
+  lastSeen   DateTime       @default(now())
+  source     CampaignSource @relation(fields: [sourceId], references: [id])
+
+  @@unique([sourceId, url])
+  @@map("site_pages")
 }
