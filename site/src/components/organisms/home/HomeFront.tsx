@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Check } from 'lucide-react'
 import { Highlight } from '../../atoms/Highlight'
 import { HOME } from '../../../data/home'
 import { pillarLabel } from '../../../data/pillars'
@@ -9,15 +9,11 @@ import { groupOf } from '../publications/MeasureComparison'
 
 const MUTED = 'text-[#5B6470]'
 
-/**
- * La une : le nom et le principe de l'observatoire, puis ses articles, le
- * plus récent en premier. Chaque article dit son pilier, sa date, son état de
- * relecture, son chapô et ce qu'il contient.
- */
-export function HomeFront({ articles }: { articles: PublicationSheet[] }) {
-  const { hero, articles: copy } = HOME
+/** L'ouverture : le nom de l'observatoire et sa phrase. */
+export function HomeHero() {
+  const { hero } = HOME
   return (
-    <section className="bg-white px-6 pt-16 pb-20 md:px-10">
+    <section className="bg-white px-6 pt-16 pb-6 md:px-10">
       <div className="mx-auto max-w-[1080px]">
         <h1 className="text-[clamp(2.2rem,5vw,3.8rem)] leading-[1.08] font-extrabold tracking-[-0.03em] whitespace-pre-line text-[#0B1A2A]">
           <Highlight text={hero.title} />
@@ -27,8 +23,34 @@ export function HomeFront({ articles }: { articles: PublicationSheet[] }) {
         >
           {hero.lead}
         </p>
+        <ul className="mt-6 flex flex-wrap gap-2">
+          {hero.guarantees.map((g) => (
+            <li
+              key={g}
+              className="inline-flex items-center gap-2 rounded-full bg-[#F4F6F8] py-1.5 pr-4 pl-1.5 text-[0.9rem] font-semibold text-[#0B1A2A]"
+            >
+              <span className="flex size-6 items-center justify-center rounded-full bg-[#0B1A2A] text-white">
+                <Check size={13} strokeWidth={3} aria-hidden />
+              </span>
+              {g}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
 
-        <h2 className="mt-16 text-[1.4rem] font-extrabold tracking-[-0.02em] text-[#0B1A2A]">
+/**
+ * Les articles de l'observatoire, le plus récent en premier : pilier, date,
+ * titre, chapô et contenu.
+ */
+export function HomeFront({ articles }: { articles: PublicationSheet[] }) {
+  const { articles: copy } = HOME
+  return (
+    <section className="bg-white px-6 py-20 md:px-10">
+      <div className="mx-auto max-w-[1080px]">
+        <h2 className="text-[clamp(1.6rem,3vw,2.4rem)] font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
           {copy.title}
         </h2>
         {articles.length === 0 ? (

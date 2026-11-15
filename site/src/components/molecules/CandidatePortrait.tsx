@@ -9,17 +9,24 @@ export function CandidatePortrait({
   name,
   photo,
   className = '',
+  plain = false,
 }: {
   name: string
   photo: CandidatePhoto | null
   className?: string
+  /** Sans la ligne de crédit (une petite carte) : le crédit passe en infobulle. */
+  plain?: boolean
 }) {
+  const credit = photo
+    ? `Photo ${photo.author ?? 'Wikimedia Commons'}${photo.licence ? `, ${photo.licence}` : ''}`
+    : ''
   return (
     <figure className={`min-w-0 ${className}`}>
       {photo ? (
         <img
           src={photo.url}
           alt={`Photo de ${name}`}
+          title={credit}
           loading="lazy"
           className="aspect-square w-full rounded-[18px] bg-[#E8ECF0] object-cover object-top grayscale"
         />
@@ -32,12 +39,14 @@ export function CandidatePortrait({
               .join('')
               .slice(0, 3)}
           </span>
-          <span className="text-[0.75rem] text-[#5B6470]">
-            Pas de photo sous licence libre
-          </span>
+          {!plain && (
+            <span className="text-[0.75rem] text-[#5B6470]">
+              Pas de photo sous licence libre
+            </span>
+          )}
         </div>
       )}
-      {photo && (
+      {photo && !plain && (
         <figcaption className="mt-1.5 truncate text-[0.7rem] text-[#5B6470]">
           Photo{' '}
           <a

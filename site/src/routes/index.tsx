@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { plain } from '../components/atoms/Highlight'
 import {
+  HomeComment,
   HomeContribuer,
   HomeFin,
-  HomePiliers,
 } from '../components/organisms/home/HomeBlocks'
-import { HomeFront } from '../components/organisms/home/HomeFront'
+import { HomeFront, HomeHero } from '../components/organisms/home/HomeFront'
 import { HomeProgrammes } from '../components/organisms/home/HomeProgrammes'
 import { HOME } from '../data/home'
 import {
@@ -42,16 +42,17 @@ export const Route = createFileRoute('/')({
 })
 
 /**
- * La une : le principe, les articles publiés, l'état des programmes de la
- * présidentielle, les piliers, la contribution.
+ * L'accueil : le principe et ses garanties, les candidats, les articles,
+ * comment l'observatoire se nourrit, la contribution.
  */
 function Home() {
-  const { publications, articles, election } = Route.useLoaderData()
+  const { articles, election } = Route.useLoaderData()
   return (
     <>
-      <HomeFront articles={articles} />
+      <HomeHero />
       {election && <HomeProgrammes election={election} />}
-      <HomePiliers publications={publications} />
+      <HomeFront articles={articles} />
+      <HomeComment />
       <HomeContribuer />
       <HomeFin />
     </>

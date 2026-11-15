@@ -3,36 +3,24 @@ import {
   ArrowRight,
   ArrowUpRight,
   BookOpen,
-  Briefcase,
-  ChevronRight,
   Code2,
+  FileText,
+  Database,
+  Users,
+  Video,
+  Gavel,
   Flag,
-  GraduationCap,
-  HandHeart,
-  HeartPulse,
-  House,
-  Landmark,
-  Leaf,
-  Palette,
-  Scale,
   ShieldCheck,
-  TrainFront,
-  Wheat,
-  Zap,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Highlight } from '../../atoms/Highlight'
-import { PILLARS } from '../../../data/pillars'
 import { HOME } from '../../../data/home'
-import type { Pillar, PublicationLine } from '../../../types/public'
 
 /*
  * L'accueil dans le langage d'airobotics (ouverture centrée, écrans pleins,
  * titres Inter 800 avec un passage surligné, pastilles, grands arrondis,
- * dernier écran sombre), et dans l'ordre du cahier des charges : le principe
- * directeur et les articles publiés, les douze piliers, la contribution. Monochrome : aucune couleur ne
- * rappelle un parti.
+ * dernier écran sombre). Monochrome : aucune couleur ne rappelle un parti.
  */
 
 const MUTED = 'text-[#5B6470]'
@@ -131,77 +119,6 @@ function Bubble({
   )
 }
 
-const PILLAR_ICONS: Record<Pillar, LucideIcon> = {
-  agriculture_food: Wheat,
-  health: HeartPulse,
-  education_research: GraduationCap,
-  energy: Zap,
-  housing: House,
-  transport_infrastructure: TrainFront,
-  labour_economy_industry: Briefcase,
-  social_protection: HandHeart,
-  security_justice_defence: Scale,
-  environment_resources: Leaf,
-  institutions_public_services: Landmark,
-  culture_sports_associations: Palette,
-}
-
-/** Les douze piliers du cahier des charges ; chacun mène à ses enjeux publiés. */
-export function HomePiliers({
-  publications,
-}: {
-  publications: PublicationLine[]
-}) {
-  const { piliers } = HOME
-  return (
-    <Screen className="bg-[#F4F6F8]">
-      <Step title={piliers.title} lead={piliers.lead} />
-      <ul className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {PILLARS.map((p) => {
-          const own = publications.filter((x) => x.pillar === p.id)
-          const open = own.length > 0
-          return (
-            <li
-              key={p.id}
-              className={`flex h-full flex-col rounded-[24px] p-5 ${
-                open
-                  ? 'bg-white shadow-[0_0_0_1px_rgba(11,26,42,0.1)]'
-                  : 'bg-white/60'
-              }`}
-            >
-              <Bubble icon={PILLAR_ICONS[p.id]} muted={!open} />
-              <p
-                className={`mt-4 text-[1.05rem] leading-snug font-extrabold ${
-                  open ? 'text-[#0B1A2A]' : 'text-[#0B1A2A]/50'
-                }`}
-              >
-                {p.label}
-              </p>
-              {open ? (
-                <ul className="mt-2 space-y-1">
-                  {own.map((x) => (
-                    <li key={x.slug}>
-                      <Link
-                        to="/enjeux/$slug"
-                        params={{ slug: x.slug }}
-                        className="inline-flex items-center gap-1 text-[0.9rem] font-bold text-[#0B1A2A] no-underline hover:underline"
-                      >
-                        {x.title} <ChevronRight size={14} strokeWidth={2.75} />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className={`mt-1 text-[0.88rem] ${MUTED}`}>{piliers.soon}</p>
-              )}
-            </li>
-          )
-        })}
-      </ul>
-    </Screen>
-  )
-}
-
 const WAY_ICONS = [Flag, BookOpen, ShieldCheck, Code2]
 
 export function HomeContribuer() {
@@ -251,6 +168,49 @@ export function HomeFin() {
         <div className="mt-10">
           <ActionPill label={fin.cta} dark />
         </div>
+      </div>
+    </Screen>
+  )
+}
+
+const STEP_ICONS = [Users, FileText, Video, Database, Gavel, Code2]
+
+/**
+ * Comment l'observatoire se nourrit, en six gestes : d'où vient chaque chose
+ * affichée, et comment la relire par l'API publique.
+ */
+export function HomeComment() {
+  const { comment } = HOME
+  return (
+    <Screen id="comment" className="bg-white">
+      <Step title={comment.title} />
+      <ol className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {comment.steps.map((step, i) => (
+          <li
+            key={step.title}
+            className="flex flex-col rounded-[24px] bg-[#F4F6F8] p-6"
+          >
+            <div className="flex items-center gap-3">
+              <Bubble icon={STEP_ICONS[i]} size={44} />
+              <span className="text-[0.85rem] font-bold text-[#5B6470]">
+                {i + 1}
+              </span>
+            </div>
+            <p className={`${DISPLAY} mt-4 text-[1.2rem]`}>{step.title}</p>
+            <p className={`mt-1.5 text-[0.95rem] leading-snug ${MUTED}`}>
+              {step.text}
+            </p>
+          </li>
+        ))}
+      </ol>
+      <div className="mt-10 flex justify-center">
+        <Link
+          to="/developpeurs"
+          className="inline-flex h-14 items-center gap-3 rounded-full bg-[#0B1A2A] px-7 text-[1.05rem] font-extrabold text-white no-underline hover:opacity-90"
+        >
+          {comment.cta}
+          <ArrowRight size={18} strokeWidth={2.75} aria-hidden />
+        </Link>
       </div>
     </Screen>
   )

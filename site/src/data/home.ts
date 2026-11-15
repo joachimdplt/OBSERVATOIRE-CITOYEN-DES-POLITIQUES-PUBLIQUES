@@ -1,27 +1,57 @@
 import { SOURCE_CODE, newIssue } from './project'
 
 /**
- * Les textes de l'accueil, la une de l'observatoire : son principe, puis ses
- * articles publiés, les douze piliers et la contribution. Repris du cahier
+ * Les textes de l'accueil : le principe et ses garanties, comment
+ * l'observatoire se nourrit, la contribution. Repris du cahier
  * des charges (docs/01-mvp.md), sobres et factuels.
  */
 export const HOME = {
   hero: {
     title: 'Observatoire citoyen\ndes [[politiques publiques]]',
-    lead: 'Partir des statistiques publiques disponibles, les rendre lisibles et les relier aux mesures politiques.',
+    lead: 'Les programmes des candidats, cités mot pour mot, à côté des chiffres officiels.',
     cta: 'Explorer la carte',
+    guarantees: [
+      'Chiffres issus des seules publications officielles',
+      'Fichier d’origine conservé, intact',
+      'Aucun chiffre calculé, aucune note',
+    ],
+  },
+
+  comment: {
+    title: 'Comment [[ça marche]]',
+    steps: [
+      {
+        title: 'Les candidats',
+        text: 'Chaque candidature déclarée publiquement, avec sa source datée.',
+      },
+      {
+        title: 'Leurs programmes',
+        text: 'Collectés chaque jour sur leurs sites, découpés en passages cités mot pour mot.',
+      },
+      {
+        title: 'Leurs vidéos',
+        text: 'Leurs chaînes officielles, l’Assemblée et le Sénat. Aucun commentaire de tiers.',
+      },
+      {
+        title: 'Les chiffres publics',
+        text: 'INSEE, DREES, ministères : lus à la source, gardés tels que publiés.',
+      },
+      {
+        title: 'Les textes déposés',
+        text: 'Propositions de loi de l’Assemblée, avec leur auteur et son groupe.',
+      },
+      {
+        title: 'Une API ouverte',
+        text: 'Tout se relit et se réutilise librement. Le code est public.',
+      },
+    ],
+    cta: 'La construction technique',
   },
 
   articles: {
     title: 'Articles',
     empty: 'Aucun article publié pour l’instant.',
     read: 'Lire l’article',
-  },
-
-  piliers: {
-    title: 'Douze [[piliers]]',
-    lead: 'Chaque pilier s’ouvre avec ses premiers enjeux publiés.',
-    soon: 'À venir',
   },
 
   contribuer: {
