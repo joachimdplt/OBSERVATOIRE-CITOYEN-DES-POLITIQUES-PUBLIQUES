@@ -26,7 +26,7 @@ export class YoutubeFeed implements VideoFeed {
    * automatique.
    */
   async history(channelId: string, since: string): Promise<FeedVideo[]> {
-    const { stdout } = await promisify(execFile)(
+    const run = promisify(execFile)(
       'yt-dlp',
       [
         '--skip-download',
@@ -41,6 +41,15 @@ export class YoutubeFeed implements VideoFeed {
         `https://www.youtube.com/channel/${channelId}/videos`,
       ],
       { maxBuffer: 32 * 1024 * 1024, timeout: 60 * 60_000 },
+    );
+    // Arrivée à la date demandée, la lecture s'arrête avec le code 101 :
+    // c'est la fin attendue, la liste lue jusque-là est bonne.
+    const stdout = await run.then(
+      (r) => r.stdout,
+      (e: { code?: number; stdout?: string }) => {
+        if (e.code === 101 && typeof e.stdout === 'string') return e.stdout;
+        throw e;
+      },
     );
     return readHistory(stdout);
   }
