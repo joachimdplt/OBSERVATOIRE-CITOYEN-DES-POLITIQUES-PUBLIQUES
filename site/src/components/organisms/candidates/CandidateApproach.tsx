@@ -127,26 +127,47 @@ function Consultation({ approach: a }: { approach: Approach }) {
           «&nbsp;{t.text}&nbsp;»
         </p>
       ))}
-      <p className={`mt-3 max-w-[68ch] text-[0.95rem] leading-relaxed ${MUTED}`}>
-        Les comptes que la consultation publie, sujet par sujet. Les problèmes
-        et solutions déposés sont les mots des participants, pas ceux de la
-        candidate : ils ne sont pas cités ici.
+      <p className={`mt-3 text-justify text-[0.9rem] leading-relaxed hyphens-auto ${MUTED}`}>
+        Les comptes que la consultation publie, thème par thème. Les problèmes
+        et les solutions sont déposés par les participants : ce ne sont pas les
+        mots de la candidate, et ils ne sont pas cités ici.
       </p>
-      <ul className="mt-6 max-w-[720px] divide-y divide-[#0B1A2A]/8 border-y border-[#0B1A2A]/8">
-        {subjects.map((s) => (
-          <li
-            key={s.label}
-            className="flex items-baseline justify-between gap-4 py-2.5"
-          >
-            <span className="font-bold text-[#0B1A2A]">{s.label}</span>
-            <span className={`shrink-0 text-[0.85rem] tabular-nums ${MUTED}`}>
-              {s.text}
-            </span>
-          </li>
-        ))}
+      <ul className="mt-6 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {subjects.map((s) => {
+          const counts = countsOf(s.text)
+          return (
+            <li key={s.label} className="rounded-[18px] bg-[#F4F6F8] px-4 py-3">
+              <p className="text-[0.95rem] font-extrabold text-[#0B1A2A]">
+                {s.label}
+              </p>
+              {counts ? (
+                <dl className="mt-1.5 flex gap-5 text-[0.82rem]">
+                  {counts.map((c) => (
+                    <div key={c.what} className="flex items-baseline gap-1.5">
+                      <dt className="sr-only">{c.what}</dt>
+                      <dd className="font-bold text-[#0B1A2A] tabular-nums">
+                        {c.value}
+                      </dd>
+                      <span className={MUTED}>{c.what}</span>
+                    </div>
+                  ))}
+                </dl>
+              ) : (
+                <p className={`mt-1.5 text-[0.82rem] ${MUTED}`}>{s.text}</p>
+              )}
+            </li>
+          )
+        })}
       </ul>
     </div>
   )
+}
+
+/** « 161 problèmes · 223 solutions » se lit en deux comptes, tels quels. */
+function countsOf(text: string) {
+  const parts = text.split('·').map((p) => /^\s*(\d[\d\s]*)\s+(\S.*?)\s*$/.exec(p))
+  if (parts.some((m) => !m)) return null
+  return parts.map((m) => ({ value: m![1].trim(), what: m![2] }))
 }
 
 /**
