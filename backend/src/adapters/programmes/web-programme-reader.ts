@@ -154,16 +154,24 @@ export class WebProgrammeReader implements ProgrammeReader {
     )
       .replace(/\s+/g, ' ')
       .trim();
+    // Le code et les styles ne sont pas du texte : retirés avant de mesurer.
+    root
+      .querySelectorAll('script, style, noscript, template')
+      .forEach((e) => e.remove());
     // La zone de contenu la plus fournie : une petite balise <article> à côté
     // d'un grand <main> ne contient pas le programme.
     const size = (e: HTMLElement | null) =>
       e ? e.text.replace(/\s+/g, ' ').length : 0;
     const article = root.querySelector('article');
     const main = root.querySelector('main');
-    const body =
+    const chosen =
       article && size(article) >= 0.5 * size(main)
         ? article
         : (main ?? article ?? root);
+    // Une balise <main> presque vide, le texte étant à côté (des sites
+    // montés avec NationBuilder), ne contient pas le programme : la page se
+    // lit en entier.
+    const body = size(chosen) < 0.1 * size(root) ? root : chosen;
     // Le sommaire de la page, quand elle en a un : des liens vers ses
     // propres sections (« 01 I. Une France humaine » → #france-humaine).
     // Ses chapitres, mot pour mot, rangent chaque passage.
@@ -269,16 +277,27 @@ function walk(body: HTMLElement, title: string): ProgrammePassage[] {
   return passages;
 }
 
-const clean = (el: HTMLElement) => el.text.replace(/\s+/g, ' ').trim();
+/** Le texte d'un bloc, sans la déclaration de document qui s'y glisse. */
+const clean = (el: HTMLElement) =>
+  el.text
+    .replace(/<!doctype[^>]*>/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 /** Les rubriques de mise en page (« Partager cette page ») ne sont pas du programme. */
 function withoutChrome(passages: ProgrammePassage[]) {
-  return passages.filter(
-    (p) =>
-      !/^(partager|suivez|suivre|rejoindre|rejoignez|newsletter|inscrivez)/i.test(
-        p.heading.trim(),
-      ),
-  );
+  return passages
+    .map((p) => ({
+      ...p,
+      text: p.text.replace(/<!doctype[^>]*>/gi, '').trim(),
+    }))
+    .filter(
+      (p) =>
+        p.text.length >= MIN_LENGTH &&
+        !/^(partager|suivez|suivre|rejoindre|rejoignez|newsletter|inscrivez|adh[ée]rez)/i.test(
+          p.heading.trim(),
+        ),
+    );
 }
 
 /**
