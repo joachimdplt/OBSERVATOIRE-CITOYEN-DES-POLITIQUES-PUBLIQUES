@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import { ArrowUpRight } from 'lucide-react'
 import type { TopicSheet } from '../../../types/public'
 import { frenchDate } from '../../../utils/date'
@@ -37,9 +38,13 @@ export function ProgrammePassages({ topic }: { topic: TopicSheet }) {
           {topic.candidates.map((c) => (
             <li key={c.slug}>
               <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <span className="text-[1.25rem] font-extrabold text-[#0B1A2A]">
+                <Link
+                  to="/candidats/$slug"
+                  params={{ slug: c.slug }}
+                  className="text-[1.25rem] font-extrabold text-[#0B1A2A] no-underline hover:underline"
+                >
                   {c.name}
-                </span>
+                </Link>
                 <span className={`text-sm ${MUTED}`}>
                   {c.party} · {STATUS[c.programmeStatus]}
                 </span>

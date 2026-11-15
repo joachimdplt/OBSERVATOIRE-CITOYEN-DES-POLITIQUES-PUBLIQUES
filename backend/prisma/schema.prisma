@@ -45,6 +45,7 @@ model User {
   candidates           Candidate[]
   programmeSources     ProgrammeSource[]
   topics               Topic[]
+  videoChannels        VideoChannel[]
   measures             Measure[]
 
   @@map("users")
@@ -695,6 +696,8 @@ model Candidate {
   createdBy          User                @relation(fields: [createdById], references: [id])
   documents          PoliticalDocument[]
   programmeSources   ProgrammeSource[]
+  videoChannels      VideoChannel[]
+  videos             VideoCandidate[]
 
   @@unique([electionId, slug])
   @@map("candidates")
@@ -783,4 +786,68 @@ model TopicMatch {
 
   @@id([topicId, measureId])
   @@map("topic_matches")
+}
+
+/// La nature d'une chaîne vidéo suivie : celle du candidat, de son parti, ou
+/// d'une institution (LCP, Public Sénat, Assemblée nationale, Sénat).
+enum ChannelKind {
+  candidate
+  party
+  institution
+}
+
+/// Pourquoi une vidéo est rattachée à un candidat.
+enum VideoLink {
+  own_channel // publiée sur sa propre chaîne
+  name_in_title // son nom complet figure dans le titre
+}
+
+/// Une chaîne vidéo publique suivie, avec la page officielle qui la cite :
+/// seules les sources primaires entrent, sans montage ni commentaire d'un tiers.
+model VideoChannel {
+  id          String      @id @default(uuid())
+  /// L'identifiant de la chaîne chez YouTube : « UCk-_PEY3iC6DIGJKuoEe9bw ».
+  youtubeId   String      @unique
+  name        String
+  kind        ChannelKind
+  /// Le candidat de la chaîne (chacune de ses vidéos lui revient), ou celui
+  /// que présente le parti (seulement les vidéos qui le nomment).
+  candidateId String?
+  /// La page officielle d'où vient le lien vers la chaîne.
+  linkedFrom  String
+  createdById String
+  createdAt   DateTime    @default(now())
+  candidate   Candidate?  @relation(fields: [candidateId], references: [id])
+  createdBy   User        @relation(fields: [createdById], references: [id])
+  videos      Video[]
+
+  @@map("video_channels")
+}
+
+/// Une vidéo publique, telle que le flux de la chaîne la décrit à sa collecte.
+model Video {
+  id          String           @id @default(uuid())
+  youtubeId   String           @unique
+  channelId   String
+  title       String
+  publishedAt DateTime
+  url         String
+  thumbnail   String?
+  fetchedAt   DateTime         @default(now())
+  channel     VideoChannel     @relation(fields: [channelId], references: [id])
+  candidates  VideoCandidate[]
+
+  @@map("videos")
+}
+
+/// Une vidéo rattachée à un candidat, avec la raison du rattachement.
+model VideoCandidate {
+  videoId     String
+  candidateId String
+  link        VideoLink
+  video       Video     @relation(fields: [videoId], references: [id])
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+
+  @@id([videoId, candidateId])
+  @@map("video_candidates")
 }

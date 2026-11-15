@@ -6,6 +6,7 @@ import { CatalogueModule } from './features/catalogue/catalogue.module';
 import { ImportsModule } from './features/imports/imports.module';
 import { ElectionsModule } from './features/elections/elections.module';
 import { ProgrammesModule } from './features/programmes/programmes.module';
+import { VideosModule } from './features/videos/videos.module';
 import { LiveModule } from './features/live/live.module';
 import { PoliticsModule } from './features/politics/politics.module';
 import { PublicationsModule } from './features/publications/publications.module';
@@ -30,6 +31,7 @@ import { PublicModule } from './features/public/public.module';
     LiveModule,
     ElectionsModule,
     ProgrammesModule,
+    VideosModule,
     PublicModule,
   ],
 })

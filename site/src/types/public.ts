@@ -303,3 +303,33 @@ export type TopicSheet = {
     }[]
   }[]
 }
+
+/** La page d'un candidat : déclaration, programme, enjeux, vidéos primaires. */
+export type CandidateSheet = {
+  election: { slug: string; name: string }
+  slug: string
+  name: string
+  party: string | null
+  declaredAt: string
+  declarationSource: string
+  programmeStatus: ProgrammeStatus
+  programmeUrl: string | null
+  programmeNote: string | null
+  programmeCheckedAt: string | null
+  programme: { documents: number; passages: number }
+  topics: { slug: string; name: string; pillar: Pillar; passages: number }[]
+  channels: {
+    kind: 'candidate' | 'party' | 'institution'
+    name: string
+    url: string
+    linkedFrom: string
+  }[]
+  videos: {
+    title: string
+    url: string
+    thumbnail: string | null
+    publishedAt: string
+    channel: { name: string; kind: 'candidate' | 'party' | 'institution' }
+    link: 'own_channel' | 'name_in_title'
+  }[]
+}

@@ -36,7 +36,10 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
     candidates.filter((c) => c.programmeStatus === s).length
 
   return (
-    <section className="bg-[#F4F6F8] px-6 py-20 md:px-10">
+    <section
+      id="candidats"
+      className="scroll-mt-14 bg-[#F4F6F8] px-6 py-20 md:px-10"
+    >
       <div className="mx-auto max-w-[1080px]">
         <h2 className="text-[clamp(1.6rem,3vw,2.4rem)] leading-tight font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
           {election.name} : les programmes publiés
@@ -72,7 +75,13 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
                 className="grid gap-2 py-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] md:gap-8"
               >
                 <div>
-                  <p className="font-bold text-[#0B1A2A]">{c.name}</p>
+                  <Link
+                    to="/candidats/$slug"
+                    params={{ slug: c.slug }}
+                    className="font-bold text-[#0B1A2A] no-underline hover:underline"
+                  >
+                    {c.name}
+                  </Link>
                   <p className={`text-[0.88rem] ${MUTED}`}>
                     {c.party ?? 'Sans étiquette'} · candidature déclarée le{' '}
                     <a

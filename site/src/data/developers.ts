@@ -141,6 +141,11 @@ export const DEVELOPERS = {
         text: 'Une élection, son critère d’inscription, et ses candidats déclarés par ordre alphabétique : parti, source de la déclaration, état du programme (complet, partiel, rien de publié), son adresse et la date de la vérification.',
       },
       {
+        path: '/api/public/elections/{slug}/candidates/{candidat}',
+        query: '',
+        text: 'Un candidat : déclaration et source, état du programme, enjeux de son programme par nombre de passages, chaînes vidéo suivies avec la page officielle qui les cite, et ses vidéos publiques récentes avec la raison du rattachement.',
+      },
+      {
         path: '/api/public/enjeux',
         query: '',
         text: 'Les enjeux rangés par le nombre de programmes publiés qui en parlent, avec leurs termes, le nombre de passages et l’article de l’observatoire s’il existe.',

@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import type { MapValue } from '../domain/classes'
 import type {
+  CandidateSheet,
   ElectionSheet,
   TopicList,
   TopicSheet,
@@ -122,4 +123,12 @@ export const getTopic = createServerFn({ method: 'GET' })
   .validator(z.object({ slug: z.string() }))
   .handler(({ data }) =>
     get<TopicSheet>(`/enjeux/${encodeURIComponent(data.slug)}`),
+  )
+
+export const getCandidate = createServerFn({ method: 'GET' })
+  .validator(z.object({ election: z.string(), slug: z.string() }))
+  .handler(({ data }) =>
+    get<CandidateSheet>(
+      `/elections/${encodeURIComponent(data.election)}/candidates/${encodeURIComponent(data.slug)}`,
+    ),
   )

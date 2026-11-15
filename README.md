@@ -23,6 +23,10 @@ ne conclut pas.
   publiés des candidats, les découpe en passages cités mot pour mot, et range
   les enjeux par le nombre de programmes qui en parlent, d'après des termes
   publiés, les mêmes pour tous.
+- **Une page par candidat** : sa déclaration et sa source, l'état de son
+  programme, les enjeux dont il parle, et ses vidéos publiques venues des
+  seules sources primaires (sa chaîne, celle de son parti, l'Assemblée
+  nationale et le Sénat).
 - **Un comparateur** : groupe par groupe, les textes déposés sur un enjeu,
   sans note ni verdict.
 - **Une API publique**, en lecture seule, ouverte à toute origine
@@ -88,6 +92,7 @@ cd backend
 npm run territories:import -- 2026   # le découpage officiel des communes (COG INSEE)
 npm run collect:parliament           # les textes déposés à l'Assemblée, à planifier chaque jour
 npm run collect:programmes           # les programmes des candidats, à planifier chaque jour
+npm run collect:videos               # les vidéos des chaînes suivies, à planifier chaque jour
 ```
 
 La collecte des programmes lit les PDF avec `pdftotext` (poppler) :

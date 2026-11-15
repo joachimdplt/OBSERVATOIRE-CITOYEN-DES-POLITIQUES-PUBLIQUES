@@ -129,6 +129,32 @@ de documents partiels, 18 sans rien de publié.
 Au 15 novembre 2026 : 7 programmes (57 pages et fichiers, 4 472 passages),
 48 enjeux sur les douze piliers.
 
+## Les vidéos publiques des candidats
+
+`npm run collect:videos`, prévu pour tourner chaque jour : le flux public
+d'une chaîne ne donne que ses quinze dernières vidéos, et le collecteur garde
+tout ce qu'il a vu.
+
+- **Seulement des sources primaires** : le candidat parle, sans montage ni
+  commentaire d'un tiers. Chaque chaîne suivie est celle que donne un site
+  officiel (celui du candidat, de son parti, de l'institution), cité sur la
+  page.
+- **Trois sortes de chaînes, trois règles** :
+  - la chaîne du candidat : chacune de ses vidéos lui revient ;
+  - la chaîne de son parti : seulement les vidéos dont le titre nomme son
+    candidat, jamais les propos d'un camp sur un autre ;
+  - l'Assemblée nationale et le Sénat : les vidéos dont le titre nomme un
+    candidat.
+- **Le nom se lit complet** : « Philippe » est aussi un prénom, « Le Pen »
+  un autre nom.
+- **Écartées** : LCP et Public Sénat, qui diffusent aussi des magazines et
+  des commentaires ; les chaînes des médias.
+- **Non lus** : les vues et les notes des vidéos.
+
+Au 15 novembre 2026 : 16 chaînes (5 de candidats, 9 de partis, 2
+d'institutions) ; aucune chaîne n'est liée depuis les sites du Rassemblement
+national et des Écologistes.
+
 ## Les étiquettes, du moins au plus relu
 
 | Étiquette | Sens |
