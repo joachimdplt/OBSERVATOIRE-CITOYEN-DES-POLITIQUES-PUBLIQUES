@@ -271,14 +271,8 @@ function Reader({
 
   return (
     <div>
-      <div className="rounded-[28px] bg-white p-6 md:p-8">
-        <p className="font-extrabold text-[#0B1A2A]">
-          Chapitre par chapitre · {p.summary.passages} passages, dont{' '}
-          {p.summary.figured} chiffrés
-        </p>
-      </div>
 
-      <div className="mt-5 grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
+      <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
         <aside className="hidden lg:block">
           <nav className="sticky top-[110px] max-h-[calc(100vh-130px)] overflow-y-auto rounded-[28px] bg-white p-3">
             <ul className="space-y-1">
