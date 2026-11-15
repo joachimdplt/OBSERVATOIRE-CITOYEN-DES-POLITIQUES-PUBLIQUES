@@ -8,9 +8,6 @@ import { squarify } from '../../../utils/treemap'
 type Topic = TopicList['topics'][number]
 type Candidate = Topic['candidates'][number]
 
-/** « Jean-Luc Mélenchon » se lit « Mélenchon » dans une pastille. */
-const surname = (name: string) => name.split(' ').slice(1).join(' ') || name
-
 const initials = (name: string) =>
   name
     .split(/[\s-]+/)
@@ -193,7 +190,6 @@ function TopicCell({
                 y={y}
                 w={w}
                 h={h}
-                px={{ w: w * inner.w, h: h * inner.h }}
               />
             ))}
           </div>
@@ -210,7 +206,6 @@ function Person({
   y,
   w,
   h,
-  px,
 }: {
   topic: string
   person: Candidate
@@ -218,11 +213,8 @@ function Person({
   y: number
   w: number
   h: number
-  px: { w: number; h: number }
 }) {
   const navigate = useNavigate()
-  const named = px.w > 90 && px.h > 60
-  const counted = px.w > 30 && px.h > 30
   return (
     <div
       className="absolute p-[2px]"
@@ -256,11 +248,6 @@ function Person({
         ) : (
           <span className="flex size-full items-center justify-center text-[0.75rem] font-extrabold text-[#0B1A2A]/40">
             {initials(c.name)}
-          </span>
-        )}
-        {counted && (
-          <span className="absolute bottom-1 left-1 max-w-[calc(100%-8px)] truncate rounded-full bg-white/90 px-1.5 py-0.5 text-[0.64rem] font-bold text-[#0B1A2A] tabular-nums">
-            {named ? `${surname(c.name)} · ${c.passages}` : c.passages}
           </span>
         )}
       </div>
