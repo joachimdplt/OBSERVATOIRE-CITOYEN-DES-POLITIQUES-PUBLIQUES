@@ -7,6 +7,8 @@ export type CampaignPage = {
   chapters: DiagnosisChapter[];
   /** Les comptes qu'une consultation publie sur elle-même, sujet par sujet. */
   counts: ParticipationCount[];
+  /** Les pages que le menu du site propose, sur le même site. */
+  navigation: string[];
 };
 
 /** La lecture d'une page de méthode ou de consultation. */

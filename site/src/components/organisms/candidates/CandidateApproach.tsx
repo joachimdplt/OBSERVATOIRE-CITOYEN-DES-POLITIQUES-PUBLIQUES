@@ -27,6 +27,7 @@ export function CandidateApproach({ approach }: { approach: Approach[] }) {
           état des lieux chiffré et tient une consultation ouverte. Les deux
           sont repris ici tels qu’ils sont publiés, avec la date du relevé.
         </p>
+        <Facts approach={approach} />
         {approach.map((a) =>
           a.kind === 'method' ? (
             <Diagnosis key={a.url} approach={a} />
@@ -65,8 +66,8 @@ function Diagnosis({ approach: a }: { approach: Approach }) {
     <div className="rounded-[28px] bg-white p-6 md:p-8">
       <Head kicker="Son état des lieux" approach={a} />
       <p className={`mt-3 text-[0.95rem] ${MUTED}`}>
-        {a.chapters.length} chapitres, {indicators} indicateurs. Chaque
-        phrase est celle de sa campagne ; la source est celle qu’elle cite.
+        {a.chapters.length} chapitres, {indicators} indicateurs, chacun avec
+        la source que sa campagne cite.
       </p>
       <ol className="mt-8 space-y-10">
         {a.chapters.map((c) => (
@@ -80,40 +81,32 @@ function Diagnosis({ approach: a }: { approach: Approach }) {
                 «&nbsp;{c.intro}&nbsp;»
               </p>
             )}
-            <ul className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {/* Les indicateurs, par leur nom : leurs chiffres et leurs
+                sources se lisent sur sa page, à laquelle chaque chapitre
+                mène. */}
+            <ul className="mt-4 flex flex-wrap gap-2">
               {c.indicators.map((i) => (
                 <li
                   key={i.name}
-                  className="flex flex-col rounded-[18px] bg-[#F4F6F8] p-4"
+                  title={[i.unit, i.source && `Source citée : ${i.source}`]
+                    .filter(Boolean)
+                    .join(' · ')}
+                  className="rounded-full bg-[#F4F6F8] px-3 py-1 text-[0.82rem] font-semibold text-[#0B1A2A]"
                 >
-                  <span className="leading-tight font-extrabold text-[#0B1A2A]">
-                    {i.name}
-                  </span>
-                  <span className={`mt-0.5 text-[0.8rem] ${MUTED}`}>
-                    {i.unit}
-                  </span>
-                  <span className="mt-3 text-[0.95rem] leading-snug text-[#0B1A2A]">
-                    «&nbsp;{i.sentence}&nbsp;»
-                  </span>
-                  <span className="flex-1" />
-                  <span className={`mt-3 text-[0.75rem] leading-snug ${MUTED}`}>
-                    Source citée :{' '}
-                    {i.sourceUrl ? (
-                      <a
-                        href={i.sourceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="underline decoration-[#0B1A2A]/20 underline-offset-2"
-                      >
-                        {i.source}
-                      </a>
-                    ) : (
-                      i.source
-                    )}
-                  </span>
+                  {i.name}
                 </li>
               ))}
             </ul>
+            <a
+              href={c.anchor ? `${a.url}#${c.anchor}` : a.url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-4 inline-flex items-center gap-1.5 text-[0.9rem] font-bold text-[#0B1A2A] no-underline hover:underline"
+            >
+              Ses {c.indicators.length} indicateurs, chiffres et sources, sur
+              son site
+              <ArrowUpRight size={14} />
+            </a>
           </li>
         ))}
       </ol>
@@ -153,6 +146,44 @@ function Consultation({ approach: a }: { approach: Approach }) {
           </li>
         ))}
       </ul>
+    </div>
+  )
+}
+
+/**
+ * Les comptes de sa démarche : ce que contient son état des lieux, et les
+ * totaux que sa consultation publie, cités tels quels.
+ */
+function Facts({ approach }: { approach: Approach[] }) {
+  const facts: { value: string; label: string }[] = []
+  for (const a of approach) {
+    if (a.kind === 'method') {
+      const indicators = a.chapters.reduce(
+        (n, c) => n + c.indicators.length,
+        0,
+      )
+      facts.push({ value: String(a.chapters.length), label: 'chapitres d’état des lieux' })
+      facts.push({ value: String(indicators), label: 'indicateurs, sources citées' })
+    }
+    for (const c of a.counts.filter((x) => !x.label)) {
+      const m = /^(\D*?)(\d[\d\s]*)\s+(.*)$/.exec(c.text)
+      if (m) facts.push({ value: m[2].trim(), label: `${m[3]} (consultation)` })
+    }
+    const subjects = a.counts.filter((c) => c.label).length
+    if (subjects)
+      facts.push({ value: String(subjects), label: 'sujets ouverts à la consultation' })
+  }
+  if (facts.length === 0) return null
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {facts.map((f) => (
+        <div key={f.label} className="rounded-[22px] bg-white p-5">
+          <p className="text-[2rem] leading-none font-extrabold tracking-[-0.03em] text-[#0B1A2A] tabular-nums">
+            {f.value}
+          </p>
+          <p className={`mt-2 text-[0.9rem] leading-snug ${MUTED}`}>{f.label}</p>
+        </div>
+      ))}
     </div>
   )
 }

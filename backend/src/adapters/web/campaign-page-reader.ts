@@ -41,6 +41,28 @@ export class FetchCampaignPageReader implements CampaignPageReader {
     });
     if (!res.ok) throw new Error(`${res.status} sur ${url}`);
     const root = parse(await res.text());
+    // Le menu, avant de l'écarter : les pages de fond du site.
+    const host = new URL(res.url || url).hostname.replace(/^www\./, '');
+    const navigation = [
+      ...new Set(
+        root
+          .querySelectorAll('nav a, header a')
+          .map((a) => {
+            try {
+              return new URL(a.getAttribute('href') ?? '', res.url || url);
+            } catch {
+              return null;
+            }
+          })
+          .filter(
+            (u): u is URL =>
+              !!u &&
+              /^https?:$/.test(u.protocol) &&
+              u.hostname.replace(/^www\./, '') === host,
+          )
+          .map((u) => `${u.origin}${u.pathname}`),
+      ),
+    ];
     root
       .querySelectorAll('script, style, noscript, svg, nav, header, footer')
       .forEach((n) => n.remove());
@@ -60,6 +82,7 @@ export class FetchCampaignPageReader implements CampaignPageReader {
         .querySelectorAll('p')
         .find((p) => !(p.getAttribute('class') ?? '').includes('kicker'));
       chapters.push({
+        anchor: section.getAttribute('id') ?? null,
         label: clean(byClass(section, 'kicker')?.text ?? ''),
         title: clean(h2.text),
         intro: clean(intro?.text ?? ''),
@@ -95,6 +118,6 @@ export class FetchCampaignPageReader implements CampaignPageReader {
       if (isParticipationCount(first))
         counts.push({ label: null, text: first });
     }
-    return { title, chapters, counts };
+    return { title, chapters, counts, navigation };
   }
 }

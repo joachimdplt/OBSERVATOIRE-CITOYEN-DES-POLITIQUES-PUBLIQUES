@@ -65,6 +65,8 @@ export type DiagnosisIndicator = {
 
 /** Un chapitre d'un diagnostic : son nom, son titre, son introduction, ses indicateurs. */
 export type DiagnosisChapter = {
+  /** L'ancre du chapitre sur la page de la campagne, pour y mener. */
+  anchor: string | null;
   label: string;
   title: string;
   intro: string;

@@ -138,3 +138,16 @@ export function writtenDates(text: string): string[] {
  */
 export const NOT_CANDIDATE_WORDS =
   /\/(probleme|problemes|solution|solutions|contribution|contributions|doleance)\/[\w-]*\d|\/(espace|connexion|login|compte|don|dons|faire-un-don|adherer|mentions-legales|confidentialite|politique-de-confidentialite|cgu|conditions-generales[\w-]*|cookies)(\/|$)|\.(pdf|jpe?g|png|webp|svg|zip|mp4)(\?|$)/i;
+
+/**
+ * Une page de premier niveau d'un site (« /cahier », « /etat-de-la-france ») :
+ * là où une campagne pose ses pages de fond, pas ses articles.
+ */
+export function isTopLevel(url: string): boolean {
+  try {
+    const path = new URL(url).pathname.replace(/\/+$/, '');
+    return path.split('/').filter(Boolean).length <= 1;
+  } catch {
+    return false;
+  }
+}
