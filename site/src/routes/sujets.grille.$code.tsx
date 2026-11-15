@@ -86,18 +86,24 @@ function SubjectPage() {
 
   return (
     <main>
-      <section className="px-6 pt-16 pb-12 md:px-10">
-        <div className="mx-auto max-w-[1280px]">
+      {/* Le sujet reste en haut de l'écran pendant toute la lecture. */}
+      <div className="sticky top-[86px] z-[6] border-b border-[#0B1A2A]/8 bg-[#F4F6F8]/90 px-6 py-3 backdrop-blur md:px-10">
+        <div className="mx-auto flex max-w-[1280px] items-baseline gap-4">
           <Link
             to="/sujets"
-            className={`text-[0.9rem] font-bold no-underline hover:underline ${MUTED}`}
+            className={`shrink-0 text-[0.85rem] font-bold no-underline hover:underline ${MUTED}`}
           >
-            ← Tous les sujets
+            ← Sujets
           </Link>
-          <h1 className={`${DISPLAY} mt-3 text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.08]`}>
+          <h1 className={`${DISPLAY} truncate text-[clamp(1.4rem,3vw,2rem)] leading-tight`}>
             {s.topic.label}
           </h1>
-          <p className={`mt-6 text-justify text-[0.95rem] leading-[1.75] hyphens-auto ${MUTED}`}>
+        </div>
+      </div>
+
+      <section className="px-6 pt-8 pb-10 md:px-10">
+        <div className="mx-auto max-w-[1280px]">
+          <p className={`text-justify text-[0.95rem] leading-[1.75] hyphens-auto ${MUTED}`}>
             Les chapitres des programmes rangés dans ce sujet de la grille du{' '}
             {s.classification.grid}. Le rangement est fait automatiquement,
             chapitre par chapitre
@@ -111,7 +117,7 @@ function SubjectPage() {
       <section className="px-6 py-6 pb-20 md:px-10">
         <div className="mx-auto grid max-w-[1280px] gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
           <aside className="hidden lg:block">
-            <nav className="sticky top-[110px] max-h-[calc(100vh-130px)] overflow-y-auto rounded-[28px] bg-white p-3">
+            <nav className="sticky top-[166px] max-h-[calc(100vh-186px)] overflow-y-auto rounded-[28px] bg-white p-3">
               <ul className="space-y-1">
                 {candidates.map((c, i) => (
                   <li key={c.slug}>
@@ -164,12 +170,13 @@ function CandidateCard({ index, candidate: c }: { index: number; candidate: Cand
   return (
     <li
       id={`candidat-${index}`}
-      className="scroll-mt-32 rounded-[28px] bg-white p-5 md:p-8"
+      className="scroll-mt-[170px] rounded-[28px] bg-white p-5 md:p-8"
     >
+      {/* Le candidat reste en haut de sa carte tant qu'on la lit. */}
       <Link
         to="/candidats/$slug"
         params={{ slug: c.slug }}
-        className="flex items-center gap-3 no-underline"
+        className="sticky top-[150px] z-[4] -mx-5 -mt-5 flex items-center gap-3 rounded-t-[28px] border-b border-[#0B1A2A]/8 bg-white px-5 py-4 no-underline md:-mx-8 md:-mt-8 md:px-8"
       >
         {c.photo && (
           <img
