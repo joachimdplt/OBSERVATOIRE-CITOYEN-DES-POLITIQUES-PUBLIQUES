@@ -21,6 +21,7 @@ async function main() {
     const r = await suggestCapLabels(
       prisma as unknown as PrismaService,
       new OllamaTopicClassifier(),
+      (line) => console.log(line),
     );
     console.log(
       `${r.chapters} chapitres, ${r.proposed} nouvellement rangés (modèle ${r.model || 'aucun'}).`,

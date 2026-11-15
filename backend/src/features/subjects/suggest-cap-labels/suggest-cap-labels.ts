@@ -47,6 +47,8 @@ export class SuggestCapLabelsController {
 export async function suggestCapLabels(
   prisma: PrismaService,
   classifier: TopicClassifier,
+  /** Le suivi, ligne par ligne, en ligne de commande. */
+  log: (line: string) => void = () => {},
 ) {
   const all = await prisma.capTopic.findMany();
   if (all.length === 0)
@@ -194,11 +196,20 @@ export async function suggestCapLabels(
   if (todo.length === 0) return report;
 
   report.model = classifier.model;
-  // Par paquets de dix chapitres, enregistrés au fur et à mesure : une
-  // coupure ne fait rien perdre, et une relance reprend où elle s'était
-  // arrêtée.
-  for (let i = 0; i < todo.length; i += 10) {
-    const batch = todo.slice(i, i + 10);
+  const names = new Map(
+    (await prisma.candidate.findMany({ select: { id: true, name: true } })).map(
+      (c) => [c.id, c.name],
+    ),
+  );
+  const labelOf = new Map(grid.map((t) => [t.code, t.label]));
+  const started = Date.now();
+  log(
+    `${todo.length} unités à ranger sur ${chapters.size} (modèle ${classifier.model})`,
+  );
+  // Une unité à la fois, enregistrée aussitôt : une coupure ne fait rien
+  // perdre, et une relance reprend où elle s'était arrêtée.
+  for (let i = 0; i < todo.length; i += 1) {
+    const batch = todo.slice(i, i + 1);
     const choices = await classifier.classify(
       grid,
       batch.map(([id, c]) => ({ id, text: c.text.slice(0, CHAPTER_TEXT) })),
@@ -206,7 +217,15 @@ export async function suggestCapLabels(
     const byId = new Map(batch);
     for (const choice of choices) {
       const c = byId.get(choice.id);
-      if (!c || !choice.code) continue;
+      if (!c) continue;
+      const done = i + batch.findIndex(([id]) => id === choice.id) + 1;
+      const left = Math.round(
+        (((Date.now() - started) / done) * (todo.length - done)) / 60000,
+      );
+      log(
+        `[${done}/${todo.length}, encore ~${left} min] ${names.get(c.candidateId) ?? '?'} · ${c.heading.slice(0, 60)}${c.fromPosition !== null ? ` (bloc ${c.fromPosition})` : ''} → ${choice.code ? labelOf.get(choice.code) : 'aucun'}`,
+      );
+      if (!choice.code) continue;
       await prisma.capLabel.createMany({
         data: [
           {
