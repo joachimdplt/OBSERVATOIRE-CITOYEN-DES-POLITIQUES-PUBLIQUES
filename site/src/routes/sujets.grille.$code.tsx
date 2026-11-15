@@ -133,13 +133,7 @@ function SubjectPage() {
                   </li>
                 ))}
               </ul>
-              {s.without.length > 0 && (
-                <p className={`px-3 pt-4 pb-2 text-[0.78rem] leading-snug ${MUTED}`}>
-                  Aucun chapitre rangé ici, dans ce qui a été collecté :{' '}
-                  {s.without.map((c) => c.name).join(', ')}. Cela ne dit rien de
-                  leur position.
-                </p>
-              )}
+              {s.without.length > 0 && <Without list={s.without} />}
             </nav>
           </aside>
 
@@ -155,11 +149,9 @@ function SubjectPage() {
               ))}
             </ol>
             {s.without.length > 0 && (
-              <p className={`mt-6 text-[0.85rem] leading-relaxed lg:hidden ${MUTED}`}>
-                Aucun chapitre rangé ici, dans ce qui a été collecté :{' '}
-                {s.without.map((c) => c.name).join(', ')}. Cela ne dit rien de
-                leur position.
-              </p>
+              <div className="mt-6 rounded-[28px] bg-white p-3 lg:hidden">
+                <Without list={s.without} />
+              </div>
             )}
           </div>
         </div>
@@ -230,5 +222,37 @@ function CandidateCard({ index, candidate: c }: { index: number; candidate: Cand
         })}
       </div>
     </li>
+  )
+}
+
+/**
+ * Les candidats dont aucun chapitre n'est rangé dans ce sujet : leurs noms,
+ * chacun vers son programme, et ce que cela veut dire, sans plus.
+ */
+function Without({ list }: { list: Subject['without'] }) {
+  return (
+    <div className="pt-3">
+      <p className="px-3 pb-1 text-[0.75rem] font-bold text-[#5B6470]">
+        Pas de chapitre sur ce sujet
+      </p>
+      <p className="px-3 pb-2 text-[0.78rem] leading-snug text-[#5B6470]">
+        Dans leur programme, aucun chapitre n’est consacré à ce sujet pour
+        l’instant. Cela ne veut pas dire qu’ils n’en parlent jamais, ni
+        qu’ils n’ont pas d’avis.
+      </p>
+      <ul>
+        {list.map((c) => (
+          <li key={c.slug}>
+            <Link
+              to="/candidats/$slug"
+              params={{ slug: c.slug }}
+              className="block rounded-[14px] px-3 py-1.5 text-[0.82rem] font-semibold text-[#5B6470] no-underline hover:bg-[#F4F6F8] hover:text-[#0B1A2A]"
+            >
+              {c.name}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
