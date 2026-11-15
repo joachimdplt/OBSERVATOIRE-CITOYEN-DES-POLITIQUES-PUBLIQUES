@@ -290,12 +290,15 @@ export type TopicList = {
     programmes: number
     passages: number
     publication: string | null
-    /** Les candidats qui en parlent, et leur nombre de passages. */
+    /** Sa place : la moyenne des parts, chaque candidat comptant autant. */
+    share: number
+    /** Les candidats qui en parlent : passages et part du sujet dans leur programme. */
     candidates: {
       slug: string
       name: string
       photo: string | null
       passages: number
+      share: number
     }[]
   }[]
 }
@@ -382,7 +385,7 @@ export type CandidateProgramme = {
     proposals: number
     figured: number
     covered: number
-    topTopics: { slug: string; name: string; passages: number }[]
+    topTopics: { slug: string; name: string; passages: number; share: number }[]
   }
   outline: {
     title: string

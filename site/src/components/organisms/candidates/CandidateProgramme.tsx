@@ -2,7 +2,9 @@ import { Link } from '@tanstack/react-router'
 import { ArrowUpRight, ChevronDown } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { CandidateProgramme as Programme } from '../../../types/public'
+import { HEAT_GRADIENT, heatColor, isDark } from '../../../utils/heat'
 import { atText, figuresIn } from '../../../utils/highlight'
+import { squarify } from '../../../utils/treemap'
 import { smoothScrollTo } from '../../../utils/scroll'
 import { QuoteText } from '../../molecules/QuoteText'
 
@@ -55,28 +57,13 @@ export function CandidateProgramme({
         </div>
 
         {s.topTopics.length > 0 && (
-          <div className="rounded-[28px] bg-white p-6 md:p-8">
-            <p className="font-extrabold text-[#0B1A2A]">
-              Les sujets les plus présents
+          <div className="rounded-[28px] bg-white p-4 md:p-6">
+            <p className="px-2 font-extrabold text-[#0B1A2A]">
+              De quoi parle son programme
             </p>
-            <ul className="mt-4 flex flex-wrap gap-2">
-              {s.topTopics.map((t) => (
-                <li key={t.slug}>
-                  <Link
-                    to="/sujets/$slug"
-                    params={{ slug: t.slug }}
-                    hash={`candidat-${candidate}`}
-                    hashScrollIntoView={false}
-                    className="inline-flex items-center gap-2 rounded-full bg-[#F4F6F8] px-4 py-2 text-[0.9rem] font-bold text-[#0B1A2A] no-underline hover:bg-[#E8ECF0]"
-                  >
-                    {t.name}
-                    <span className={`font-semibold tabular-nums ${MUTED}`}>
-                      {t.passages}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-4">
+              <OwnTopics topics={s.topTopics} candidate={candidate} />
+            </div>
           </div>
         )}
 
@@ -402,5 +389,94 @@ function Chapter({
         </button>
       )}
     </li>
+  )
+}
+
+/**
+ * La mosaïque des sujets d'un candidat : la surface de chaque sujet est sa
+ * part dans le programme (les parts font 100 %), du blanc au noir. Un clic
+ * ouvre le sujet sur les citations du candidat.
+ */
+function OwnTopics({
+  topics,
+  candidate,
+}: {
+  topics: Programme['summary']['topTopics']
+  candidate: string
+}) {
+  // Une case assez grande pour son titre : les plus petites parts sont
+  // regroupées au-delà de vingt sujets, sans changer les autres.
+  const shown = topics.slice(0, 20)
+  const ranked = [...shown].sort((a, b) => b.share - a.share)
+  const heatOf = (slug: string) => {
+    const i = ranked.findIndex((t) => t.slug === slug)
+    return ranked.length > 1 ? 1 - i / (ranked.length - 1) : 1
+  }
+  const floor = 0.018
+  const cells = squarify(
+    shown.map((t) => ({ value: Math.max(t.share, floor), item: t })),
+    1.9,
+  )
+  return (
+    <div>
+      <div className="mb-3 flex items-center gap-3 px-2 text-[0.8rem] font-semibold text-[#5B6470]">
+        <span>Le moins</span>
+        <span
+          className="h-2 w-32 rounded-full"
+          style={{ background: HEAT_GRADIENT }}
+          aria-hidden
+        />
+        <span>le plus</span>
+      </div>
+      <div className="relative aspect-[1.9] w-full">
+        {cells.map(({ x, y, w, h, item: t }) => {
+          const heat = heatOf(t.slug)
+          const dark = isDark(heat)
+          return (
+            <Link
+              key={t.slug}
+              to="/sujets/$slug"
+              params={{ slug: t.slug }}
+              hash={`candidat-${candidate}`}
+              hashScrollIntoView={false}
+              title={`${t.name} : ${Math.round(t.share * 100)} % de son programme (${t.passages} passages)`}
+              className="group absolute p-[3px] no-underline"
+              style={{
+                left: `${x * 100}%`,
+                top: `${y * 100}%`,
+                width: `${w * 100}%`,
+                height: `${h * 100}%`,
+              }}
+            >
+              <span
+                className="flex size-full flex-col justify-between overflow-hidden rounded-[14px] p-2.5"
+                style={{
+                  backgroundColor: heatColor(heat),
+                  boxShadow:
+                    heat < 0.15
+                      ? 'inset 0 0 0 1px rgba(11,26,42,0.08)'
+                      : undefined,
+                }}
+              >
+                <span
+                  className={`text-[0.82rem] leading-tight font-extrabold group-hover:underline ${
+                    dark ? 'text-white' : 'text-[#0B1A2A]'
+                  }`}
+                >
+                  {t.name}
+                </span>
+                <span
+                  className={`text-[1.1rem] font-extrabold tabular-nums ${
+                    dark ? 'text-white/80' : 'text-[#0B1A2A]/70'
+                  }`}
+                >
+                  {Math.round(t.share * 100)} %
+                </span>
+              </span>
+            </Link>
+          )
+        })}
+      </div>
+    </div>
   )
 }

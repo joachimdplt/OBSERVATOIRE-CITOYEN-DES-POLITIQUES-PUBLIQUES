@@ -120,10 +120,15 @@ de documents partiels, 18 sans rien de publié.
   sociaux », « HLM », « bailleurs sociaux »). Un passage qui contient un terme,
   en mots entiers, est rattaché à l'enjeu. Un terme ajouté ou retiré relit
   tous les programmes déjà collectés.
-- **La mosaïque** : la page « Enjeux » pave les sujets à deux niveaux. La
-  case d'un sujet a une surface proportionnelle à son nombre de passages ;
-  dans la case, la photo d'un candidat a une surface proportionnelle à ses
-  passages sur le sujet (pavage « squarified »). Ce compte
+- **Un candidat, une voix** : pour chaque candidat, la part d'un sujet est
+  son nombre de passages sur ce sujet divisé par la somme de ses passages
+  rangés dans des sujets (ses parts font 100 %). La place globale d'un sujet
+  est la moyenne de ces parts sur les candidats qui ont publié : un
+  programme long ne pèse pas plus qu'un court.
+- **Les mosaïques** : la page « Sujets » pave les sujets par leur place
+  globale, et dans chaque sujet, la photo d'un candidat par la part du sujet
+  dans son programme. La page d'un candidat montre la mosaïque de ses propres
+  sujets (pavage « squarified »). Ce compte
   dit de quoi les textes parlent ; il ne dit ni ce qu'ils proposent ni ce
   qu'ils valent. Un programme sans passage trouvé est nommé : il peut traiter
   l'enjeu avec d'autres mots.

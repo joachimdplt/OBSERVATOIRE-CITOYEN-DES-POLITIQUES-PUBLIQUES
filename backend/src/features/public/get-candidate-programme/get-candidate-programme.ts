@@ -108,8 +108,8 @@ export class GetCandidateProgrammeController {
       where: { measureId: { in: mine.map((m) => m.id) } },
       _count: { measureId: true },
       orderBy: { _count: { measureId: 'desc' } },
-      take: 5,
     });
+    const topicTotal = topics.reduce((n, t) => n + t._count.measureId, 0);
     const names = new Map(
       (
         await this.prisma.topic.findMany({
@@ -128,10 +128,12 @@ export class GetCandidateProgrammeController {
         proposals: proposals.length,
         figured: mine.filter((m) => isFigured(m.quote)).length,
         covered: mine.filter((m) => m._count.topics > 0).length,
+        // Tous ses sujets, avec leur part dans son programme (elles font 1).
         topTopics: topics.map((t) => ({
           slug: names.get(t.topicId)?.slug ?? '',
           name: names.get(t.topicId)?.name ?? '',
           passages: t._count.measureId,
+          share: topicTotal ? t._count.measureId / topicTotal : 0,
         })),
       },
       outline,

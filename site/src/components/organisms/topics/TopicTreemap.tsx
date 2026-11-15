@@ -32,9 +32,10 @@ const headerHeight = (name: string, width: number) => {
 }
 
 /**
- * Les sujets des programmes en une seule mosaïque, à deux niveaux : la
- * surface de chaque sujet est proportionnelle à son nombre de passages, et
- * dans chaque sujet, la photo de chaque candidat l'est aussi. La couleur
+ * Les sujets des programmes en une seule mosaïque, à deux niveaux, un
+ * candidat une voix : la surface d'un sujet est sa place moyenne dans les
+ * programmes, et dans le sujet, la photo d'un candidat est la part du sujet
+ * dans son propre programme. La couleur
  * suit la même mesure, du blanc (le moins) au noir (le plus) ; les cases
  * apparaissent de la plus présente à la moins présente. Le pavage se
  * recalcule à la largeur de l'écran ; une case trop petite pour des photos
@@ -60,21 +61,21 @@ export function TopicTreemap({ topics }: { topics: Topic[] }) {
     return () => observer.disconnect()
   }, [])
 
-  // Chaque case a une surface proportionnelle à ses passages, avec un
+  // Chaque case a une surface proportionnelle à sa place moyenne, avec un
   // plancher : une case trop petite pour son titre complet est agrandie
   // juste assez pour qu'il se lise. Le compte écrit dans la case reste exact.
   let floor = 0
   for (let i = 0; i < 6; i++) {
-    const sum = topics.reduce((n, t) => n + Math.max(t.passages, floor), 0)
+    const sum = topics.reduce((n, t) => n + Math.max(t.share, floor), 0)
     floor = MIN_AREA / ((size.w * size.h) / sum)
   }
   const cells = squarify(
-    topics.map((t) => ({ value: Math.max(t.passages, floor), item: t })),
+    topics.map((t) => ({ value: Math.max(t.share, floor), item: t })),
     size.w / size.h,
   )
   // La chaleur d'un sujet suit son rang : la plus forte en tête, la plus
   // froide en dernier.
-  const ranked = [...topics].sort((a, b) => b.passages - a.passages)
+  const ranked = [...topics].sort((a, b) => b.share - a.share)
   const heatOf = (slug: string) => {
     const i = ranked.findIndex((t) => t.slug === slug)
     return ranked.length > 1 ? 1 - i / (ranked.length - 1) : 1
@@ -136,7 +137,7 @@ function TopicCell({
   const header = headerHeight(topic.name, width)
   const inner = { w: width - 12, h: Math.max(40, height - 12 - header) }
   const people = squarify(
-    topic.candidates.map((c) => ({ value: c.passages, item: c })),
+    topic.candidates.map((c) => ({ value: c.share, item: c })),
     inner.w / inner.h,
   )
   return (
@@ -170,7 +171,7 @@ function TopicCell({
       <Link
         to="/sujets/$slug"
         params={{ slug: topic.slug }}
-        title={`${topic.name} : ${topic.passages} passages, ${topic.candidates.length} candidats`}
+        title={`${topic.name} : ${(topic.share * 100).toFixed(1)} % des programmes en moyenne, ${topic.candidates.length} candidats`}
         className="group relative flex size-full flex-col overflow-hidden rounded-[16px] p-1.5 no-underline transition-shadow hover:shadow-[0_8px_30px_rgba(11,26,42,0.12)]"
         style={{
           backgroundColor: heatColor(heat),
@@ -231,7 +232,7 @@ function Person({
         width: `${w * 100}%`,
         height: `${h * 100}%`,
       }}
-      title={`${c.name} : ${c.passages} passage${c.passages > 1 ? 's' : ''}`}
+      title={`${c.name} : ${Math.round(c.share * 100)} % de son programme (${c.passages} passage${c.passages > 1 ? 's' : ''})`}
       // La photo ouvre le sujet directement sur les passages de ce candidat.
       onClick={(e) => {
         e.preventDefault()
