@@ -11,6 +11,19 @@ export const Route = createRootRoute({
       { title: 'Observatoire citoyen des politiques publiques' },
     ],
     links: [
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '32x32',
+        href: '/favicon-32.png',
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '512x512',
+        href: '/icon-512.png',
+      },
+      { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
       { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
       {
         rel: 'preconnect',
@@ -26,7 +39,7 @@ export const Route = createRootRoute({
   }),
   shellComponent: RootDocument,
   notFoundComponent: () => (
-    <div className="mx-auto max-w-5xl px-6 py-24 text-sm text-slate-500">
+    <div className="mx-auto max-w-[1280px] px-6 py-24 text-sm text-slate-500">
       Cette page n’existe pas.
     </div>
   ),
