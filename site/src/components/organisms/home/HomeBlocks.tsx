@@ -45,7 +45,7 @@ function Screen({
         first ? 'min-h-[calc(100svh-3.5rem)]' : 'min-h-svh'
       } ${className}`}
     >
-      <div className="mx-auto w-full max-w-[1080px]">{children}</div>
+      <div className="mx-auto w-full max-w-[1280px]">{children}</div>
     </section>
   )
 }

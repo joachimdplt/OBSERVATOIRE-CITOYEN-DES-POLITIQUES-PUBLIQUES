@@ -36,7 +36,7 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
       id="candidats"
       className="scroll-mt-14 bg-[#F4F6F8] px-6 py-16 md:px-10"
     >
-      <div className="mx-auto max-w-[1080px]">
+      <div className="mx-auto max-w-[1280px]">
         <h2 className="text-[clamp(1.6rem,3vw,2.4rem)] leading-tight font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
           {election.name} : {candidates.length} candidats
         </h2>
@@ -52,7 +52,7 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
           ))}
         </p>
 
-        <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
           {candidates.map((c) => {
             const state = STATES.find((s) => s.status === c.programmeStatus)
             return (

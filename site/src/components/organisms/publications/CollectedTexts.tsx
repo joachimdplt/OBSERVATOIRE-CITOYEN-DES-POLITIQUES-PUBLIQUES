@@ -12,7 +12,7 @@ import { collectedAnchor, collectedGroup } from './MeasureComparison'
 export function CollectedTexts({ texts }: { texts: CollectedText[] }) {
   if (texts.length === 0) return null
   return (
-    <section className="mx-auto mt-12 max-w-[920px]">
+    <section className="mx-auto mt-12 max-w-[1120px]">
       <h2 className="text-[1.6rem] font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
         Autres textes déposés à l’Assemblée nationale
       </h2>

@@ -10,7 +10,7 @@ export function Section({
 }) {
   return (
     <section className={`flex min-h-dvh items-center px-6 py-24 ${className}`}>
-      <div className="mx-auto w-full max-w-5xl">{children}</div>
+      <div className="mx-auto w-full max-w-[1280px]">{children}</div>
     </section>
   )
 }

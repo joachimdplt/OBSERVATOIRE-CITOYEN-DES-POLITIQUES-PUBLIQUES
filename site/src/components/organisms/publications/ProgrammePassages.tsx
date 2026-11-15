@@ -22,7 +22,7 @@ const STATUS = {
 export function ProgrammePassages({ topic }: { topic: TopicSheet }) {
   return (
     <section className="bg-white px-6 py-16 md:px-10">
-      <div className="mx-auto max-w-[920px]">
+      <div className="mx-auto max-w-[1120px]">
         <h2 className="text-[clamp(1.6rem,3vw,2.2rem)] leading-tight font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
           Dans les programmes des candidats
         </h2>

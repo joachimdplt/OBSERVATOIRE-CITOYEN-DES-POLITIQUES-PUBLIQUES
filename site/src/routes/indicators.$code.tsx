@@ -34,7 +34,7 @@ function IndicatorPage() {
   const [latest] = sheet.provenance
 
   return (
-    <main className="mx-auto max-w-5xl space-y-8 px-6 py-10">
+    <main className="mx-auto max-w-[1280px] space-y-8 px-6 py-10">
       <header className="space-y-3">
         <p className="text-xs text-slate-500">
           {pillarLabel(sheet.pillar)} · source {latest.producer.acronym} ·{' '}

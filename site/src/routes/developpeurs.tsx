@@ -28,7 +28,7 @@ function Block({
     <section
       className={`px-6 py-24 md:px-10 ${soft ? 'bg-[#F4F6F8]' : 'bg-white'}`}
     >
-      <div className="mx-auto w-full max-w-[1080px]">{children}</div>
+      <div className="mx-auto w-full max-w-[1280px]">{children}</div>
     </section>
   )
 }
@@ -58,7 +58,7 @@ function Developers() {
   return (
     <>
       <section className="bg-white px-6 pt-24 pb-16 md:px-10">
-        <div className="mx-auto max-w-[1080px]">
+        <div className="mx-auto max-w-[1280px]">
           <h1
             className={`${DISPLAY} max-w-[16ch] text-[clamp(2.4rem,5.4vw,4.2rem)] leading-[1.06]`}
           >

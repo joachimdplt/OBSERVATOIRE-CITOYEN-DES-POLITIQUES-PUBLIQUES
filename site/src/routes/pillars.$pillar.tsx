@@ -27,7 +27,7 @@ export const Route = createFileRoute('/pillars/$pillar')({
 function PillarPage() {
   const { pillar, indicators } = Route.useLoaderData()
   return (
-    <main className="mx-auto max-w-5xl space-y-6 px-6 py-12">
+    <main className="mx-auto max-w-[1280px] space-y-6 px-6 py-12">
       <h1 className="text-3xl font-semibold tracking-tight">{pillar.label}</h1>
       <IndicatorList indicators={indicators} />
     </main>

@@ -83,7 +83,7 @@ function TopicOnly({ topic }: { topic: TopicSheet }) {
   return (
     <main>
       <section className="bg-white px-6 pt-20 pb-6 md:px-10">
-        <div className="mx-auto max-w-[920px]">
+        <div className="mx-auto max-w-[1120px]">
           <p className={`text-sm font-semibold ${MUTED}`}>
             {pillarLabel(topic.pillar)}
           </p>
@@ -103,7 +103,7 @@ function TopicOnly({ topic }: { topic: TopicSheet }) {
       </section>
       <ProgrammePassages topic={topic} />
       <section className="bg-white px-6 pb-16 md:px-10">
-        <div className="mx-auto max-w-[920px]">
+        <div className="mx-auto max-w-[1120px]">
           <Link
             to="/enjeux"
             className="inline-flex h-12 items-center gap-2 rounded-full bg-[#0B1A2A] px-6 font-extrabold text-white no-underline hover:opacity-90"
@@ -127,7 +127,7 @@ function PublicationView({ topic }: { topic: TopicSheet | null }) {
   return (
     <main>
       <section className="bg-white px-6 pt-20 pb-14 md:px-10">
-        <div className="mx-auto max-w-[920px]">
+        <div className="mx-auto max-w-[1120px]">
           <p className={`text-sm font-semibold ${MUTED}`}>
             {pillarLabel(p.pillar)}
           </p>
@@ -164,7 +164,7 @@ function PublicationView({ topic }: { topic: TopicSheet | null }) {
       </section>
 
       <section className="sticky top-14 z-[5] border-y border-[#0B1A2A]/10 bg-white/90 px-6 py-4 backdrop-blur md:px-10">
-        <div className="mx-auto flex max-w-[920px] flex-wrap items-center gap-3">
+        <div className="mx-auto flex max-w-[1120px] flex-wrap items-center gap-3">
           <CommuneSearch
             onPick={(t) =>
               navigate({
@@ -199,7 +199,7 @@ function PublicationView({ topic }: { topic: TopicSheet | null }) {
       <MeasureComparison sections={p.sections} collected={p.collected} />
 
       <section className="bg-[#F4F6F8] px-6 py-16 md:px-10">
-        <ol className="mx-auto max-w-[920px] space-y-8">
+        <ol className="mx-auto max-w-[1120px] space-y-8">
           {p.sections.map((section, i) => (
             <li
               key={section.title}
@@ -309,7 +309,7 @@ function PublicationView({ topic }: { topic: TopicSheet | null }) {
         </ol>
         <CollectedTexts texts={p.collected} />
         {p.history.length > 0 && (
-          <div className={`mx-auto mt-10 max-w-[920px] text-sm ${MUTED}`}>
+          <div className={`mx-auto mt-10 max-w-[1120px] text-sm ${MUTED}`}>
             Versions précédentes :{' '}
             {p.history
               .map(
@@ -319,7 +319,7 @@ function PublicationView({ topic }: { topic: TopicSheet | null }) {
               .join(', ')}
           </div>
         )}
-        <div className="mx-auto mt-10 flex max-w-[920px]">
+        <div className="mx-auto mt-10 flex max-w-[1120px]">
           <Link
             to="/carte"
             className="inline-flex h-12 items-center gap-2 rounded-full bg-[#0B1A2A] px-6 font-extrabold text-white no-underline hover:opacity-90"

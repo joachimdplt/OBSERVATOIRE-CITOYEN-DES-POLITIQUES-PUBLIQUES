@@ -1,7 +1,7 @@
 /** L'API ne répond pas : on le dit, sans afficher de chiffre ni rester suspendu. */
 export function Unavailable() {
   return (
-    <div className="mx-auto max-w-5xl space-y-2 px-6 py-24">
+    <div className="mx-auto max-w-[1280px] space-y-2 px-6 py-24">
       <h1 className="text-xl font-semibold">
         Données momentanément indisponibles
       </h1>

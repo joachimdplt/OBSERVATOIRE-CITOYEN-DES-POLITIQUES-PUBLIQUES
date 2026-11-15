@@ -56,7 +56,7 @@ export function MeasureComparison({
 
   return (
     <section className="bg-white px-6 py-14 md:px-10">
-      <div className="mx-auto max-w-[920px]">
+      <div className="mx-auto max-w-[1120px]">
         <h2 className="text-[1.6rem] font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
           {title}
         </h2>

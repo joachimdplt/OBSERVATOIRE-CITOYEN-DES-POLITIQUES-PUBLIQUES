@@ -30,7 +30,7 @@ function TopicsPage() {
   return (
     <main>
       <section className="bg-white px-6 pt-16 pb-10 md:px-10">
-        <div className="mx-auto max-w-[920px]">
+        <div className="mx-auto max-w-[1120px]">
           <h1 className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
             Les enjeux dans les programmes
           </h1>
@@ -47,7 +47,7 @@ function TopicsPage() {
         </div>
       </section>
       <section className="bg-[#F4F6F8] px-6 py-12 md:px-10">
-        <ol className="mx-auto max-w-[920px] divide-y divide-[#0B1A2A]/8 rounded-[28px] bg-white px-6 md:px-8">
+        <ol className="mx-auto max-w-[1120px] divide-y divide-[#0B1A2A]/8 rounded-[28px] bg-white px-6 md:px-8">
           {topics.map((t) => (
             <li key={t.slug}>
               <Link
@@ -78,7 +78,7 @@ function TopicsPage() {
             </li>
           ))}
         </ol>
-        <p className={`mx-auto mt-6 max-w-[920px] text-[0.88rem] ${MUTED}`}>
+        <p className={`mx-auto mt-6 max-w-[1120px] text-[0.88rem] ${MUTED}`}>
           Le chiffre de gauche compte les programmes où un terme de l’enjeu
           apparaît. Il dit de quoi les textes parlent, pas ce qu’ils proposent
           ni ce qu’ils valent.

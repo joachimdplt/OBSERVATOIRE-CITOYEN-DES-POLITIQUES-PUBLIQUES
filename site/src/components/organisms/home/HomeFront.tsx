@@ -18,7 +18,7 @@ export function HomeHero() {
   const { hero } = HOME
   return (
     <section className="overflow-hidden bg-[#0B1A2A] px-6 md:px-10">
-      <div className="mx-auto grid max-w-[1080px] items-center gap-4 py-12 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:py-10">
+      <div className="mx-auto grid max-w-[1280px] items-center gap-4 py-12 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:py-10">
         <img
           src="/images/coq-observateur.png"
           alt="Un coq qui observe un graphique à la loupe"
@@ -60,7 +60,7 @@ export function HomeFront({ articles }: { articles: PublicationSheet[] }) {
   const { articles: copy } = HOME
   return (
     <section className="bg-white px-6 py-20 md:px-10">
-      <div className="mx-auto max-w-[1080px]">
+      <div className="mx-auto max-w-[1280px]">
         <h2 className="text-[clamp(1.6rem,3vw,2.4rem)] font-extrabold tracking-[-0.03em] text-[#0B1A2A]">
           {copy.title}
         </h2>

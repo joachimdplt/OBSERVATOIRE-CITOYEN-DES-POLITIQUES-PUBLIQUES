@@ -51,7 +51,7 @@ function CandidatePage() {
   return (
     <main>
       <section className="bg-white px-6 pt-20 pb-14 md:px-10">
-        <div className="mx-auto grid max-w-[920px] gap-8 md:grid-cols-[220px_minmax(0,1fr)] md:items-start">
+        <div className="mx-auto grid max-w-[1120px] gap-8 md:grid-cols-[220px_minmax(0,1fr)] md:items-start">
           <CandidatePortrait
             name={c.name}
             photo={c.photo}
@@ -119,7 +119,7 @@ function CandidatePage() {
 function Topics({ candidate: c }: { candidate: CandidateSheet }) {
   return (
     <section className="bg-[#F4F6F8] px-6 py-16 md:px-10">
-      <div className="mx-auto max-w-[920px]">
+      <div className="mx-auto max-w-[1120px]">
         <h2 className={`${DISPLAY} text-[clamp(1.6rem,3vw,2.2rem)]`}>
           Les enjeux dans son programme
         </h2>
@@ -168,7 +168,7 @@ function Topics({ candidate: c }: { candidate: CandidateSheet }) {
 function Videos({ candidate: c }: { candidate: CandidateSheet }) {
   return (
     <section className="bg-white px-6 py-16 md:px-10">
-      <div className="mx-auto max-w-[920px]">
+      <div className="mx-auto max-w-[1120px]">
         <h2 className={`${DISPLAY} text-[clamp(1.6rem,3vw,2.2rem)]`}>
           Vidéos publiques
         </h2>

@@ -86,7 +86,7 @@ function MapPage() {
 
   if (!sheet) {
     return (
-      <p className="mx-auto max-w-5xl px-6 py-24 text-sm text-slate-500">
+      <p className="mx-auto max-w-[1280px] px-6 py-24 text-sm text-slate-500">
         Aucune donnée publiée pour l’instant.
       </p>
     )
