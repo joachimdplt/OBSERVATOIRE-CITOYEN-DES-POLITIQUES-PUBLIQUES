@@ -1094,3 +1094,28 @@ model SitePageText {
   @@unique([pageId, contentHash])
   @@map("site_page_texts")
 }
+
+/// Un sujet de la grille du Comparative Agendas Project (CAP) : un grand
+/// sujet (« 3 », Santé) ou un sous-sujet (« 331 », Prévention des maladies).
+/// La grille internationale faite pour ranger programmes, lois et discours par
+/// enjeu, sans position (licence CC BY-NC-SA 4.0).
+model CapTopic {
+  /// Le code officiel : « 3 », « 331 ».
+  code        String     @id
+  level       Int
+  majorCode   String?
+  /// L'intitulé officiel, en anglais.
+  title       String
+  /// La description officielle, en anglais (sous-sujets).
+  description String?
+  /// L'intitulé français, traduction de l'équipe au plus près de l'anglais.
+  labelFr     String
+  /// D'où vient la grille, sa version, et quand elle a été lue.
+  source      String
+  version     String
+  importedAt  DateTime   @default(now())
+  major       CapTopic?  @relation("CapTree", fields: [majorCode], references: [code])
+  subtopics   CapTopic[] @relation("CapTree")
+
+  @@map("cap_topics")
+}
