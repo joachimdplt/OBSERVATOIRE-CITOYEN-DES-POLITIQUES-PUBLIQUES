@@ -97,7 +97,7 @@ function SubjectPage() {
           <h1 className={`${DISPLAY} mt-3 text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.08]`}>
             {s.topic.label}
           </h1>
-          <p className={`mt-6 max-w-[72ch] text-justify text-[0.95rem] leading-[1.75] hyphens-auto ${MUTED}`}>
+          <p className={`mt-6 text-justify text-[0.95rem] leading-[1.75] hyphens-auto ${MUTED}`}>
             Les chapitres des programmes rangés dans ce sujet de la grille du{' '}
             {s.classification.grid}. Le rangement est fait automatiquement,
             chapitre par chapitre
