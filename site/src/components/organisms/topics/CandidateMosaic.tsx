@@ -4,11 +4,10 @@ import { goTo } from '../../../utils/scroll'
 
 type Candidate = TopicSheet['candidates'][number]
 
-const surname = (name: string) => name.split(' ').slice(1).join(' ') || name
-
 /**
  * Qui parle du sujet, en un carré : la photo de chaque candidat a une
- * surface proportionnelle à ses passages. Un clic mène à ses passages ;
+ * surface proportionnelle à ses passages, sans légende : la liste voisine
+ * donne les noms et les comptes. Un clic mène à ses passages ;
  * pendant la lecture, la photo du candidat lu s'allume et les autres
  * s'effacent.
  */
@@ -56,13 +55,6 @@ export function CandidateMosaic({
                   active === c.slug ? 'grayscale-0' : 'grayscale'
                 }`}
               />
-            )}
-            {w > 0.16 && h > 0.14 && (
-              <span className="absolute bottom-1.5 left-1.5 max-w-[calc(100%-12px)] truncate rounded-full bg-white/90 px-2 py-0.5 text-[0.7rem] font-bold text-[#0B1A2A] tabular-nums">
-                {w > 0.34 && h > 0.2
-                  ? `${surname(c.name)} · ${c.passages.length}`
-                  : c.passages.length}
-              </span>
             )}
           </span>
         </a>

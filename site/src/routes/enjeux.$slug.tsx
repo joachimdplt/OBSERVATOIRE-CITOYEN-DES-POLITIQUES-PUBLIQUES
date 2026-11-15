@@ -80,6 +80,24 @@ function PublicationPage() {
 function TopicOnly({ topic }: { topic: TopicSheet }) {
   const speaking = topic.candidates.filter((c) => c.passages.length > 0)
   const passages = speaking.reduce((n, c) => n + c.passages.length, 0)
+  const complete = speaking.filter(
+    (c) => c.programmeStatus === 'complete',
+  ).length
+  const partial = speaking.length - complete
+  const silent = topic.candidates.length - speaking.length
+  const leader = [...speaking]
+    .sort((a, b) => b.passages.length - a.passages.length)
+    .at(0)
+  const lastRead = speaking
+    .flatMap((c) => c.passages.map((p) => p.document.fetchedAt))
+    .filter((d): d is string => d !== null)
+    .sort()
+    .at(-1)
+  const quoted = topic.terms.map((t) => `« ${t} »`)
+  const terms =
+    quoted.length > 1
+      ? `${quoted.slice(0, -1).join(', ')} ou ${quoted.at(-1)}`
+      : quoted[0]
   return (
     <main>
       <section className="px-6 pt-10 md:px-10">
@@ -93,25 +111,48 @@ function TopicOnly({ topic }: { topic: TopicSheet }) {
             >
               {topic.name}
             </h1>
-            <div className="mt-6 flex gap-8">
-              <p>
-                <span className="block text-[2.4rem] leading-none font-extrabold text-[#0B1A2A] tabular-nums">
+            <dl className="mt-8 grid gap-x-10 gap-y-6 sm:grid-cols-3">
+              <div>
+                <dt className={`text-[0.85rem] ${MUTED}`}>Passages</dt>
+                <dd className="mt-1 text-[2.4rem] leading-none font-extrabold text-[#0B1A2A] tabular-nums">
                   {passages}
-                </span>
-                <span className={`text-[0.85rem] ${MUTED}`}>passages</span>
-              </p>
-              <p>
-                <span className="block text-[2.4rem] leading-none font-extrabold text-[#0B1A2A] tabular-nums">
+                </dd>
+                <dd className={`mt-2 text-[0.85rem] leading-snug ${MUTED}`}>
+                  contenant {terms}
+                </dd>
+              </div>
+              <div>
+                <dt className={`text-[0.85rem] ${MUTED}`}>Programmes</dt>
+                <dd className="mt-1 text-[2.4rem] leading-none font-extrabold text-[#0B1A2A] tabular-nums">
                   {speaking.length}
                   <span className="text-[1.2rem] text-[#0B1A2A]/40">
-                    /{topic.candidates.length}
+                    {' '}
+                    sur {topic.candidates.length}
                   </span>
-                </span>
-                <span className={`text-[0.85rem] ${MUTED}`}>
-                  programmes en parlent
-                </span>
-              </p>
-            </div>
+                </dd>
+                <dd className={`mt-2 text-[0.85rem] leading-snug ${MUTED}`}>
+                  en parlent : {complete} complet{complete > 1 ? 's' : ''},{' '}
+                  {partial} partiel{partial > 1 ? 's' : ''}
+                  {silent > 0
+                    ? ` ; ${silent} n’en parle${silent > 1 ? 'nt' : ''} pas avec ces termes`
+                    : ''}
+                </dd>
+              </div>
+              {leader && (
+                <div>
+                  <dt className={`text-[0.85rem] ${MUTED}`}>
+                    En parle le plus
+                  </dt>
+                  <dd className="mt-1 text-[2.4rem] leading-none font-extrabold text-[#0B1A2A] tabular-nums">
+                    {leader.passages.length}
+                  </dd>
+                  <dd className={`mt-2 text-[0.85rem] leading-snug ${MUTED}`}>
+                    passages de {leader.name}
+                    {lastRead ? `, lus le ${frenchDate(lastRead)}` : ''}
+                  </dd>
+                </div>
+              )}
+            </dl>
             <p
               className={`mt-6 max-w-[48ch] text-[0.92rem] leading-relaxed ${MUTED}`}
             >

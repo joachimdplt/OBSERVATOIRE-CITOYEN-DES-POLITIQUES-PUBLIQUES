@@ -349,11 +349,7 @@ function CandidateCard({ c, terms }: { c: Candidate; terms: string[] }) {
           }}
           className="mt-6 inline-flex h-10 items-center rounded-full bg-[#F4F6F8] px-5 text-[0.9rem] font-bold text-[#0B1A2A] hover:bg-[#E8ECF0]"
         >
-          {all
-            ? 'Replier'
-            : rest === 1
-              ? 'Voir l’autre passage'
-              : `Voir les ${rest} autres passages`}
+          {all ? 'Replier' : 'Voir tout'}
         </button>
       )}
     </li>
