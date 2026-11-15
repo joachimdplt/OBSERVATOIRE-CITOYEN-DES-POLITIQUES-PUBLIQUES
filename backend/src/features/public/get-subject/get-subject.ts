@@ -28,7 +28,10 @@ export class GetSubjectController {
       throw new NotFoundException('Sujet inconnu');
 
     const labels = await this.prisma.capLabel.findMany({
-      where: { capCode: code, status: { not: LabelStatus.rejected } },
+      where: {
+        capCode: code,
+        status: { in: [LabelStatus.proposed, LabelStatus.validated] },
+      },
       select: {
         candidateId: true,
         documentUrl: true,

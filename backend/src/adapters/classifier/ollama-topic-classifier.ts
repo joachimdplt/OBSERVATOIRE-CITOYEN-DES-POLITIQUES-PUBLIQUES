@@ -29,6 +29,8 @@ export class OllamaTopicClassifier implements TopicClassifier {
     grid: GridTopic[],
     units: UnitText[],
     corrections: Correction[] = [],
+    pick: (text: string) => Correction[] = (text) =>
+      nearestCorrections(text, corrections),
   ): Promise<TopicChoice[]> {
     // Chaque grand sujet en français, avec ses sous-sujets en exemples :
     // des extraits français se rangent mieux dans une grille en français
@@ -51,15 +53,13 @@ export class OllamaTopicClassifier implements TopicClassifier {
     for (const unit of units) {
       // Les erreurs déjà corrigées par l'équipe, les plus proches de cet
       // extrait, posées comme des réponses déjà données.
-      const examples = nearestCorrections(unit.text, corrections).flatMap(
-        (c) => [
-          {
-            role: 'user',
-            content: `${ask(c.text.slice(0, 600))}${c.reason ? `\n(Note de l’équipe : ${c.reason})` : ''}`,
-          },
-          { role: 'assistant', content: JSON.stringify({ code: c.code }) },
-        ],
-      );
+      const examples = pick(unit.text).flatMap((c) => [
+        {
+          role: 'user',
+          content: `${ask(c.text.slice(0, 600))}${c.reason ? `\n(Note de l’équipe : ${c.reason})` : ''}`,
+        },
+        { role: 'assistant', content: JSON.stringify({ code: c.code }) },
+      ]);
       const major = await this.choose(
         system,
         examples,

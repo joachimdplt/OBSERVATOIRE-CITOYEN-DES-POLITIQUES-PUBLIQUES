@@ -29,7 +29,8 @@
     "cofog:import": "tsx src/scripts/import-cofog.ts",
     "cap:import": "tsx src/scripts/import-cap.ts",
     "cap:suggest": "tsx src/scripts/suggest-cap-labels.ts",
-    "embed": "tsx src/scripts/embed-passages.ts"
+    "embed": "tsx src/scripts/embed-passages.ts",
+    "cap:vote": "tsx src/scripts/vote-cap-labels.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

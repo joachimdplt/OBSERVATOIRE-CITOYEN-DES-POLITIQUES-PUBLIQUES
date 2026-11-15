@@ -1135,6 +1135,9 @@ enum LabelStatus {
   proposed
   /// Confirmé par une personne.
   validated
+  /// Les méthodes ne sont pas d'accord : pas affiché, en attente d'une
+  /// personne qui tranche.
+  review
   /// Retiré par une personne : gardé en base, plus affiché.
   rejected
 }
@@ -1161,6 +1164,9 @@ model CapLabel {
   proposedAt  DateTime    @default(now())
   decidedById String?
   decidedAt   DateTime?
+  /// Le sujet proposé par chaque méthode du vote (grille, voisins, modèle),
+  /// pour la relecture : [{ method, code }].
+  proposals   Json?
   /// Pourquoi une personne a rangé ou retiré ce chapitre, en une phrase :
   /// le modèle la lit avec l'exemple corrigé.
   reason      String?
@@ -1185,4 +1191,17 @@ model PassageVector {
   createdAt DateTime @default(now())
 
   @@map("passage_vectors")
+}
+
+/// Le vecteur d'un sujet de la grille (son intitulé français et sa
+/// définition officielle), calculé par le même modèle que les passages :
+/// un passage se compare directement aux sujets.
+model TopicVector {
+  code      String
+  model     String
+  vector    Bytes
+  createdAt DateTime @default(now())
+
+  @@id([code, model])
+  @@map("topic_vectors")
 }

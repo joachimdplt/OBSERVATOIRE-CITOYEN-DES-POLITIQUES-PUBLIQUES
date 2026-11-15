@@ -34,6 +34,8 @@ export interface TopicClassifier {
     grid: GridTopic[],
     units: UnitText[],
     corrections?: Correction[],
+    /** Le choix des exemples pour un texte ; par défaut, les plus proches. */
+    pick?: (text: string) => Correction[],
   ): Promise<TopicChoice[]>;
 }
 
