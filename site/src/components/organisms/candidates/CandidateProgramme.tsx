@@ -1,8 +1,9 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowUpRight, ChevronDown } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CandidateProgramme as Programme } from '../../../types/public'
 import { figuresIn } from '../../../utils/highlight'
+import { smoothScrollTo } from '../../../utils/scroll'
 import { QuoteText } from '../../molecules/QuoteText'
 
 const MUTED = 'text-[#5B6470]'
@@ -197,44 +198,219 @@ function Outline({ outline }: { outline: Programme['outline'] }) {
   )
 }
 
-/** Les premiers passages chiffrés ; les autres se déplient. */
-const FIGURED_SHOWN = 12
+type Figure = Programme['figured'][number]
 
-/** Tous les passages chiffrés, dans l'ordre du programme, chiffres surlignés. */
-function Figured({ figured }: { figured: Programme['figured'] }) {
-  const [all, setAll] = useState(false)
-  const shown = all ? figured : figured.slice(0, FIGURED_SHOWN)
+/** Les premiers passages d'un chapitre ; les autres se déplient. */
+const CHAPTER_SHOWN = 4
+
+/**
+ * Les passages chiffrés regroupés comme le programme : par document (le
+ * chapitre), puis par rubrique, chaque titre une seule fois.
+ */
+function byChapter(figured: Figure[]) {
+  const groups: {
+    title: string
+    url: string
+    sections: { heading: string; quotes: string[] }[]
+    count: number
+  }[] = []
+  for (const f of figured) {
+    let g = groups.at(-1)
+    if (!g || g.url !== f.document.url) {
+      g = {
+        title: f.document.title,
+        url: f.document.url,
+        sections: [],
+        count: 0,
+      }
+      groups.push(g)
+    }
+    g.count++
+    const heading = f.heading === f.document.title ? '' : f.heading
+    const last = g.sections.at(-1)
+    if (last && last.heading === heading) last.quotes.push(f.quote)
+    else g.sections.push({ heading, quotes: [f.quote] })
+  }
+  return groups
+}
+
+/**
+ * Tous les passages chiffrés, dans l'ordre du programme, lus comme un sujet :
+ * un panneau fixe des chapitres (celui qu'on lit en surbrillance) et, à côté,
+ * une carte par chapitre, chiffres surlignés.
+ */
+function Figured({ figured }: { figured: Figure[] }) {
+  const groups = byChapter(figured)
+  const [active, setActive] = useState(0)
+  const bar = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries)
+          if (e.isIntersecting)
+            setActive(Number(e.target.id.replace('chiffres-', '')))
+      },
+      { rootMargin: '-30% 0px -65% 0px' },
+    )
+    groups.forEach((_, i) => {
+      const el = document.getElementById(`chiffres-${i}`)
+      if (el) observer.observe(el)
+    })
+    return () => observer.disconnect()
+  }, [groups.length])
+
+  useEffect(() => {
+    bar.current
+      ?.querySelector(`[data-index="${active}"]`)
+      ?.scrollIntoView({ inline: 'nearest', block: 'nearest' })
+  }, [active])
+
+  const go = (i: number) => {
+    const el = document.getElementById(`chiffres-${i}`)
+    if (el) smoothScrollTo(el)
+  }
+
   return (
-    <div className="rounded-[28px] bg-white p-6 md:p-8">
-      <p className="font-extrabold text-[#0B1A2A]">
-        Ses passages chiffrés · {figured.length}
-      </p>
-      <p className={`mt-1 text-[0.88rem] ${MUTED}`}>
-        Tous, dans l’ordre du programme, mot pour mot ; les chiffres sont
-        surlignés.
-      </p>
-      <ol className="mt-5 space-y-5 border-l-2 border-[#0B1A2A]/10 pl-5 md:pl-7">
-        {shown.map((f, i) => (
-          <li key={i}>
-            <p className={`mb-1 text-[0.8rem] font-bold ${MUTED}`}>
-              {documentName(f.document.title)}
-              {f.heading && f.heading !== f.document.title
-                ? ` · ${f.heading}`
-                : ''}
-            </p>
-            <QuoteText text={f.quote} terms={figuresIn(f.quote)} />
-          </li>
+    <div>
+      <div className="rounded-[28px] bg-white p-6 md:p-8">
+        <p className="font-extrabold text-[#0B1A2A]">
+          Ses passages chiffrés · {figured.length}
+        </p>
+        <p className={`mt-1 text-[0.88rem] ${MUTED}`}>
+          Tous, dans l’ordre du programme, mot pour mot ; les chiffres sont
+          surlignés.
+        </p>
+      </div>
+
+      <div className="mt-5 grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
+        <aside className="hidden lg:block">
+          <nav className="sticky top-[110px] max-h-[calc(100vh-130px)] overflow-y-auto rounded-[28px] bg-white p-3">
+            <ul className="space-y-1">
+              {groups.map((g, i) => (
+                <li key={g.url}>
+                  <button
+                    type="button"
+                    onClick={() => go(i)}
+                    className={`flex w-full items-baseline gap-3 rounded-[14px] px-3 py-2 text-left text-[0.86rem] leading-snug font-bold transition-colors ${
+                      active === i
+                        ? 'bg-[#0B1A2A] text-white'
+                        : 'text-[#0B1A2A] hover:bg-[#F4F6F8]'
+                    }`}
+                  >
+                    <span className="flex-1">{documentName(g.title)}</span>
+                    <span
+                      className={`shrink-0 tabular-nums ${
+                        active === i ? 'text-white/70' : MUTED
+                      }`}
+                    >
+                      {g.count}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </aside>
+
+        <div className="min-w-0">
+          {/* Sur téléphone, la barre des chapitres reste en haut. */}
+          <nav
+            ref={bar}
+            className="sticky top-[86px] z-[4] -mx-6 flex gap-2 overflow-x-auto bg-[#F4F6F8]/90 px-6 py-2 backdrop-blur lg:hidden"
+          >
+            {groups.map((g, i) => (
+              <button
+                key={g.url}
+                type="button"
+                data-index={i}
+                onClick={() => go(i)}
+                className={`max-w-[240px] shrink-0 truncate rounded-full px-3.5 py-1.5 text-[0.82rem] font-bold transition-colors ${
+                  active === i
+                    ? 'bg-[#0B1A2A] text-white'
+                    : 'bg-white text-[#0B1A2A]'
+                }`}
+              >
+                {documentName(g.title)} · {g.count}
+              </button>
+            ))}
+          </nav>
+
+          <ol className="mt-4 space-y-5 lg:mt-0">
+            {groups.map((g, i) => (
+              <Chapter key={g.url} index={i} group={g} />
+            ))}
+          </ol>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Chapter({
+  index,
+  group: g,
+}: {
+  index: number
+  group: ReturnType<typeof byChapter>[number]
+}) {
+  const [all, setAll] = useState(false)
+  const card = useRef<HTMLLIElement>(null)
+  // Les premiers passages du chapitre, rubrique par rubrique.
+  let left = all ? Infinity : CHAPTER_SHOWN
+  const sections = g.sections
+    .map((s) => {
+      const quotes = s.quotes.slice(0, Math.max(0, left))
+      left -= quotes.length
+      return { ...s, quotes }
+    })
+    .filter((s) => s.quotes.length > 0)
+  return (
+    <li
+      ref={card}
+      id={`chiffres-${index}`}
+      className="scroll-mt-32 rounded-[28px] bg-white p-5 md:p-8"
+    >
+      <a
+        href={g.url}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#F4F6F8] px-3 py-1 text-[0.82rem] font-bold text-[#0B1A2A] no-underline hover:underline"
+      >
+        <span className="truncate">{documentName(g.title)}</span>
+        <span className={`shrink-0 font-semibold ${MUTED}`}>
+          · {g.count} passage{g.count > 1 ? 's' : ''}
+        </span>
+        <ArrowUpRight size={12} className="shrink-0" />
+      </a>
+      <div className="mt-4 space-y-5 border-l-2 border-[#0B1A2A]/10 pl-5 md:pl-7">
+        {sections.map((s, k) => (
+          <div key={k}>
+            {s.heading && (
+              <p className={`mb-2 text-[0.85rem] font-bold ${MUTED}`}>
+                {s.heading}
+              </p>
+            )}
+            <div className="space-y-4">
+              {s.quotes.map((q, j) => (
+                <QuoteText key={j} text={q} terms={figuresIn(q)} />
+              ))}
+            </div>
+          </div>
         ))}
-      </ol>
-      {figured.length > FIGURED_SHOWN && (
+      </div>
+      {g.count > CHAPTER_SHOWN && (
         <button
           type="button"
-          onClick={() => setAll(!all)}
+          onClick={() => {
+            if (all && card.current) smoothScrollTo(card.current)
+            setAll(!all)
+          }}
           className="mt-6 inline-flex h-10 items-center rounded-full bg-[#F4F6F8] px-5 text-[0.9rem] font-bold text-[#0B1A2A] hover:bg-[#E8ECF0]"
         >
           {all ? 'Replier' : 'Voir tout'}
         </button>
       )}
-    </div>
+    </li>
   )
 }
