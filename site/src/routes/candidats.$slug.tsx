@@ -65,10 +65,11 @@ function CandidatePage() {
   return (
     <main>
       <section className="px-6 pt-20 pb-6 md:px-10">
-        <div className="mx-auto grid max-w-[1120px] gap-8 md:grid-cols-[220px_minmax(0,1fr)] md:items-start">
+        <div className="mx-auto grid max-w-[1120px] gap-8 md:grid-cols-[300px_minmax(0,1fr)] md:items-stretch">
           <CandidatePortrait
             name={c.name}
             photo={c.photo}
+            fill
             className="w-[180px] md:w-full"
           />
           <div>

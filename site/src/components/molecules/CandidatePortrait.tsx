@@ -10,25 +10,32 @@ export function CandidatePortrait({
   photo,
   className = '',
   plain = false,
+  fill = false,
 }: {
   name: string
   photo: CandidatePhoto | null
   className?: string
   /** Sans la ligne de crédit (une petite carte) : le crédit passe en infobulle. */
   plain?: boolean
+  /** Sur ordinateur, la photo prend toute la hauteur du bloc qui l'entoure. */
+  fill?: boolean
 }) {
   const credit = photo
     ? `Photo ${photo.author ?? 'Wikimedia Commons'}${photo.licence ? `, ${photo.licence}` : ''}`
     : ''
   return (
-    <figure className={`min-w-0 ${className}`}>
+    <figure
+      className={`min-w-0 ${fill ? 'md:flex md:h-full md:flex-col' : ''} ${className}`}
+    >
       {photo ? (
         <img
           src={photo.url}
           alt={`Photo de ${name}`}
           title={credit}
           loading="lazy"
-          className="aspect-square w-full rounded-[18px] bg-[#E8ECF0] object-cover object-top grayscale"
+          className={`aspect-square w-full rounded-[18px] bg-[#E8ECF0] object-cover object-top grayscale ${
+            fill ? 'md:aspect-auto md:min-h-[260px] md:flex-1' : ''
+          }`}
         />
       ) : (
         <div className="flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-[18px] bg-[#E8ECF0] px-4 text-center">
