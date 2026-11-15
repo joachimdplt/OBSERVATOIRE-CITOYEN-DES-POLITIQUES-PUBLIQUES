@@ -97,7 +97,9 @@ export async function collectProgrammes(
       // chaque visite (jetons, horodatages) sans que son texte change.
       const content = createHash('sha256')
         .update(
-          file.passages.map((p) => `${p.heading}\n${p.text}`).join('\n\n'),
+          file.passages
+            .map((p) => `${p.page ? `${p.page}\n` : ''}${p.heading}\n${p.text}`)
+            .join('\n\n'),
         )
         .digest('hex');
       const sourceRef = `${url}#${content.slice(0, 16)}`;
@@ -124,6 +126,7 @@ export async function collectProgrammes(
           measures: {
             create: file.passages.map((p, position) => ({
               position,
+              page: p.page ?? null,
               article: p.heading || file.title,
               quote: p.text,
               origin: Origin.automatic,

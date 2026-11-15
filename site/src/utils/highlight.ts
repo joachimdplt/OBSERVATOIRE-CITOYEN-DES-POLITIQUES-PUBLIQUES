@@ -59,7 +59,7 @@ export const meaningfulHeading = (heading: string) =>
     .filter((w) => /\p{L}{2,}/u.test(w)).length >= 2 ||
   // Un mot seul vaut titre (« Immigration », « Fraude »), sauf les mots de
   // mise en page.
-  (/^\p{Lu}\p{L}{4,}$/u.test(heading.trim()) &&
+  (/^\p{Lu}[\p{L}-]{4,}$/u.test(heading.trim()) &&
     !/^(sommaire|introduction|pr[ée]ambule|[ée]dito(rial)?|conclusion|annexes?|accueil|menu|contact|recherche)$/i.test(
       heading.trim(),
     ))

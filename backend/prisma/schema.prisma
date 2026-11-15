@@ -614,6 +614,9 @@ model Measure {
   /// Le rang du passage dans son document (0 pour le premier), pour le lire
   /// dans l'ordre des chapitres.
   position    Int?
+  /// La page du PDF d'où vient le passage (1 pour la première), pour le
+  /// citer et l'ouvrir à sa page. Vide pour une page web.
+  page        Int?
   createdById String
   createdAt   DateTime          @default(now())
   document    PoliticalDocument @relation(fields: [documentId], references: [id])

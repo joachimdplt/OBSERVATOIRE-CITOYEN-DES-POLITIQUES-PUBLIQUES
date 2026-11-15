@@ -1,7 +1,10 @@
 import { watchMatch } from './parliament';
 
-/** Un passage d'un programme : sa rubrique, et son texte mot pour mot. */
-export type ProgrammePassage = { heading: string; text: string };
+/**
+ * Un passage d'un programme : sa rubrique, son texte mot pour mot, et la
+ * page du PDF d'où il vient (absente pour une page web).
+ */
+export type ProgrammePassage = { heading: string; text: string; page?: number };
 
 /** Un passage plus court ne porte pas une proposition : un titre, une page. */
 const MIN_LENGTH = 40;

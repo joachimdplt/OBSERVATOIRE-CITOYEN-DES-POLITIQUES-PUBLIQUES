@@ -16,7 +16,7 @@ const meaningful = (h: string) =>
     .filter((w) => /\p{L}{2,}/u.test(w)).length >= 2 ||
   // Un mot seul vaut titre (« Immigration », « Fraude »), sauf les mots de
   // mise en page.
-  (/^\p{Lu}\p{L}{4,}$/u.test(h.trim()) &&
+  (/^\p{Lu}[\p{L}-]{4,}$/u.test(h.trim()) &&
     !/^(sommaire|introduction|pr[ée]ambule|[ée]dito(rial)?|conclusion|annexes?|accueil|menu|contact|recherche)$/i.test(
       h.trim(),
     ));
@@ -73,6 +73,7 @@ export class GetCandidateProgrammeController {
         article: true,
         quote: true,
         position: true,
+        page: true,
         _count: { select: { topics: true } },
       },
       orderBy: { position: 'asc' },
@@ -148,16 +149,18 @@ export class GetCandidateProgrammeController {
         others.map((m) => m.quote),
         { exclude: [candidate.name] },
       ),
-      figured: mine
-        .filter((m) => isFigured(m.quote))
-        .map((m) => ({
-          heading: m.article,
-          quote: m.quote,
-          document: {
-            title: docOf.get(m.documentId)?.title ?? '',
-            url: docOf.get(m.documentId)?.url ?? '',
-          },
-        })),
+      // Tout le programme, dans l'ordre, chaque passage avec sa page : le
+      // site le lit chapitre par chapitre, chiffres surlignés.
+      passages: mine.map((m) => ({
+        heading: m.article,
+        quote: m.quote,
+        page: m.page,
+        figured: isFigured(m.quote),
+        document: {
+          title: docOf.get(m.documentId)?.title ?? '',
+          url: docOf.get(m.documentId)?.url ?? '',
+        },
+      })),
     };
   }
 }

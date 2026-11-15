@@ -139,7 +139,7 @@ export function CandidateProgramme({
 
         <Outline outline={p.outline} />
 
-        {p.figured.length > 0 && <Figured figured={p.figured} />}
+        {p.passages.length > 0 && <Reader passages={p.passages} />}
       </div>
     </section>
   )
@@ -223,27 +223,40 @@ function Outline({ outline }: { outline: Programme['outline'] }) {
   )
 }
 
-type Figure = Programme['figured'][number]
+type Passage = Programme['passages'][number]
 
-/** Les premiers passages d'un chapitre ; les autres se déplient. */
-const CHAPTER_SHOWN = 4
+/** L'adresse d'un passage : la page du PDF, ou le texte dans la page web. */
+const passageHref = (url: string, p: { page: number | null; text: string }) =>
+  p.page ? `${url}#page=${p.page}` : atText(url, p.text.slice(0, 80))
 
 /**
- * Les passages chiffrés regroupés comme le programme : par document (le
- * chapitre), puis par rubrique, chaque titre une seule fois.
+ * Le programme regroupé comme il est écrit : par document, ou par ses
+ * propres titres quand le candidat ne publie qu'un document ou deux ; sans
+ * titre, par page du PDF. Chaque rubrique une seule fois.
  */
-function byChapter(figured: Figure[]) {
+function byChapter(passages: Passage[]) {
   const groups: {
     title: string
+    /** Le nom du chapitre dans le panneau : son titre, sa page ou son document. */
+    label: string
     url: string
-    sections: { heading: string; quotes: string[] }[]
+    sections: {
+      heading: string
+      quotes: { text: string; page: number | null }[]
+    }[]
     count: number
   }[] = []
-  for (const f of figured) {
+  const byHeading = new Set(passages.map((f) => f.document.url)).size < 3
+  for (const f of passages) {
+    const heading = f.heading === f.document.title ? '' : f.heading
+    const label = !byHeading
+      ? documentName(f.document.title)
+      : heading || (f.page ? `Page ${f.page}` : documentName(f.document.title))
     let g = groups.at(-1)
-    if (!g || g.url !== f.document.url) {
+    if (!g || g.url !== f.document.url || (byHeading && g.label !== label)) {
       g = {
         title: f.document.title,
+        label,
         url: f.document.url,
         sections: [],
         count: 0,
@@ -251,21 +264,22 @@ function byChapter(figured: Figure[]) {
       groups.push(g)
     }
     g.count++
-    const heading = f.heading === f.document.title ? '' : f.heading
+    const quote = { text: f.quote, page: f.page }
     const last = g.sections.at(-1)
-    if (last && last.heading === heading) last.quotes.push(f.quote)
-    else g.sections.push({ heading, quotes: [f.quote] })
+    if (last && last.heading === heading) last.quotes.push(quote)
+    else g.sections.push({ heading, quotes: [quote] })
   }
   return groups
 }
 
 /**
- * Tous les passages chiffrés, dans l'ordre du programme, lus comme un sujet :
- * un panneau fixe des chapitres (celui qu'on lit en surbrillance) et, à côté,
- * une carte par chapitre, chiffres surlignés.
+ * Tout le programme, dans son ordre, en entier : un panneau fixe des
+ * chapitres (celui qu'on lit en surbrillance) et, à côté, une carte par
+ * chapitre, chiffres surlignés, chaque passage avec sa page.
  */
-function Figured({ figured }: { figured: Figure[] }) {
-  const groups = byChapter(figured)
+function Reader({ passages }: { passages: Passage[] }) {
+  const groups = byChapter(passages)
+  const figured = passages.filter((p) => p.figured).length
   const [active, setActive] = useState(0)
   const bar = useRef<HTMLElement>(null)
 
@@ -274,12 +288,12 @@ function Figured({ figured }: { figured: Figure[] }) {
       (entries) => {
         for (const e of entries)
           if (e.isIntersecting)
-            setActive(Number(e.target.id.replace('chiffres-', '')))
+            setActive(Number(e.target.id.replace('chapitre-', '')))
       },
       { rootMargin: '-30% 0px -65% 0px' },
     )
     groups.forEach((_, i) => {
-      const el = document.getElementById(`chiffres-${i}`)
+      const el = document.getElementById(`chapitre-${i}`)
       if (el) observer.observe(el)
     })
     return () => observer.disconnect()
@@ -292,7 +306,7 @@ function Figured({ figured }: { figured: Figure[] }) {
   }, [active])
 
   const go = (i: number) => {
-    const el = document.getElementById(`chiffres-${i}`)
+    const el = document.getElementById(`chapitre-${i}`)
     if (el) smoothScrollTo(el)
   }
 
@@ -300,7 +314,8 @@ function Figured({ figured }: { figured: Figure[] }) {
     <div>
       <div className="rounded-[28px] bg-white p-6 md:p-8">
         <p className="font-extrabold text-[#0B1A2A]">
-          Ses passages chiffrés · {figured.length}
+          Son programme, chapitre par chapitre · {passages.length} passages,
+          dont {figured} chiffrés
         </p>
       </div>
 
@@ -309,7 +324,7 @@ function Figured({ figured }: { figured: Figure[] }) {
           <nav className="sticky top-[110px] max-h-[calc(100vh-130px)] overflow-y-auto rounded-[28px] bg-white p-3">
             <ul className="space-y-1">
               {groups.map((g, i) => (
-                <li key={g.url}>
+                <li key={`${g.url}-${i}`}>
                   <button
                     type="button"
                     onClick={() => go(i)}
@@ -319,7 +334,7 @@ function Figured({ figured }: { figured: Figure[] }) {
                         : 'text-[#0B1A2A] hover:bg-[#F4F6F8]'
                     }`}
                   >
-                    <span className="flex-1">{documentName(g.title)}</span>
+                    <span className="flex-1">{g.label}</span>
                     <span
                       className={`shrink-0 tabular-nums ${
                         active === i ? 'text-white/70' : MUTED
@@ -342,7 +357,7 @@ function Figured({ figured }: { figured: Figure[] }) {
           >
             {groups.map((g, i) => (
               <button
-                key={g.url}
+                key={`${g.url}-${i}`}
                 type="button"
                 data-index={i}
                 onClick={() => go(i)}
@@ -352,14 +367,14 @@ function Figured({ figured }: { figured: Figure[] }) {
                     : 'bg-white text-[#0B1A2A]'
                 }`}
               >
-                {documentName(g.title)} · {g.count}
+                {g.label} · {g.count}
               </button>
             ))}
           </nav>
 
           <ol className="mt-4 space-y-5 lg:mt-0">
             {groups.map((g, i) => (
-              <Chapter key={g.url} index={i} group={g} />
+              <Chapter key={`${g.url}-${i}`} index={i} group={g} />
             ))}
           </ol>
         </div>
@@ -375,52 +390,45 @@ function Chapter({
   index: number
   group: ReturnType<typeof byChapter>[number]
 }) {
-  const [all, setAll] = useState(false)
   const card = useRef<HTMLLIElement>(null)
-  // Un titre cliqué dans la mosaïque : le chapitre qui le porte s'ouvre en
-  // entier et défile jusqu'à sa première rubrique.
+  // Un titre cliqué dans la mosaïque : la page défile jusqu'à lui.
   useEffect(() => {
     const open = (e: Event) => {
       const key = (e as CustomEvent<string>).detail
-      if (!g.sections.some((s) => headingKey(s.heading) === key)) return
-      setAll(true)
-      requestAnimationFrame(() => {
-        const el = card.current?.querySelector(`[data-heading="${key}"]`)
-        if (el instanceof HTMLElement) smoothScrollTo(el)
-      })
+      const el = card.current?.querySelector(`[data-heading="${key}"]`)
+      if (el instanceof HTMLElement) smoothScrollTo(el)
     }
     window.addEventListener(OPEN_HEADING, open)
     return () => window.removeEventListener(OPEN_HEADING, open)
   }, [g])
-  // Les premiers passages du chapitre, rubrique par rubrique.
-  let left = all ? Infinity : CHAPTER_SHOWN
-  const sections = g.sections
-    .map((s) => {
-      const quotes = s.quotes.slice(0, Math.max(0, left))
-      left -= quotes.length
-      return { ...s, quotes }
-    })
-    .filter((s) => s.quotes.length > 0)
+  const pages = g.sections.flatMap((s) => s.quotes.map((q) => q.page ?? 0))
+  const from = Math.min(...pages.filter(Boolean))
+  const to = Math.max(...pages)
   return (
     <li
       ref={card}
-      id={`chiffres-${index}`}
+      id={`chapitre-${index}`}
       className="scroll-mt-32 rounded-[28px] bg-white p-5 md:p-8"
     >
       <a
-        href={g.url}
+        href={from ? `${g.url}#page=${from}` : g.url}
         target="_blank"
         rel="noreferrer"
         className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#F4F6F8] px-3 py-1 text-[0.82rem] font-bold text-[#0B1A2A] no-underline hover:underline"
       >
         <span className="truncate">{documentName(g.title)}</span>
+        {from > 0 && (
+          <span className="shrink-0 font-semibold">
+            · {from === to ? `p. ${from}` : `p. ${from} à ${to}`}
+          </span>
+        )}
         <span className={`shrink-0 font-semibold ${MUTED}`}>
           · {g.count} passage{g.count > 1 ? 's' : ''}
         </span>
         <ArrowUpRight size={12} className="shrink-0" />
       </a>
       <div className="mt-4 space-y-5 border-l-2 border-[#0B1A2A]/10 pl-5 md:pl-7">
-        {sections.map((s, k) => (
+        {g.sections.map((s, k) => (
           <div
             key={k}
             data-heading={headingKey(s.heading)}
@@ -428,34 +436,37 @@ function Chapter({
           >
             {s.heading && (
               <a
-                href={atText(g.url, s.heading)}
+                href={passageHref(g.url, {
+                  page: s.quotes[0].page,
+                  text: s.heading,
+                })}
                 target="_blank"
                 rel="noreferrer"
-                className={`mb-2 block text-[0.85rem] font-bold ${MUTED} no-underline hover:text-[#0B1A2A] hover:underline`}
+                className={`mb-2 block text-[1rem] font-extrabold text-[#0B1A2A] no-underline hover:underline`}
               >
                 {s.heading}
               </a>
             )}
             <div className="space-y-4">
               {s.quotes.map((q, j) => (
-                <QuoteText key={j} text={q} terms={figuresIn(q)} />
+                <div key={j}>
+                  <QuoteText text={q.text} terms={figuresIn(q.text)} />
+                  {q.page && (
+                    <a
+                      href={`${g.url}#page=${q.page}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`mt-1 inline-block text-[0.78rem] font-semibold ${MUTED} no-underline hover:text-[#0B1A2A] hover:underline`}
+                    >
+                      p. {q.page}
+                    </a>
+                  )}
+                </div>
               ))}
             </div>
           </div>
         ))}
       </div>
-      {g.count > CHAPTER_SHOWN && (
-        <button
-          type="button"
-          onClick={() => {
-            if (all && card.current) smoothScrollTo(card.current)
-            setAll(!all)
-          }}
-          className="mt-6 inline-flex h-10 items-center rounded-full bg-[#F4F6F8] px-5 text-[0.9rem] font-bold text-[#0B1A2A] hover:bg-[#E8ECF0]"
-        >
-          {all ? 'Replier' : 'Voir tout'}
-        </button>
-      )}
     </li>
   )
 }

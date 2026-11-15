@@ -101,7 +101,7 @@ export class WebProgrammeReader implements ProgrammeReader {
       const layoutPages = layout.stdout.split('\f');
       // Le sommaire du document, quand il en a un : ses chapitres rangent
       // chaque page, mot pour mot.
-      const contents = tableOfContents(layoutPages);
+      const contents = tableOfContents(layoutPages, xml.stdout);
       const byPage = flowPages.map((flow, i) => {
         const page = layoutPages[i] ?? '';
         const rows = tableRows(page);
@@ -117,7 +117,11 @@ export class WebProgrammeReader implements ProgrammeReader {
         // Le sommaire lui-même n'est pas un passage du programme.
         if (contents.pages.includes(i + 1)) return [];
         const chapter = chapterOf(contents.chapters, i + 1);
-        return chapter ? rows.map((r) => ({ ...r, heading: chapter })) : rows;
+        return rows.map((r) => ({
+          ...r,
+          heading: chapter ?? r.heading,
+          page: i + 1,
+        }));
       });
       return { title, passages };
     } finally {

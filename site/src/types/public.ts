@@ -395,9 +395,12 @@ export type CandidateProgramme = {
     headings: { heading: string; passages: number }[]
   }[]
   vocabulary: { word: string; count: number; ratio: number }[]
-  figured: {
+  /** Tout le programme, dans l'ordre ; la page vaut pour un PDF. */
+  passages: {
     heading: string
     quote: string
+    page: number | null
+    figured: boolean
     document: { title: string; url: string }
   }[]
 }
