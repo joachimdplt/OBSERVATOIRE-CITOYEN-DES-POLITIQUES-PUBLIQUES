@@ -179,11 +179,20 @@ function CandidateCard({ index, candidate: c }: { index: number; candidate: Cand
             {c.name}
           </span>
           <span className={`block text-[0.85rem] font-semibold ${MUTED}`}>
-            {c.party ?? 'Sans étiquette'} · lire tout son programme
+            {c.party ?? 'Sans étiquette'} ·{' '}
+            {c.programmeStatus === 'complete'
+              ? 'lire tout son programme'
+              : 'lire ses documents'}
           </span>
         </span>
       </Link>
 
+      {c.programmeStatus !== 'complete' && c.programmeNote && (
+        <p className={`mt-4 rounded-[14px] bg-[#F4F6F8] px-4 py-3 text-[0.88rem] leading-relaxed ${MUTED}`}>
+          <span className="font-bold text-[#0B1A2A]">Documents partiels.</span>{' '}
+          {c.programmeNote}
+        </p>
+      )}
       <div className="mt-6 space-y-8">
         {c.chapters.map((ch, i) => {
           const page = ch.excerpt[0]?.page ?? null

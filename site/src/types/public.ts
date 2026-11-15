@@ -460,6 +460,8 @@ export type Subject = {
     name: string
     party: string | null
     photo: string | null
+    programmeStatus: ProgrammeStatus
+    programmeNote: string | null
     chapters: {
       heading: string
       document: { title: string; url: string }

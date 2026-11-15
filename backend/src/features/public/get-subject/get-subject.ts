@@ -60,7 +60,15 @@ export class GetSubjectController {
     );
     const candidates = await this.prisma.candidate.findMany({
       where: { election: { slug: 'presidentielle-2027' } },
-      select: { id: true, slug: true, name: true, party: true, photoUrl: true },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        party: true,
+        photoUrl: true,
+        programmeStatus: true,
+        programmeNote: true,
+      },
       orderBy: { name: 'asc' },
     });
 
@@ -106,6 +114,10 @@ export class GetSubjectController {
           name: c.name,
           party: c.party,
           photo: c.photoUrl,
+          // Ce que sont ses documents (programme complet, contre-budget…),
+          // pour qu'une citation ne passe pas pour plus qu'elle n'est.
+          programmeStatus: c.programmeStatus,
+          programmeNote: c.programmeNote,
           chapters: byCandidate.get(c.id)!,
         })),
       without: candidates
