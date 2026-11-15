@@ -7,6 +7,7 @@ import { promisify } from 'node:util';
 import { gunzipSync } from 'node:zlib';
 import { HTMLElement, Node, TextNode, parse } from 'node-html-parser';
 import { readPdfLayout } from '../../domain/pdf-layout';
+import { chapterOf, tableOfContents } from '../../domain/table-of-contents';
 import {
   pdfParagraphs,
   splitProgramme,
@@ -98,7 +99,10 @@ export class WebProgrammeReader implements ProgrammeReader {
       // paragraphes sous leurs titres.
       const flowPages = stdout.split('\f');
       const layoutPages = layout.stdout.split('\f');
-      const passages = flowPages.flatMap((flow, i) => {
+      // Le sommaire du document, quand il en a un : ses chapitres rangent
+      // chaque page, mot pour mot.
+      const contents = tableOfContents(layoutPages);
+      const byPage = flowPages.map((flow, i) => {
         const page = layoutPages[i] ?? '';
         const rows = tableRows(page);
         if (rows.length >= 5) return rows;
@@ -108,6 +112,12 @@ export class WebProgrammeReader implements ProgrammeReader {
         // Les titres lus par leur taille ; à défaut, devinés dans le texte.
         if (fonts) return fonts[i] ?? [];
         return splitProgramme(pdfParagraphs(flow));
+      });
+      const passages = byPage.flatMap((rows, i) => {
+        // Le sommaire lui-même n'est pas un passage du programme.
+        if (contents.pages.includes(i + 1)) return [];
+        const chapter = chapterOf(contents.chapters, i + 1);
+        return chapter ? rows.map((r) => ({ ...r, heading: chapter })) : rows;
       });
       return { title, passages };
     } finally {
