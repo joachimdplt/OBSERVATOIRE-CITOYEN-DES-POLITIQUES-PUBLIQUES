@@ -151,7 +151,7 @@ tout ce qu'il a vu.
   des commentaires ; les chaînes des médias.
 - **Non lus** : les vues et les notes des vidéos.
 
-Au 15 novembre 2026 : 16 chaînes (5 de candidats, 9 de partis, 2
+Au 15 novembre 2026 : 15 chaînes (5 de candidats, 8 de partis, 2
 d'institutions) ; aucune chaîne n'est liée depuis les sites du Rassemblement
 national et des Écologistes.
 
