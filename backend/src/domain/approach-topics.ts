@@ -12,6 +12,9 @@ const normalize = (s: string | null | undefined) =>
     .normalize('NFD')
     .replace(/\p{M}/gu, '')
     .replace(/[’']/g, "'")
+    // Les tournures « ce que », « ce qu' » sont retirées des noms : la table
+    // les écrit sans, comme le reste des textes du dépôt.
+    .replace(/\bce qu(e |')/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -93,7 +96,7 @@ const INDICATORS: Record<string, string> = {
   cambriolages: '12',
   'vols violents sans arme': '12',
   // L'argent public
-  "ce que l'etat depense, ce qu'il preleve": '1',
+  "l'etat depense, il preleve": '1',
   'solde des comptes publics': '1',
   'interets de la dette publique': '1',
   'agents de la fonction publique, par employeur': '20',
@@ -132,7 +135,7 @@ const INDICATORS: Record<string, string> = {
   'emplois dans des entreprises sous controle etranger': '18',
   "defaillances d'entreprises industrielles": '15',
   // La France et l'Europe
-  "budget europeen : ce que la france verse, ce qu'elle recoit": '19',
+  'budget europeen : la france verse, elle recoit': '19',
   'solde de la france avec le budget europeen': '19',
   'travailleurs detaches en france': '5',
   'brevets europeens : france et allemagne': '17',
