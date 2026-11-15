@@ -328,10 +328,18 @@ const CONTINUED = /^(.*\S)\s{2,}([+\-−]?\s?\d+(?:[.,]\d+)?)$/;
 /** Une année seule n'est pas un montant. */
 const YEAR = /^(19|20)\d\d$/;
 
+/** Les noms propres qu'un titre en capitales ne doit pas perdre. */
+const PROPER =
+  /\b(france|français(es?)?|europe|européen(ne)?s?|ue|état|république|macron|afrique|allemagne)\b/giu;
+
 /** Un titre de carte en capitales s'écrit en minuscules, à l'initiale près. */
 const sentenceCase = (title: string) =>
   title === title.toUpperCase()
-    ? title.charAt(0) + title.slice(1).toLowerCase()
+    ? (title.charAt(0) + title.slice(1).toLowerCase()).replace(PROPER, (w) =>
+        w.length <= 2
+          ? w.toUpperCase()
+          : w.charAt(0).toUpperCase() + w.slice(1),
+      )
     : title;
 
 const isFigured = (line: string) =>
@@ -367,6 +375,11 @@ export function cardRows(page: string): ProgrammePassage[] {
   if (band.length) bands.push(band);
 
   const out: ProgrammePassage[] = [];
+  // Le titre de la page, écrit en capitales au-dessus des cartes
+  // (« HÉRITAGE – LA FRANCE SE TROUVE DANS UNE SITUATION BUDGÉTAIRE
+  // DRAMATIQUE ») : il dit de quoi parlent les chiffres, un constat ou une
+  // proposition ; chaque carte qui n'a pas de section le garde.
+  let pageTitle = '';
   for (const band of bands) {
     // Un intitulé de section au-dessus des cartes (« RECETTES FISCALES »),
     // seul sur sa ligne et suivi d'une ligne vide : il chapeaute les cartes
@@ -424,10 +437,25 @@ export function cardRows(page: string): ProgrammePassage[] {
       else merged.unshift(columns[i]);
     }
     columns = merged;
-    // Une rangée d'une seule colonne est du texte suivi, pas des cartes.
-    if (columns.length < 2) continue;
+    // Une rangée d'une seule colonne est du texte suivi, pas des cartes ;
+    // ses lignes en capitales, avant toute carte, font le titre de la page.
+    if (columns.length < 2) {
+      const caps = rows
+        .map((r) => r.trim())
+        .filter(
+          (r) =>
+            /\p{L}{3,}.*\s.*\p{L}{3,}/u.test(r) &&
+            r === r.toUpperCase() &&
+            r !== r.toLowerCase(),
+        );
+      if (!pageTitle && out.length === 0 && caps.length)
+        pageTitle = caps.join(' ').replace(/\s+/g, ' ');
+      continue;
+    }
     for (const column of columns) {
-      const section = sections.filter((h) => h.col <= column[0] + 8).at(-1);
+      const section =
+        sections.filter((h) => h.col <= column[0] + 8).at(-1) ??
+        (pageTitle ? { col: 0, text: pageTitle } : undefined);
       out.push(
         ...readCard(cut(column)).map((c) =>
           section

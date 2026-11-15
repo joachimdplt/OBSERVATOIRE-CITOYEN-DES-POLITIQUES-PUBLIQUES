@@ -211,6 +211,43 @@ describe('les infographies d’un PDF', () => {
     ]);
   });
 
+  it('le titre de la page, en capitales au-dessus des cartes, chapeaute chaque carte', () => {
+    const page = [
+      'Conférence de presse I 23 octobre 2025',
+      'HÉRITAGE – LA FRANCE SE TROUVE DANS',
+      'UNE SITUATION BUDGÉTAIRE DRAMATIQUE',
+      '',
+      '',
+      '',
+      '  DÉFICIT PUBLIC                DETTE PUBLIQUE',
+      '      (2026)                        (2026)',
+      '',
+      '',
+      '  -4,7%                         117,9%',
+      '  Moyenne zone € 2025 : -2,7%   Moyenne zone € 2025 : 88,2%',
+    ].join('\n');
+    const title =
+      'Héritage – la France se trouve dans une situation budgétaire dramatique';
+    expect(cardRows(page)).toEqual([
+      {
+        heading: `${title} · Déficit public (2026)`,
+        text: 'Déficit public (2026) : -4,7 %',
+      },
+      {
+        heading: `${title} · Déficit public (2026)`,
+        text: 'Moyenne zone € 2025 : -2,7%',
+      },
+      {
+        heading: `${title} · Dette publique (2026)`,
+        text: 'Dette publique (2026) : 117,9 %',
+      },
+      {
+        heading: `${title} · Dette publique (2026)`,
+        text: 'Moyenne zone € 2025 : 88,2%',
+      },
+    ]);
+  });
+
   it('un grand chiffre sans titre prend pour libellé la phrase écrite dessous', () => {
     const page = [
       'DÉPENSES',
