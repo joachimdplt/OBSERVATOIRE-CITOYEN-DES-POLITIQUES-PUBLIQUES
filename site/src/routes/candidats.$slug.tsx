@@ -228,10 +228,8 @@ function Videos({ candidate: c }: { candidate: CandidateSheet }) {
           Vidéos publiques
         </h2>
         <p className={`mt-4 max-w-[64ch] leading-relaxed ${MUTED}`}>
-          Seulement des sources primaires : sa propre chaîne, celle de son parti
-          (les vidéos qui le nomment), et les chaînes de l’Assemblée nationale
-          et du Sénat. Chaque chaîne est celle que donne un site officiel ou
-          Wikidata. Aucun reportage, aucun commentaire d’un tiers.
+          Le candidat, dans ses propres mots : ses vidéos, celles de son parti
+          et ses interventions à l’Assemblée et au Sénat.
         </p>
         {c.channels.length > 0 && (
           <p className={`mt-3 text-[0.9rem] ${MUTED}`}>
