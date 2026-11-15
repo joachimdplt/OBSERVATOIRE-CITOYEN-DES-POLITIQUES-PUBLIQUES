@@ -12,6 +12,7 @@ import {
   type Proposal,
 } from '../../../domain/vote';
 import {
+  EMBEDDING_MODEL,
   embedMissingPassages,
   embedTexts,
   loadVoteContext,
@@ -30,6 +31,9 @@ import { PrismaService } from '../../../prisma/prisma.service';
 
 /** Le texte d'un chapitre donné au classeur : son titre et son début. */
 const CHAPTER_TEXT = 1500;
+/** Ce que lit le modèle quand les voix ne s'accordent pas : moins, plus vite. */
+const FAST_EXAMPLES = 3;
+const FAST_TEXT = 800;
 /** Un chapitre d'au moins tant de passages parle de plusieurs sujets. */
 const LONG_CHAPTER = 15;
 /** Il se range alors par blocs d'autant de passages, chacun pour soi. */
@@ -300,74 +304,82 @@ export async function suggestCapLabels(
   report.review = 0;
 
   for (let i = 0; i < todo.length; i += 1) {
-    const batch = todo.slice(i, i + 1);
-    const unit = batch[0][1];
-    const v = ctx.vectorOf(ctx.blockOf(unit));
-    const pick = v
-      ? () =>
-          correctionVectors
-            .map((x) => ({ c: x.c, s: cosine(v, x.v) }))
-            .sort((a, b) => b.s - a.s)
-            .slice(0, 6)
-            .map((x) => x.c)
-      : undefined;
-    const choices = await classifier.classify(
-      grid,
-      batch.map(([id, c]) => ({ id, text: c.text.slice(0, CHAPTER_TEXT) })),
-      corrections,
-      pick,
-    );
-    const byId = new Map(batch);
-    for (const choice of choices) {
-      const c = byId.get(choice.id);
-      if (!c) continue;
-      const done = i + batch.findIndex(([id]) => id === choice.id) + 1;
-      const left = Math.round(
-        (((Date.now() - started) / done) * (todo.length - done)) / 60000,
+    const [id, c] = todo[i];
+    const v = ctx.vectorOf(ctx.blockOf(c));
+    const title = titles.get(c.documentUrl) ?? '';
+    const voices: Proposal[] = [
+      { method: 'grille', code: v ? nearestTopic(v, ctx.topicVectors) : null },
+      {
+        method: 'voisins',
+        code: v
+          ? neighboursTopic(v, ctx.known, `${c.candidateId}\n${c.heading}`)
+          : null,
+      },
+      { method: 'titre', code: await topicOfTitle(title) },
+      {
+        method: 'rubrique',
+        code: await topicOfTitle(`${title} — ${c.heading}`),
+      },
+    ];
+    // Le mode rapide : la grille, les voisins et le classement du candidat
+    // d'accord suffisent (juste 90 fois sur 100, ±7, sur 152 blocs relus) ;
+    // le modèle n'est interrogé que sinon.
+    const [grille, voisins, titre, rubrique] = voices.map((p) => p.code);
+    const quick =
+      grille !== null &&
+      grille === voisins &&
+      (titre === grille || rubrique === grille);
+    let model: string | null = null;
+    if (!quick) {
+      const pick = v
+        ? () =>
+            correctionVectors
+              .map((x) => ({ c: x.c, s: cosine(v, x.v) }))
+              .sort((a, b) => b.s - a.s)
+              .slice(0, FAST_EXAMPLES)
+              .map((x) => x.c)
+        : undefined;
+      const [choice] = await classifier.classify(
+        grid,
+        [{ id, text: c.text.slice(0, FAST_TEXT) }],
+        corrections,
+        pick,
       );
-      log(
-        `[${done}/${todo.length}, encore ~${left} min] ${names.get(c.candidateId) ?? '?'} · ${c.heading.slice(0, 60)}${c.fromPosition !== null ? ` (bloc ${c.fromPosition})` : ''} → ${choice.code ? labelOf.get(choice.code) : 'aucun'}`,
-      );
-      if (!choice.code) continue;
-      const title = titles.get(c.documentUrl) ?? '';
-      const proposals: Proposal[] = [
-        {
-          method: 'grille',
-          code: v ? nearestTopic(v, ctx.topicVectors) : null,
-        },
-        {
-          method: 'voisins',
-          code: v
-            ? neighboursTopic(v, ctx.known, `${c.candidateId}\n${c.heading}`)
-            : null,
-        },
-        { method: 'modele', code: choice.code },
-        { method: 'titre', code: await topicOfTitle(title) },
-        {
-          method: 'rubrique',
-          code: await topicOfTitle(`${title} — ${c.heading}`),
-        },
-      ];
-      const agreed = vote(proposals).agreed;
-      if (!agreed) report.review++;
-      await prisma.capLabel.createMany({
-        data: [
-          {
-            candidateId: c.candidateId,
-            documentUrl: c.documentUrl,
-            heading: c.heading,
-            fromPosition: c.fromPosition,
-            capCode: choice.code,
-            origin: LabelOrigin.model,
-            model: classifier.model,
-            proposals,
-            status: agreed ? LabelStatus.proposed : LabelStatus.review,
-          },
-        ],
-        skipDuplicates: true,
-      });
-      report.proposed++;
+      model = choice?.code ?? null;
     }
+    const proposals: Proposal[] = [
+      ...voices.slice(0, 2),
+      { method: 'modele', code: model },
+      ...voices.slice(2),
+    ];
+    const code = quick ? grille : model;
+    const agreed = quick || vote(proposals).agreed;
+    const done = i + 1;
+    const left = Math.round(
+      (((Date.now() - started) / done) * (todo.length - done)) / 60000,
+    );
+    log(
+      `[${done}/${todo.length}, encore ~${left} min] ${names.get(c.candidateId) ?? '?'} · ${c.heading.slice(0, 55)}${c.fromPosition !== null ? ` (bloc ${c.fromPosition})` : ''} → ${code ? labelOf.get(code) : 'aucun'} ${quick ? '(accord des voix, sans modèle)' : agreed ? '(vote d’accord)' : '(à relire)'}`,
+    );
+    if (!code) continue;
+    if (!agreed) report.review++;
+    await prisma.capLabel.createMany({
+      data: [
+        {
+          candidateId: c.candidateId,
+          documentUrl: c.documentUrl,
+          heading: c.heading,
+          fromPosition: c.fromPosition,
+          capCode: code,
+          origin: LabelOrigin.model,
+          model: quick ? EMBEDDING_MODEL : classifier.model,
+          proposals,
+          status: agreed ? LabelStatus.proposed : LabelStatus.review,
+        },
+      ],
+      skipDuplicates: true,
+    });
+    report.proposed++;
   }
   return report;
 }

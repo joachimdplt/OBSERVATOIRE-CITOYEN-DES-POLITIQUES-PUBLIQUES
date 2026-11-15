@@ -97,7 +97,17 @@ async function main() {
     ['modèle + (grille, voisins ou titre)      ', (r, s) => r.model === r.grille || r.model === r.voisins || (r.titreMarge >= s && r.model === r.titre)],
     ['modèle + (grille, voisins, titre, rubr.) ', (r, s) => r.model === r.grille || r.model === r.voisins || (r.titreMarge >= s && r.model === r.titre) || (r.rubriqueMarge >= s && r.model === r.rubrique)],
   ];
-  for (const s of [0, 0.02, 0.04]) {
+  // Sans le modèle : la grille et les voisins d'accord, avec ou sans le
+  // classement du candidat.
+  const skip: [string, (r: (typeof rows)[number]) => boolean][] = [
+    ['grille = voisins                        ', (r) => r.grille === r.voisins],
+    ['grille = voisins = (titre ou rubrique)  ', (r) => r.grille === r.voisins && (r.titre === r.grille || r.rubrique === r.grille)],
+  ];
+  for (const [name, rule] of skip) {
+    const kept = known.filter(rule);
+    console.log(`  sans modèle, ${name} précision ${pct(kept.filter((r) => r.grille === r.right).length, kept.length)} · couverture ${Math.round((100 * kept.length) / known.length)} %`);
+  }
+  for (const s of [0]) {
     console.log(`\nMarge minimale du titre : ${s}`);
     for (const [name, rule] of rules) {
       const kept = known.filter((r) => rule(r, s));
