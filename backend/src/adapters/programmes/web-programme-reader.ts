@@ -46,9 +46,14 @@ export class WebProgrammeReader implements ProgrammeReader {
     let bytes = Buffer.from(await res.arrayBuffer());
     // Une copie d'archive peut arriver compressée sans le dire.
     if (bytes[0] === 0x1f && bytes[1] === 0x8b) bytes = gunzipSync(bytes);
+    return { url: read, bytes, ...(await this.parse(bytes, url)) };
+  }
+
+  /** Le texte d'un fichier déjà reçu (PDF ou page web), découpé en passages. */
+  async parse(bytes: Buffer, url: string) {
     if (bytes.subarray(0, 4).toString() === '%PDF')
-      return { url: read, bytes, ...(await this.pdf(bytes, url)), links: [] };
-    return { url: read, bytes, ...this.html(bytes.toString('utf8'), url) };
+      return { ...(await this.pdf(bytes, url)), links: [] as string[] };
+    return this.html(bytes.toString('utf8'), url);
   }
 
   private get(url: string) {

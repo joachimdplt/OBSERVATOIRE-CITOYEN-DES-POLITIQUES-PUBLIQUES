@@ -12,7 +12,6 @@ import { MeasureComparison } from '../components/organisms/publications/MeasureC
 import { MeasureList } from '../components/organisms/publications/MeasureList'
 import { CollectedTexts } from '../components/organisms/publications/CollectedTexts'
 import { ProgrammePassages } from '../components/organisms/publications/ProgrammePassages'
-import { CandidateMosaic } from '../components/organisms/topics/CandidateMosaic'
 import { pillarLabel } from '../data/pillars'
 import {
   getPublication,
@@ -86,7 +85,7 @@ function TopicOnly({ topic }: { topic: TopicSheet }) {
   return (
     <main>
       <section className="px-6 pt-10 md:px-10">
-        <div className="mx-auto grid max-w-[1120px] items-center gap-8 rounded-[36px] bg-white p-6 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] md:p-10">
+        <div className="mx-auto max-w-[1280px] rounded-[36px] bg-white p-6 md:p-10">
           <div>
             <p className={`text-sm font-semibold ${MUTED}`}>
               {pillarLabel(topic.pillar)}
@@ -122,12 +121,11 @@ function TopicOnly({ topic }: { topic: TopicSheet }) {
               indicateurs officiels choisis, ni relecture.
             </p>
           </div>
-          <CandidateMosaic candidates={topic.candidates} />
         </div>
       </section>
       <ProgrammePassages topic={topic} />
       <section className="px-6 pb-16 md:px-10">
-        <div className="mx-auto max-w-[1120px]">
+        <div className="mx-auto max-w-[1280px]">
           <Link
             to="/enjeux"
             className="inline-flex h-12 items-center gap-2 rounded-full bg-[#0B1A2A] px-6 font-extrabold text-white no-underline hover:opacity-90"

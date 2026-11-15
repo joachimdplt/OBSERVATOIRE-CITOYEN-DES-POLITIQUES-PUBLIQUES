@@ -610,6 +610,9 @@ model Measure {
   origin      Origin            @default(team)
   /// Le pilier de la proposition, pour la ranger et la comparer.
   pillar      Pillar?
+  /// Le rang du passage dans son document (0 pour le premier), pour le lire
+  /// dans l'ordre des chapitres.
+  position    Int?
   createdById String
   createdAt   DateTime          @default(now())
   document    PoliticalDocument @relation(fields: [documentId], references: [id])

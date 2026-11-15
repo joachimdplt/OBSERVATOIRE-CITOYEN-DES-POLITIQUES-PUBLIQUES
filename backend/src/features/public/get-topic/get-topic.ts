@@ -65,7 +65,12 @@ export class GetTopicController {
           },
         },
       },
-      orderBy: { measure: { createdAt: 'asc' } },
+      // Dans l'ordre des documents (les chapitres, tels que collectés), puis
+      // du texte.
+      orderBy: [
+        { measure: { document: { createdAt: 'asc' } } },
+        { measure: { position: 'asc' } },
+      ],
     });
     const candidates = new Map(
       documents

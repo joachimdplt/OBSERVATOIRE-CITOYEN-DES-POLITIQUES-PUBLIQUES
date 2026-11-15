@@ -122,7 +122,8 @@ export async function collectProgrammes(
           fetchedAt: now,
           createdById: actorId,
           measures: {
-            create: file.passages.map((p) => ({
+            create: file.passages.map((p, position) => ({
+              position,
               article: p.heading || file.title,
               quote: p.text,
               origin: Origin.automatic,
