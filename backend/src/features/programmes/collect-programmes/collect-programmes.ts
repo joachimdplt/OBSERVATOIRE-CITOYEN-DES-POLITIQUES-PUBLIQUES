@@ -78,7 +78,20 @@ export async function collectProgrammes(
       try {
         const pattern = new RegExp(source.follow);
         const entry = await reader.read(source.url);
-        urls = entry.links.filter((l) => pattern.test(l)).slice(0, MAX_PAGES);
+        // La page d'entrée est la table du programme : elle se lit aussi,
+        // avant les pages qu'elle mène, sauf si une autre source la lit déjà.
+        const own = sources.some(
+          (o) =>
+            o.id !== source.id &&
+            o.candidateId === source.candidateId &&
+            o.url === source.url,
+        );
+        urls = [
+          ...(own ? [] : [source.url]),
+          ...entry.links
+            .filter((l) => pattern.test(l) && l !== source.url)
+            .slice(0, MAX_PAGES),
+        ];
       } catch (e) {
         report.failed.push(`${source.url} : ${String(e)}`);
         continue;

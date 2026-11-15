@@ -174,8 +174,11 @@ export class WebProgrammeReader implements ProgrammeReader {
       )
       .forEach((e) => e.remove());
     const BLOCKS = 'h1, h2, h3, h4, p, li, blockquote';
+    // Le titre d'un chapitre repliable (<summary>) compte comme un titre.
     const isBlock = (el: HTMLElement) =>
-      ['H1', 'H2', 'H3', 'H4', 'P', 'LI', 'BLOCKQUOTE'].includes(el.tagName);
+      ['H1', 'H2', 'H3', 'H4', 'P', 'LI', 'BLOCKQUOTE', 'SUMMARY'].includes(
+        el.tagName,
+      );
     const passages: ProgrammePassage[] = [];
     let heading = title;
     let chapter: string | null = null;
@@ -187,7 +190,7 @@ export class WebProgrammeReader implements ProgrammeReader {
       if (el.querySelector(BLOCKS)) continue;
       const text = clean(el);
       if (!text) continue;
-      if (/^H[1-4]$/.test(el.tagName)) heading = text;
+      if (/^(H[1-4]|SUMMARY)$/.test(el.tagName)) heading = text;
       else if (text.length >= MIN_LENGTH)
         passages.push({ heading: chapter ?? heading, text });
     }

@@ -82,6 +82,7 @@ export class GetCandidateProgrammeController {
         candidateId: true,
         title: true,
         url: true,
+        programmeSource: { select: { id: true, url: true } },
       },
       orderBy: { createdAt: 'asc' },
     });
@@ -93,7 +94,24 @@ export class GetCandidateProgrammeController {
       })),
     );
     const live = all.filter((d) => current.has(d.id));
-    const own = live.filter((d) => d.candidateId === candidate.id);
+    // Ses documents, source par source dans l'ordre où elles ont été lues ;
+    // dans une source, sa page d'entrée (la table du programme) d'abord.
+    const sourceRank = new Map<string, number>();
+    for (const d of live)
+      if (d.programmeSource && !sourceRank.has(d.programmeSource.id))
+        sourceRank.set(d.programmeSource.id, sourceRank.size);
+    const own = live
+      .filter((d) => d.candidateId === candidate.id)
+      .map((d, i) => ({ d, i }))
+      .sort(
+        (x, y) =>
+          (sourceRank.get(x.d.programmeSource?.id ?? '') ?? 0) -
+            (sourceRank.get(y.d.programmeSource?.id ?? '') ?? 0) ||
+          Number(x.d.url !== x.d.programmeSource?.url) -
+            Number(y.d.url !== y.d.programmeSource?.url) ||
+          x.i - y.i,
+      )
+      .map((e) => e.d);
 
     const measures = await this.prisma.measure.findMany({
       where: { documentId: { in: live.map((d) => d.id) } },
@@ -121,23 +139,27 @@ export class GetCandidateProgrammeController {
       );
 
     // La structure : chaque document, puis ses rubriques dans l'ordre.
-    const outline = own.map((d) => {
-      const passages = mine.filter((m) => m.documentId === d.id);
-      const headings: { heading: string; passages: number }[] = [];
-      for (const m of passages) {
-        if (!meaningful(m.article) || m.article === d.title) continue;
-        const last = headings.at(-1);
-        if (last && last.heading === m.article) last.passages++;
-        else headings.push({ heading: m.article, passages: 1 });
-      }
-      return {
-        title: d.title,
-        url: d.url,
-        fetchedAt: d.fetchedAt?.toISOString().slice(0, 10) ?? null,
-        passages: passages.length,
-        headings,
-      };
-    });
+    // Un document qui ne donne aucun passage (une page d'entrée faite de
+    // liens) ne figure pas dans la structure.
+    const outline = own
+      .filter((d) => mine.some((m) => m.documentId === d.id))
+      .map((d) => {
+        const passages = mine.filter((m) => m.documentId === d.id);
+        const headings: { heading: string; passages: number }[] = [];
+        for (const m of passages) {
+          if (!meaningful(m.article) || m.article === d.title) continue;
+          const last = headings.at(-1);
+          if (last && last.heading === m.article) last.passages++;
+          else headings.push({ heading: m.article, passages: 1 });
+        }
+        return {
+          title: d.title,
+          url: d.url,
+          fetchedAt: d.fetchedAt?.toISOString().slice(0, 10) ?? null,
+          passages: passages.length,
+          headings,
+        };
+      });
 
     const topics = await this.prisma.topicMatch.groupBy({
       by: ['topicId'],
