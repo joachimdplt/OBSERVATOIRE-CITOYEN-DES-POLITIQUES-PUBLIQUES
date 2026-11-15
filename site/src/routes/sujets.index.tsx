@@ -56,26 +56,36 @@ function SubjectsPage() {
           </ul>
         </nav>
 
-        <dl className="mt-10 grid max-w-[880px] gap-x-8 gap-y-3 text-[0.85rem] leading-relaxed sm:grid-cols-[140px_minmax(0,1fr)]">
-          <dt className="font-bold text-[#0B1A2A]">Grille</dt>
-          <dd className={MUTED}>
-            <a
-              href="https://www.comparativeagendas.net/"
-              target="_blank"
-              rel="noreferrer"
-              className="font-semibold text-[#0B1A2A] hover:underline"
-            >
-              Comparative Agendas Project
-            </a>
-            {data.version ? `, version ${data.version}` : ''}
-          </dd>
-          <dt className="font-bold text-[#0B1A2A]">Licence</dt>
-          <dd className={MUTED}>{data.licence}</dd>
-          <dt className="font-bold text-[#0B1A2A]">Référence</dt>
-          <dd className={MUTED}>{data.citation}</dd>
-          <dt className="font-bold text-[#0B1A2A]">Intitulés français</dt>
-          <dd className={MUTED}>Traduction de l’équipe de l’observatoire.</dd>
-        </dl>
+        <section className="mt-10 max-w-[880px] rounded-[28px] bg-white p-6 md:p-8">
+          <h2 className="text-[1.1rem] font-extrabold text-[#0B1A2A]">
+            D’où viennent ces sujets ?
+          </h2>
+          <div className={`mt-3 space-y-3 text-[0.95rem] leading-relaxed ${MUTED}`}>
+            <p>
+              Nous ne les avons pas inventés. Ils viennent d’une liste mise au
+              point par des universitaires, le{' '}
+              <a
+                href="https://www.comparativeagendas.net/"
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold text-[#0B1A2A] hover:underline"
+              >
+                Comparative Agendas Project
+              </a>
+              . Des chercheurs de nombreux pays s’en servent pour ranger de la
+              même façon les lois, les discours et les programmes.
+            </p>
+            <p>
+              La liste originale est en anglais ; l’équipe de l’observatoire a
+              traduit les intitulés en français.
+            </p>
+            <p className="text-[0.8rem]">
+              Source : {data.citation} Version {data.version}, publiée sous
+              licence {data.licence} (réutilisation libre, sans usage
+              commercial, en citant les auteurs).
+            </p>
+          </div>
+        </section>
       </div>
     </main>
   )
