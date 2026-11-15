@@ -231,10 +231,6 @@ function PublicationView({ topic }: { topic: TopicSheet | null }) {
           <h2 className={`${DISPLAY} text-[clamp(1.6rem,3vw,2.2rem)]`}>
             Les chiffres officiels
           </h2>
-          <p className={`mt-2 max-w-[62ch] ${MUTED}`}>
-            Les indicateurs publics choisis pour cet enjeu, avec la raison de
-            chaque choix.
-          </p>
         </div>
       </section>
 

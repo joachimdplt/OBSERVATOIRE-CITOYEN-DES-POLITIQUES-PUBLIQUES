@@ -188,13 +188,6 @@ function Topics({ candidate: c }: { candidate: CandidateSheet }) {
           </p>
         ) : (
           <>
-            <p className={`mt-4 max-w-[64ch] leading-relaxed ${MUTED}`}>
-              {c.programme.passages} passages lus dans {c.programme.documents}{' '}
-              {c.programme.documents > 1 ? 'documents' : 'document'}. Chaque
-              enjeu compte les passages qui contiennent l’un de ses termes ; la
-              page de l’enjeu les cite mot pour mot, à côté des autres
-              programmes.
-            </p>
             <ul className="mt-8 grid gap-3 sm:grid-cols-2">
               {c.topics.map((t) => (
                 <li key={t.slug}>

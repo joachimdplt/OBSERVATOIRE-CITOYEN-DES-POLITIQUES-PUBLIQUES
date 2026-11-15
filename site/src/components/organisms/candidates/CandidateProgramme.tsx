@@ -38,22 +38,13 @@ export function CandidateProgramme({ programme: p }: { programme: Programme }) {
 
         {/* Le résumé : rien que des comptes. */}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Fact value={s.passages} label="passages lus">
-            dans {s.documents} document{s.documents > 1 ? 's' : ''}
-          </Fact>
-          <Fact value={s.proposals} label="propositions">
-            passages qui commencent par un verbe d’action (
-            {percent(s.proposals, s.passages)} %)
-          </Fact>
-          <Fact value={s.figured} label="passages chiffrés">
-            avec un montant, un pourcentage, une durée ou un volume
-          </Fact>
+          <Fact value={s.passages} label="passages lus" />
+          <Fact value={s.proposals} label="propositions" />
+          <Fact value={s.figured} label="passages chiffrés" />
           <Fact
             value={`${percent(s.covered, s.passages)} %`}
             label="couverts par nos sujets"
-          >
-            {s.covered} passages rangés dans au moins un des sujets suivis
-          </Fact>
+          />
         </div>
 
         {s.topTopics.length > 0 && (
@@ -83,10 +74,6 @@ export function CandidateProgramme({ programme: p }: { programme: Programme }) {
         {p.vocabulary.length > 0 && (
           <div className="rounded-[28px] bg-white p-6 md:p-8">
             <p className="font-extrabold text-[#0B1A2A]">Son vocabulaire</p>
-            <p className={`mt-1 text-[0.88rem] ${MUTED}`}>
-              Les mots employés nettement plus que dans les autres programmes ;
-              la taille suit le nombre d’emplois.
-            </p>
             <ul className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-2">
               {p.vocabulary.map((v) => (
                 <li
@@ -113,22 +100,13 @@ export function CandidateProgramme({ programme: p }: { programme: Programme }) {
   )
 }
 
-function Fact({
-  value,
-  label,
-  children,
-}: {
-  value: number | string
-  label: string
-  children: React.ReactNode
-}) {
+function Fact({ value, label }: { value: number | string; label: string }) {
   return (
     <div className="rounded-[24px] bg-white p-5">
       <p className="text-[2.2rem] leading-none font-extrabold text-[#0B1A2A] tabular-nums">
         {value}
       </p>
       <p className="mt-1 font-bold text-[#0B1A2A]">{label}</p>
-      <p className={`mt-1 text-[0.82rem] leading-snug ${MUTED}`}>{children}</p>
     </div>
   )
 }
@@ -136,7 +114,6 @@ function Fact({
 /** Sa structure : ses documents, puis ses rubriques, dans ses propres titres. */
 function Outline({ outline }: { outline: Programme['outline'] }) {
   const [open, setOpen] = useState(false)
-  const headings = outline.reduce((n, d) => n + d.headings.length, 0)
   return (
     <div className="rounded-[28px] bg-white">
       <button
@@ -148,10 +125,6 @@ function Outline({ outline }: { outline: Programme['outline'] }) {
         <span>
           <span className="block font-extrabold text-[#0B1A2A]">
             Ses étapes, dans ses propres titres
-          </span>
-          <span className={`mt-1 block text-[0.88rem] ${MUTED}`}>
-            {outline.length} document{outline.length > 1 ? 's' : ''}, {headings}{' '}
-            rubriques, avec le nombre de passages de chacune
           </span>
         </span>
         <ChevronDown
@@ -276,10 +249,6 @@ function Figured({ figured }: { figured: Figure[] }) {
       <div className="rounded-[28px] bg-white p-6 md:p-8">
         <p className="font-extrabold text-[#0B1A2A]">
           Ses passages chiffrés · {figured.length}
-        </p>
-        <p className={`mt-1 text-[0.88rem] ${MUTED}`}>
-          Tous, dans l’ordre du programme, mot pour mot ; les chiffres sont
-          surlignés.
         </p>
       </div>
 
