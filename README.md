@@ -93,6 +93,7 @@ npm run territories:import -- 2026   # le découpage officiel des communes (COG 
 npm run collect:parliament           # les textes déposés à l'Assemblée, à planifier chaque jour
 npm run collect:programmes           # les programmes des candidats, à planifier chaque jour
 npm run collect:videos               # les vidéos des chaînes suivies, à planifier chaque jour
+npm run collect:photos               # les photos libres des candidats (Wikimedia Commons)
 ```
 
 La collecte des programmes lit les PDF avec `pdftotext` (poppler) :

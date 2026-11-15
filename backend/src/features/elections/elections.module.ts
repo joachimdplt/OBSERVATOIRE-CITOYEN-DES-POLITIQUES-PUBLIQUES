@@ -1,7 +1,18 @@
 import { Module } from '@nestjs/common';
+import { WikimediaPhotos } from '../../adapters/wikimedia/wikimedia-photos';
+import { PHOTO_SOURCE } from '../../ports/photo-source';
+import { CollectCandidatePhotosController } from './collect-candidate-photos/collect-candidate-photos';
 import { AddCandidateController } from './add-candidate/add-candidate';
 import { CreateElectionController } from './create-election/create-election';
 
-/** Les élections suivies et leurs candidats déclarés. */
-@Module({ controllers: [CreateElectionController, AddCandidateController] })
+/** Les élections suivies, leurs candidats déclarés et leurs photos libres. */
+@Module({
+  controllers: [
+    CreateElectionController,
+    AddCandidateController,
+    CollectCandidatePhotosController,
+  ],
+  // Les photos libres viennent de Wikidata et de Wikimedia Commons.
+  providers: [{ provide: PHOTO_SOURCE, useClass: WikimediaPhotos }],
+})
 export class ElectionsModule {}

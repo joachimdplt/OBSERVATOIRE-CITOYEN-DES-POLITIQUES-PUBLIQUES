@@ -690,6 +690,16 @@ model Candidate {
   programmeNote      String?
   /// La date de la dernière vérification du programme.
   programmeCheckedAt DateTime?           @db.Date
+  /// L'élément Wikidata du candidat (« Q5829 »), vérifié par l'équipe.
+  wikidataId         String?
+  /// Sa photo sous licence libre, venue de Wikimedia Commons, avec son crédit.
+  photoUrl           String?
+  photoAuthor        String?
+  photoLicence       String?
+  photoLicenceUrl    String?
+  /// La page du fichier sur Commons.
+  photoPage          String?
+  photoCheckedAt     DateTime?
   createdById        String
   createdAt          DateTime            @default(now())
   election           Election            @relation(fields: [electionId], references: [id])

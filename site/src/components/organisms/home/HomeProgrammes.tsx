@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import type { ElectionSheet, ProgrammeStatus } from '../../../types/public'
+import { CandidatePortrait } from '../../molecules/CandidatePortrait'
 import { frenchDate } from '../../../utils/date'
 
 const MUTED = 'text-[#5B6470]'
@@ -76,8 +77,13 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
             return (
               <li
                 key={c.slug}
-                className="flex flex-col rounded-[24px] bg-white p-6"
+                className="flex min-w-0 flex-col rounded-[24px] bg-white p-6"
               >
+                <CandidatePortrait
+                  name={c.name}
+                  photo={c.photo}
+                  className="mb-4"
+                />
                 <Link
                   to="/candidats/$slug"
                   params={{ slug: c.slug }}

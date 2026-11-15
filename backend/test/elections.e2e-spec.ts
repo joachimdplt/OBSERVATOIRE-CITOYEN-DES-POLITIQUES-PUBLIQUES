@@ -2,6 +2,8 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import TestAgent from 'supertest/lib/agent';
 import { Role } from '../src/generated/prisma/enums';
+import { isFreeLicence, type FreePhoto } from '../src/domain/photo';
+import { PHOTO_SOURCE, type PhotoSource } from '../src/ports/photo-source';
 import { PrismaService } from '../src/prisma/prisma.service';
 import {
   createMember,
@@ -22,6 +24,31 @@ type Election = {
   }[];
 };
 
+/** Commons, pour le test : une photo libre pour Q1, une photo non commerciale pour Q2. */
+const COMMONS: Record<string, FreePhoto> = {
+  Q1: {
+    url: 'https://upload.wikimedia.org/a.jpg',
+    author: 'Une photographe',
+    licence: 'CC BY-SA 4.0',
+    licenceUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
+    page: 'https://commons.wikimedia.org/wiki/File:A.jpg',
+  },
+  Q2: {
+    url: 'https://upload.wikimedia.org/b.jpg',
+    author: 'Un photographe',
+    licence: 'CC BY-NC 2.0',
+    licenceUrl: null,
+    page: 'https://commons.wikimedia.org/wiki/File:B.jpg',
+  },
+};
+// Le vrai adapter écarte une licence non libre ; le faux fait de même.
+const PHOTOS: PhotoSource = {
+  photoOf: (id) => {
+    const p = COMMONS[id];
+    return Promise.resolve(p && isFreeLicence(p.licence) ? p : null);
+  },
+};
+
 const candidate = (slug: string, name: string, extra = {}) => ({
   slug,
   name,
@@ -39,7 +66,9 @@ describe('une élection : les candidats déclarés et l’état de leur programm
   let founder: TestAgent;
 
   beforeAll(async () => {
-    ({ app, prisma } = await startApi());
+    ({ app, prisma } = await startApi({
+      providers: [{ provide: PHOTO_SOURCE, useValue: PHOTOS }],
+    }));
     await emptyDatabase(prisma);
     await createMember(prisma, Role.admin, 'joachim@observatoire.test');
     founder = await signedIn(app, 'joachim@observatoire.test');
@@ -121,5 +150,41 @@ describe('une élection : les candidats déclarés et l’état de leur programm
       programmeStatus: 'partial',
       programmeCheckedAt: '2026-11-20',
     });
+  });
+
+  it('une photo libre s’affiche avec son crédit ; une licence non commerciale n’entre pas', async () => {
+    await founder
+      .post('/api/admin/elections/presidentielle-2027/candidates')
+      .send(candidate('a', 'Anne Martin', { wikidataId: 'Q1' }))
+      .expect(201);
+    await founder
+      .post('/api/admin/elections/presidentielle-2027/candidates')
+      .send(candidate('b', 'Bernard Zola', { wikidataId: 'Q2' }))
+      .expect(201);
+    await founder
+      .post('/api/admin/elections/presidentielle-2027/candidates')
+      .send(candidate('b', 'Bernard Zola', { wikidataId: 'Paris' }))
+      .expect(400);
+    const res = await founder
+      .post('/api/admin/collect/candidate-photos')
+      .expect(200);
+    expect(res.body).toMatchObject({
+      candidates: 2,
+      photos: 1,
+      without: ['Bernard Zola'],
+    });
+    const { candidates } = (
+      await visitor()
+        .get('/api/public/elections/presidentielle-2027')
+        .expect(200)
+    ).body as { candidates: { photo: unknown }[] };
+    expect(candidates[0].photo).toEqual({
+      url: 'https://upload.wikimedia.org/a.jpg',
+      author: 'Une photographe',
+      licence: 'CC BY-SA 4.0',
+      licenceUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
+      page: 'https://commons.wikimedia.org/wiki/File:A.jpg',
+    });
+    expect(candidates[1].photo).toBeNull();
   });
 });

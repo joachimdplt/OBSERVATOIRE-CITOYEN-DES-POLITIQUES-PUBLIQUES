@@ -193,7 +193,8 @@ collectées, et à quels indicateurs elles sont reliées.
   couleur partisane, aucune mise en avant (section 4.8). La liste des
   candidats de l'accueil, la plus vue, suit un ordre tiré au hasard à chaque
   visite, et le même candidat n'ouvre jamais la liste deux fois de suite pour
-  un lecteur.
+  un lecteur. Les photos des candidats sont sous licence libre, créditées, et
+  traitées de la même façon (cadre carré, noir et blanc).
 - **Avant un scrutin, deux relecteurs au lieu d'un.** Pendant une période
   fixée par la méthode publiée, toute publication, correction comprise, est
   approuvée par deux personnes distinctes de son auteur.

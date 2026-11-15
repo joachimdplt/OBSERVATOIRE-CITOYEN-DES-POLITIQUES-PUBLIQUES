@@ -247,6 +247,15 @@ export type LiveValues = {
   }[]
 }
 
+/** La photo d'un candidat sous licence libre, avec son crédit. */
+export type CandidatePhoto = {
+  url: string
+  author: string | null
+  licence: string | null
+  licenceUrl: string | null
+  page: string | null
+}
+
 /** L'état du programme d'un candidat, constaté à une date. */
 export type ProgrammeStatus = 'complete' | 'partial' | 'none'
 
@@ -266,6 +275,7 @@ export type ElectionSheet = {
     programmeUrl: string | null
     programmeNote: string | null
     programmeCheckedAt: string | null
+    photo: CandidatePhoto | null
   }[]
 }
 
@@ -316,6 +326,7 @@ export type CandidateSheet = {
   programmeUrl: string | null
   programmeNote: string | null
   programmeCheckedAt: string | null
+  photo: CandidatePhoto | null
   programme: { documents: number; passages: number }
   topics: { slug: string; name: string; pillar: Pillar; passages: number }[]
   channels: {

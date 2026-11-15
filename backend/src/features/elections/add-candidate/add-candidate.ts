@@ -14,6 +14,7 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  Matches,
 } from 'class-validator';
 import {
   CurrentUser,
@@ -36,6 +37,8 @@ export class AddCandidateDto {
   @IsEnum(ProgrammeStatus) programmeStatus!: ProgrammeStatus;
   @IsOptional() @IsString() programmeNote?: string;
   @Type(() => Date) @IsDate() programmeCheckedAt!: Date;
+  /** Son élément Wikidata, vérifié par l'équipe : « Q5829 ». */
+  @IsOptional() @Matches(/^Q\d+$/) wikidataId?: string;
 }
 
 /**
@@ -64,6 +67,7 @@ export class AddCandidateController {
         programmeUrl: dto.programmeUrl ?? null,
         programmeNote: dto.programmeNote?.trim() || null,
         programmeCheckedAt: dto.programmeCheckedAt,
+        ...(dto.wikidataId ? { wikidataId: dto.wikidataId } : {}),
       },
       create: {
         electionId: election.id,
@@ -76,6 +80,7 @@ export class AddCandidateController {
         programmeUrl: dto.programmeUrl ?? null,
         programmeNote: dto.programmeNote?.trim() || null,
         programmeCheckedAt: dto.programmeCheckedAt,
+        wikidataId: dto.wikidataId ?? null,
         createdById: user.id,
       },
     });

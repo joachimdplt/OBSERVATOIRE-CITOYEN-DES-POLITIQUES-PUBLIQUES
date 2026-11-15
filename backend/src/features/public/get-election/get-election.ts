@@ -36,6 +36,15 @@ export class GetElectionController {
           programmeNote: c.programmeNote,
           programmeCheckedAt:
             c.programmeCheckedAt?.toISOString().slice(0, 10) ?? null,
+          photo: c.photoUrl
+            ? {
+                url: c.photoUrl,
+                author: c.photoAuthor,
+                licence: c.photoLicence,
+                licenceUrl: c.photoLicenceUrl,
+                page: c.photoPage,
+              }
+            : null,
         }))
         .sort((a, b) => surname(a.name).localeCompare(surname(b.name), 'fr')),
     };

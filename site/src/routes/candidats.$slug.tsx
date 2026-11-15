@@ -1,5 +1,6 @@
 import { Link, createFileRoute, notFound } from '@tanstack/react-router'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
+import { CandidatePortrait } from '../components/molecules/CandidatePortrait'
 import { getCandidate } from '../services/public-api'
 import type { CandidateSheet } from '../types/public'
 import { frenchDate } from '../utils/date'
@@ -50,53 +51,62 @@ function CandidatePage() {
   return (
     <main>
       <section className="bg-white px-6 pt-20 pb-14 md:px-10">
-        <div className="mx-auto max-w-[920px]">
-          <p className={`text-sm font-semibold ${MUTED}`}>{c.election.name}</p>
-          <h1
-            className={`${DISPLAY} mt-3 text-[clamp(2.4rem,6vw,4rem)] leading-[1.05]`}
-          >
-            {c.name}
-          </h1>
-          <p className={`mt-5 text-[1.1rem] ${MUTED}`}>
-            {c.party ?? 'Sans étiquette'} · candidature déclarée le{' '}
-            <a
-              href={c.declarationSource}
-              target="_blank"
-              rel="noreferrer"
-              className="underline decoration-[#0B1A2A]/25 underline-offset-2 hover:decoration-[#0B1A2A]"
+        <div className="mx-auto grid max-w-[920px] gap-8 md:grid-cols-[220px_minmax(0,1fr)] md:items-start">
+          <CandidatePortrait
+            name={c.name}
+            photo={c.photo}
+            className="w-[180px] md:w-full"
+          />
+          <div>
+            <p className={`text-sm font-semibold ${MUTED}`}>
+              {c.election.name}
+            </p>
+            <h1
+              className={`${DISPLAY} mt-3 text-[clamp(2.4rem,6vw,4rem)] leading-[1.05]`}
             >
-              {frenchDate(c.declaredAt)}
-            </a>
-          </p>
-          <p className="mt-6 flex flex-wrap items-center gap-3">
-            <span
-              className={`inline-flex h-8 items-center rounded-full px-4 text-sm font-bold ${
-                c.programmeStatus === 'complete'
-                  ? 'bg-[#0B1A2A] text-white'
-                  : 'text-[#0B1A2A] ring-1 ring-[#0B1A2A]/25'
-              }`}
-            >
-              {STATUS[c.programmeStatus]}
-            </span>
-            {c.programmeUrl && (
+              {c.name}
+            </h1>
+            <p className={`mt-5 text-[1.1rem] ${MUTED}`}>
+              {c.party ?? 'Sans étiquette'} · candidature déclarée le{' '}
               <a
-                href={c.programmeUrl}
+                href={c.declarationSource}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1 font-bold text-[#0B1A2A] no-underline hover:underline"
+                className="underline decoration-[#0B1A2A]/25 underline-offset-2 hover:decoration-[#0B1A2A]"
               >
-                Lire le programme <ArrowUpRight size={15} />
+                {frenchDate(c.declaredAt)}
               </a>
-            )}
-          </p>
-          {c.programmeNote && (
-            <p className={`mt-3 max-w-[62ch] text-[0.95rem] ${MUTED}`}>
-              {c.programmeNote}
-              {c.programmeCheckedAt
-                ? ` État constaté le ${frenchDate(c.programmeCheckedAt)}.`
-                : ''}
             </p>
-          )}
+            <p className="mt-6 flex flex-wrap items-center gap-3">
+              <span
+                className={`inline-flex h-8 items-center rounded-full px-4 text-sm font-bold ${
+                  c.programmeStatus === 'complete'
+                    ? 'bg-[#0B1A2A] text-white'
+                    : 'text-[#0B1A2A] ring-1 ring-[#0B1A2A]/25'
+                }`}
+              >
+                {STATUS[c.programmeStatus]}
+              </span>
+              {c.programmeUrl && (
+                <a
+                  href={c.programmeUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 font-bold text-[#0B1A2A] no-underline hover:underline"
+                >
+                  Lire le programme <ArrowUpRight size={15} />
+                </a>
+              )}
+            </p>
+            {c.programmeNote && (
+              <p className={`mt-3 max-w-[62ch] text-[0.95rem] ${MUTED}`}>
+                {c.programmeNote}
+                {c.programmeCheckedAt
+                  ? ` État constaté le ${frenchDate(c.programmeCheckedAt)}.`
+                  : ''}
+              </p>
+            )}
+          </div>
         </div>
       </section>
 

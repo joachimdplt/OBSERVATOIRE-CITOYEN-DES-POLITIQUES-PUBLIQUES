@@ -79,6 +79,15 @@ export class GetCandidateController {
       programmeNote: c.programmeNote,
       programmeCheckedAt:
         c.programmeCheckedAt?.toISOString().slice(0, 10) ?? null,
+      photo: c.photoUrl
+        ? {
+            url: c.photoUrl,
+            author: c.photoAuthor,
+            licence: c.photoLicence,
+            licenceUrl: c.photoLicenceUrl,
+            page: c.photoPage,
+          }
+        : null,
       programme: { documents: current.length, passages },
       topics: [...topics.values()].sort(
         (a, b) => b.passages - a.passages || a.name.localeCompare(b.name, 'fr'),

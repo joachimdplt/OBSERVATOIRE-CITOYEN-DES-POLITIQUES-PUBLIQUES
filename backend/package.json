@@ -23,7 +23,8 @@
     "user:create": "tsx src/scripts/create-user.ts",
     "collect:parliament": "tsx src/scripts/collect-parliament.ts",
     "collect:programmes": "tsx src/scripts/collect-programmes.ts",
-    "collect:videos": "tsx src/scripts/collect-videos.ts"
+    "collect:videos": "tsx src/scripts/collect-videos.ts",
+    "collect:photos": "tsx src/scripts/collect-candidate-photos.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

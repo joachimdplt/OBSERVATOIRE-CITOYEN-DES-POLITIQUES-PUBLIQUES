@@ -155,6 +155,21 @@ Au 15 novembre 2026 : 15 chaînes (5 de candidats, 8 de partis, 2
 d'institutions) ; aucune chaîne n'est liée depuis les sites du Rassemblement
 national et des Écologistes.
 
+## Les photos des candidats
+
+`npm run collect:photos`, à relancer quand un candidat est inscrit.
+
+- **Source** : la photo principale de l'élément Wikidata du candidat (vérifié
+  par l'équipe), lue sur Wikimedia Commons avec son auteur et sa licence.
+- **Seulement des licences libres** : domaine public, CC0, CC BY, CC BY-SA.
+  Une clause non commerciale ou sans modification l'écarte. Aucune photo de
+  presse ni de campagne.
+- **Le même traitement pour tous** : même cadre carré, en noir et blanc,
+  crédit sous chaque photo. Sans photo libre, le cadre le dit.
+
+Au 15 novembre 2026 : 23 photos sur 25 ; Selma Labib n'a pas de photo sur
+Wikidata, celle de Francis Lalanne n'est pas sous licence libre.
+
 ## Les étiquettes, du moins au plus relu
 
 | Étiquette | Sens |
