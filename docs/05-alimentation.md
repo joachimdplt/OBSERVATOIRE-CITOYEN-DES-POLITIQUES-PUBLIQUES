@@ -101,6 +101,17 @@ ces trois comptes et la liste, avec le lien vers chaque programme. Au
 14 novembre 2026 : 25 candidats déclarés, 3 programmes complets, 4 ensembles
 de documents partiels, 18 sans rien de publié.
 
+## La nomenclature des sujets
+
+Les sujets de l'observatoire suivent la nomenclature officielle COFOG
+(classification des fonctions des administrations publiques : ONU, Eurostat,
+Insee), lue en français chez Eurostat (`npm run cofog:import`) : 10 fonctions
+et 69 sous-fonctions, de « 01 Services généraux des administrations
+publiques » à « 10 Protection sociale ». Elle remplace progressivement la
+liste de 48 sujets écrite par l'équipe ; le rangement des passages dans ces
+fonctions sera appris sur des textes déjà rangés par des institutions, puis
+calibré sur un échantillon vérifié par deux personnes.
+
 ## La collecte des programmes et le rangement des enjeux
 
 `npm run collect:programmes`, prévu pour tourner chaque jour.

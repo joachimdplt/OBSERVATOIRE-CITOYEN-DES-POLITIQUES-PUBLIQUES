@@ -1,7 +1,7 @@
 import { pageKind, writtenDates } from './site-map';
 
 describe('la carte d’un site de campagne', () => {
-  it('reconnaît ce qu’une page est, d’après son adresse et son titre', () => {
+  it('reconnaît la nature d’une page, d’après son adresse et son titre', () => {
     expect(
       pageKind(
         'https://becht2027.fr/tour-de-france/journal/etape-du-12-novembre-haut-rhin/',

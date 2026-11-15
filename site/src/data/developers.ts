@@ -142,6 +142,11 @@ export const DEVELOPERS = {
         text: 'Un candidat : déclaration et source, état du programme, enjeux de son programme par nombre de passages, chaînes vidéo suivies avec la page officielle qui les cite, et ses vidéos publiques récentes avec la raison du rattachement.',
       },
       {
+        path: '/api/public/functions',
+        query: '',
+        text: 'La nomenclature des sujets : les 10 fonctions de l’action publique et leurs 69 sous-fonctions (COFOG, Eurostat), avec la source de la liste.',
+      },
+      {
         path: '/api/public/updates',
         query: '',
         text: 'La mise à jour automatique : l’heure de la collecte quotidienne, la prochaine, et la dernière collecte de chaque source avec son résultat.',

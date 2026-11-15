@@ -25,7 +25,8 @@
     "collect:programmes": "tsx src/scripts/collect-programmes.ts",
     "collect:videos": "tsx src/scripts/collect-videos.ts",
     "collect:photos": "tsx src/scripts/collect-candidate-photos.ts",
-    "collect:all": "tsx src/scripts/collect-all.ts"
+    "collect:all": "tsx src/scripts/collect-all.ts",
+    "cofog:import": "tsx src/scripts/import-cofog.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

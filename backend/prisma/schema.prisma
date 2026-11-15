@@ -1024,3 +1024,24 @@ model SitePage {
   @@unique([sourceId, url])
   @@map("site_pages")
 }
+
+/// Une fonction de l'action publique, d'après la nomenclature COFOG
+/// (classification des fonctions des administrations publiques, ONU,
+/// Eurostat, Insee) : 10 fonctions, 69 sous-fonctions. Les sujets de
+/// l'observatoire suivent cette liste officielle, la même pour tous.
+model CofogFunction {
+  /// Le code Eurostat : « GF07 » (fonction), « GF0703 » (sous-fonction).
+  code       String          @id
+  /// Le code usuel : « 07 », « 07.3 ».
+  display    String          @unique
+  level      Int
+  parentCode String?
+  label      String
+  /// D'où vient la liste, et quand elle a été lue.
+  source     String
+  importedAt DateTime        @default(now())
+  parent     CofogFunction?  @relation("CofogTree", fields: [parentCode], references: [code])
+  children   CofogFunction[] @relation("CofogTree")
+
+  @@map("cofog_functions")
+}

@@ -1,6 +1,6 @@
 import { consultationFigures, isCampaignEvent } from './campaign';
 
-describe('la campagne, d’après ce qu’elle publie', () => {
+describe('la campagne, d’après ses propres publications', () => {
   it('reconnaît un déplacement à ses mots, publiés et les mêmes pour tous', () => {
     expect(
       isCampaignEvent(

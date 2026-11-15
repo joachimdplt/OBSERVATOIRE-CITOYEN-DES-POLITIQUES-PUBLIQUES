@@ -92,6 +92,7 @@ Les sources, une fois l'API lancée :
 ```bash
 cd backend
 npm run territories:import -- 2026   # le découpage officiel des communes (COG INSEE)
+npm run cofog:import                 # la nomenclature des sujets : fonctions COFOG (Eurostat)
 npm run collect:parliament           # les textes déposés à l'Assemblée, à planifier chaque jour
 npm run collect:programmes           # les programmes des candidats, à planifier chaque jour
 npm run collect:videos               # les vidéos des chaînes suivies, à planifier chaque jour

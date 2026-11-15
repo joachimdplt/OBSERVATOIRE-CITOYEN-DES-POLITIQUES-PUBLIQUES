@@ -25,7 +25,7 @@ describe('les comptes liés depuis un site officiel', () => {
     });
   });
 
-  it('écarte les liens de partage et ce qui n’est pas un compte', () => {
+  it('écarte les liens de partage et les adresses sans compte', () => {
     expect(accountFromUrl('https://x.com/intent/tweet?text=a')).toBeNull();
     expect(
       accountFromUrl('https://www.youtube.com/watch?v=tQ45aZtNEHk'),

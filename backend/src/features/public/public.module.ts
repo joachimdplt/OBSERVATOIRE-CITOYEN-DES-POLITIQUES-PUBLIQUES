@@ -12,6 +12,7 @@ import { GetElectionController } from './get-election/get-election';
 import { GetCandidateController } from './get-candidate/get-candidate';
 import { GetCandidateProgrammeController } from './get-candidate-programme/get-candidate-programme';
 import { GetUpdatesController } from './get-updates/get-updates';
+import { ListFunctionsController } from './list-functions/list-functions';
 import { GetTopicController } from './get-topic/get-topic';
 import { ListTopicsController } from './list-topics/list-topics';
 import { SearchTerritoriesController } from './search-territories/search-territories';
@@ -22,6 +23,7 @@ import { SearchTerritoriesController } from './search-territories/search-territo
  */
 const CONTROLLERS = [
   GetUpdatesController,
+  ListFunctionsController,
   GetTerritoryController,
   SearchTerritoriesController,
   ListTerritoryValuesController,
