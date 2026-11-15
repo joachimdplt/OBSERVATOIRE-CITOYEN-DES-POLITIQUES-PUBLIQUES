@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { gunzipSync } from 'node:zlib';
-import { HTMLElement, parse } from 'node-html-parser';
+import { HTMLElement, Node, TextNode, parse } from 'node-html-parser';
 import {
   pdfParagraphs,
   splitProgramme,
@@ -107,8 +107,16 @@ export class WebProgrammeReader implements ProgrammeReader {
     )
       .replace(/\s+/g, ' ')
       .trim();
+    // La zone de contenu la plus fournie : une petite balise <article> à côté
+    // d'un grand <main> ne contient pas le programme.
+    const size = (e: HTMLElement | null) =>
+      e ? e.text.replace(/\s+/g, ' ').length : 0;
+    const article = root.querySelector('article');
+    const main = root.querySelector('main');
     const body =
-      root.querySelector('article') ?? root.querySelector('main') ?? root;
+      article && size(article) >= 0.5 * size(main)
+        ? article
+        : (main ?? article ?? root);
     body
       .querySelectorAll(
         'script, style, nav, header, footer, aside, form, button, svg, noscript',
@@ -125,8 +133,79 @@ export class WebProgrammeReader implements ProgrammeReader {
       if (/^H[1-4]$/.test(el.tagName)) heading = text;
       else if (text.length >= MIN_LENGTH) passages.push({ heading, text });
     }
+    // Repli : une page dont le texte vit dans des blocs <div> (cartes,
+    // accordéons) est lue bloc par bloc, quand la lecture par paragraphes en
+    // laisse plus de la moitié de côté.
+    const read = passages.reduce((n, p) => n + p.text.length, 0);
+    if (read < 0.5 * size(body)) {
+      const walked = walk(body, title);
+      if (walked.reduce((n, p) => n + p.text.length, 0) > read)
+        return { title, passages: walked, links };
+    }
     return { title, passages, links };
   }
+}
+
+/** Les éléments qui ouvrent un nouveau bloc de texte. */
+const BLOCK_TAGS = new Set([
+  'DIV',
+  'P',
+  'LI',
+  'SECTION',
+  'ARTICLE',
+  'BLOCKQUOTE',
+  'TD',
+  'DD',
+  'DT',
+  'UL',
+  'OL',
+  'TABLE',
+  'TR',
+  'FIGURE',
+  'FIGCAPTION',
+  'BR',
+  'H1',
+  'H2',
+  'H3',
+  'H4',
+  'H5',
+  'H6',
+]);
+
+/**
+ * La lecture bloc par bloc : le texte s'accumule à travers les éléments en
+ * ligne et se coupe à chaque bloc ; un intitulé (h1 à h4) ouvre une rubrique.
+ */
+function walk(body: HTMLElement, title: string): ProgrammePassage[] {
+  const passages: ProgrammePassage[] = [];
+  let heading = title;
+  let buffer = '';
+  const flush = () => {
+    const text = buffer.replace(/\s+/g, ' ').trim();
+    if (text.length >= MIN_LENGTH) passages.push({ heading, text });
+    buffer = '';
+  };
+  const visit = (node: Node) => {
+    if (node instanceof TextNode) {
+      buffer += node.text;
+      return;
+    }
+    if (!(node instanceof HTMLElement)) return;
+    const tag = node.tagName;
+    if (/^H[1-4]$/.test(tag)) {
+      flush();
+      const text = node.text.replace(/\s+/g, ' ').trim();
+      if (text) heading = text;
+      return;
+    }
+    const block = BLOCK_TAGS.has(tag);
+    if (block) flush();
+    for (const child of node.childNodes) visit(child);
+    if (block) flush();
+  };
+  visit(body);
+  flush();
+  return passages;
 }
 
 const clean = (el: HTMLElement) => el.text.replace(/\s+/g, ' ').trim();
