@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CarteRouteImport } from './routes/carte'
+import { Route as ContribuerRouteImport } from './routes/contribuer'
 import { Route as DeveloppeursRouteImport } from './routes/developpeurs'
 import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as CandidatsSlugRouteImport } from './routes/candidats.$slug'
@@ -30,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
 const CarteRoute = CarteRouteImport.update({
   id: '/carte',
   path: '/carte',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContribuerRoute = ContribuerRouteImport.update({
+  id: '/contribuer',
+  path: '/contribuer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeveloppeursRoute = DeveloppeursRouteImport.update({
@@ -86,6 +92,7 @@ const SujetsGrilleCodeRoute = SujetsGrilleCodeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/carte': typeof CarteRoute
+  '/contribuer': typeof ContribuerRoute
   '/developpeurs': typeof DeveloppeursRoute
   '/sources': typeof SourcesRoute
   '/candidats/$slug': typeof CandidatsSlugRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/carte': typeof CarteRoute
+  '/contribuer': typeof ContribuerRoute
   '/developpeurs': typeof DeveloppeursRoute
   '/sources': typeof SourcesRoute
   '/candidats/$slug': typeof CandidatsSlugRoute
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/carte': typeof CarteRoute
+  '/contribuer': typeof ContribuerRoute
   '/developpeurs': typeof DeveloppeursRoute
   '/sources': typeof SourcesRoute
   '/candidats/$slug': typeof CandidatsSlugRoute
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/carte'
+    | '/contribuer'
     | '/developpeurs'
     | '/sources'
     | '/candidats/$slug'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/carte'
+    | '/contribuer'
     | '/developpeurs'
     | '/sources'
     | '/candidats/$slug'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/carte'
+    | '/contribuer'
     | '/developpeurs'
     | '/sources'
     | '/candidats/$slug'
@@ -174,6 +186,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CarteRoute: typeof CarteRoute
+  ContribuerRoute: typeof ContribuerRoute
   DeveloppeursRoute: typeof DeveloppeursRoute
   SourcesRoute: typeof SourcesRoute
   CandidatsSlugRoute: typeof CandidatsSlugRoute
@@ -200,6 +213,13 @@ declare module '@tanstack/react-router' {
       path: '/carte'
       fullPath: '/carte'
       preLoaderRoute: typeof CarteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contribuer': {
+      id: '/contribuer'
+      path: '/contribuer'
+      fullPath: '/contribuer'
+      preLoaderRoute: typeof ContribuerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/developpeurs': {
@@ -278,6 +298,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CarteRoute: CarteRoute,
+  ContribuerRoute: ContribuerRoute,
   DeveloppeursRoute: DeveloppeursRoute,
   SourcesRoute: SourcesRoute,
   CandidatsSlugRoute: CandidatsSlugRoute,

@@ -132,6 +132,12 @@ export function HomeContribuer() {
           </div>
         ))}
       </div>
+      <Link
+        to="/contribuer"
+        className="mt-8 inline-flex text-[0.95rem] font-bold text-[#0B1A2A] hover:underline"
+      >
+        {contribuer.more}
+      </Link>
     </Screen>
   )
 }

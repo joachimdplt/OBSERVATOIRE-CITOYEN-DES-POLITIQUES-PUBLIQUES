@@ -58,6 +58,7 @@ export const HOME = {
     title: 'Contribuer, [[sous son nom]]',
     lead: 'Un espace membre arrive : chaque contribution y est signée, puis relue par une autre personne avant publication.',
     soon: 'Bientôt dans l’espace membre',
+    more: 'Comment contribuer sans prendre parti →',
     ways: [
       {
         title: 'Signaler une erreur',
