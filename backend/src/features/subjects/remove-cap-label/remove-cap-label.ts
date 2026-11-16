@@ -12,7 +12,7 @@ import {
   type TeamMember,
 } from '../../../auth/current-user.decorator';
 import { Requires, SessionGuard } from '../../../auth/session.guard';
-import { LabelStatus } from '../../../generated/prisma/enums';
+import { DecisionMode, LabelStatus } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 /**
@@ -38,6 +38,7 @@ export class RemoveCapLabelController {
         status: LabelStatus.rejected,
         decidedById: user.id,
         decidedAt: new Date(),
+        decisionMode: DecisionMode.person,
       },
     });
     return { id, removed: true };

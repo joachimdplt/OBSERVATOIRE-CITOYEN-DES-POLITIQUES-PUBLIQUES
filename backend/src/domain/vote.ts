@@ -6,7 +6,9 @@
 export type Method =
   'grille' | 'voisins' | 'classeur' | 'modele' | 'titre' | 'rubrique';
 
-export type Proposal = { method: Method; code: string | null };
+/** Une voix ; le classeur donne aussi sa confiance, pour mesurer sa
+ * calibration. */
+export type Proposal = { method: Method; code: string | null; p?: number };
 
 /**
  * Le vote. Le modèle range quand au moins une autre voix donne le même

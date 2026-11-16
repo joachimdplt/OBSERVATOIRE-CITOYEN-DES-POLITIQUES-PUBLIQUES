@@ -51,6 +51,7 @@ model User {
   measures             Measure[]
   retiredDocuments     PoliticalDocument[]   @relation("DocumentRetiredBy")
   decidedCapLabels     CapLabel[]            @relation("LabelDecidedBy")
+  labelChecks          LabelCheck[]
 
   @@map("users")
 }
@@ -1112,6 +1113,11 @@ model CapTopic {
   description String?
   /// L'intitulé français, traduction de l'équipe au plus près de l'anglais.
   labelFr     String
+  /// La définition officielle traduite en français. Elle s'affiche
+  /// toujours avec l'officielle en anglais, qui fait foi.
+  descriptionFr   String?
+  /// Qui a traduit : un assistant (non relu) ou une personne.
+  descriptionFrBy DecisionMode?
   /// D'où vient la grille, sa version, et quand elle a été lue.
   source      String
   version     String
@@ -1124,6 +1130,22 @@ model CapTopic {
 }
 
 /// Qui a proposé une étiquette de sujet.
+/// Qui a pris une décision de rangement. Une décision écrite par un script
+/// ou un assistant, même lancé depuis le compte d'une personne, est
+/// `assistant` : elle ne sert jamais de référence ni d'exemple.
+enum DecisionMode {
+  person
+  assistant
+}
+
+/// Le verdict d'une personne sur une carte de vérification.
+enum CheckVerdict {
+  /// Le sujet est juste et le texte est bien du candidat.
+  accepted
+  /// Le sujet est faux, ou le texte n'est pas une position du candidat.
+  refused
+}
+
 enum LabelOrigin {
   model
   person
@@ -1170,6 +1192,10 @@ model CapLabel {
   /// Pourquoi une personne a rangé ou retiré ce chapitre, en une phrase :
   /// le modèle la lit avec l'exemple corrigé.
   reason      String?
+  /// Qui a pris la décision : une personne ou un assistant. Vide tant que
+  /// personne n'a décidé.
+  decisionMode DecisionMode?
+  checks      LabelCheck[]
   candidate   Candidate   @relation(fields: [candidateId], references: [id])
   topic       CapTopic    @relation(fields: [capCode], references: [code])
   decidedBy   User?       @relation("LabelDecidedBy", fields: [decidedById], references: [id])
@@ -1177,6 +1203,22 @@ model CapLabel {
   @@unique([candidateId, documentUrl, heading, capCode])
   @@index([capCode, status])
   @@map("cap_labels")
+}
+
+/// Une carte de vérification : une personne dit si un rangement est juste.
+/// Un verdict ne se modifie pas et ne s'efface pas ; changer d'avis ajoute
+/// un nouveau verdict, le plus récent fait foi.
+model LabelCheck {
+  id          String       @id @default(uuid())
+  labelId     String
+  verdict     CheckVerdict
+  checkedById String
+  checkedAt   DateTime     @default(now())
+  label       CapLabel     @relation(fields: [labelId], references: [id])
+  checkedBy   User         @relation(fields: [checkedById], references: [id])
+
+  @@index([labelId])
+  @@map("label_checks")
 }
 
 /// Le vecteur d'un passage : son sens, en nombres, calculé une fois par un

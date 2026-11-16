@@ -7,6 +7,9 @@ export const queryKeys = {
     ['import-jobs', id, { headerRow }] as const,
   reviewQueue: ['review-queue'] as const,
   subjectReview: ['subject-review'] as const,
+  checks: ['checks'] as const,
+  gridTopics: ['grid-topics'] as const,
+  nextCheck: (candidateId: string) => ['checks', candidateId] as const,
   publications: ['publications'] as const,
   history: (versionId: string) => ['versions', versionId, 'history'] as const,
 }

@@ -14,6 +14,7 @@ import { currentCaptures } from '../domain/programme';
 import { PrismaClient } from '../generated/prisma/client';
 import {
   DocumentKind,
+  DecisionMode,
   LabelOrigin,
   LabelStatus,
   Role,
@@ -90,7 +91,14 @@ async function main() {
       heading: measure.article,
       capCode: code,
     };
-    const signed = { decidedById: admin.id, decidedAt: new Date(), reason };
+    // Un script n'est jamais une personne : sa décision est celle d'un
+    // assistant, même signée du compte de l'équipe.
+    const signed = {
+      decidedById: admin.id,
+      decidedAt: new Date(),
+      decisionMode: DecisionMode.assistant,
+      reason,
+    };
     await prisma.capLabel.upsert({
       where: { candidateId_documentUrl_heading_capCode: key },
       create: {

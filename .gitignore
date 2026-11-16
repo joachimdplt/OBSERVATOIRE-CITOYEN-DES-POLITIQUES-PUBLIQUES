@@ -56,3 +56,7 @@ backend/storage/
 
 # Fichiers déposés pendant les tests
 backend/storage-test/
+
+# Outil de mesure
+tools/measure/data/
+__pycache__/

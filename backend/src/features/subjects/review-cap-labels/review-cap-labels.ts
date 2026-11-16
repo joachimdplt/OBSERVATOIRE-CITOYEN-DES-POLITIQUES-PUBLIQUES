@@ -17,6 +17,7 @@ import { Requires, SessionGuard } from '../../../auth/session.guard';
 import { currentCaptures } from '../../../domain/programme';
 import type { Proposal } from '../../../domain/vote';
 import {
+  DecisionMode,
   DocumentKind,
   LabelOrigin,
   LabelStatus,
@@ -149,7 +150,12 @@ export class ReviewCapLabelsController {
       !(await this.prisma.capTopic.findFirst({ where: { code, level: 1 } }))
     )
       throw new BadRequestException('Sujet inconnu');
-    const signed = { decidedById: user.id, decidedAt: new Date(), reason };
+    const signed = {
+      decidedById: user.id,
+      decidedAt: new Date(),
+      decisionMode: DecisionMode.person,
+      reason,
+    };
 
     await this.prisma.$transaction(async (tx) => {
       // Le bon sujet est celui du modèle : le rangement est confirmé.

@@ -9,7 +9,10 @@ import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { loadVoteContext } from '../features/subjects/vote-cap-labels/vote-cap-labels';
 import { PrismaClient } from '../generated/prisma/client';
-import { LabelOrigin, LabelStatus } from '../generated/prisma/enums';
+import { DecisionMode, LabelOrigin, LabelStatus } from '../generated/prisma/enums';
+
+/** En dessous, la marge d'erreur dépasse quinze points : on ne mesure pas. */
+const MIN_TRUTH = 50;
 import type { PrismaService } from '../prisma/prisma.service';
 
 type Example = { chapter: string; x: Float32Array; y: number };
@@ -98,15 +101,19 @@ async function main() {
     return x ? [{ chapter: chapterOf(l), x, y: index.get(l.capCode)! }] : [];
   });
 
-  // Le test : les blocs relus, avec la réponse du modèle d'origine (gardée,
-  // ou corrigée par une personne).
-  const person = new Map(labels.filter((l) => l.origin === LabelOrigin.person && l.status === LabelStatus.validated).map((l) => [key(l), l.capCode]));
+  // Le test : les blocs dont une personne (jamais un assistant) a validé le
+  // sujet, avec la réponse du modèle d'origine.
+  const modelAt = new Map(labels.filter((l) => l.origin === LabelOrigin.model).map((l) => [key(l), l.capCode]));
   const truth = labels.flatMap((l) => {
-    if (l.origin !== LabelOrigin.model || l.fromPosition === null) return [];
-    const right = l.status === LabelStatus.rejected ? person.get(key(l)) : l.status === LabelStatus.review ? null : l.capCode;
+    if (l.decisionMode !== DecisionMode.person || l.status !== LabelStatus.validated || l.fromPosition === null) return [];
+    const model = modelAt.get(key(l));
     const x = ctx.vectorOf(ctx.blockOf(l));
-    return right && x ? [{ chapter: chapterOf(l), x, right, model: l.capCode }] : [];
+    return model && x ? [{ chapter: chapterOf(l), x, right: l.capCode, model }] : [];
   });
+  if (truth.length < MIN_TRUTH) {
+    console.log(`Seulement ${truth.length} blocs validés par une personne : il en faut au moins ${MIN_TRUTH} pour mesurer. Passez par les cartes de vérification.`);
+    process.exit(0);
+  }
   const dim = trainSet[0].x.length;
   console.log(`Entraînement sur ${trainSet.length} blocs affichés, test sur ${truth.length} blocs relus, ${codes.length} sujets, vecteurs de ${dim} nombres.`);
 

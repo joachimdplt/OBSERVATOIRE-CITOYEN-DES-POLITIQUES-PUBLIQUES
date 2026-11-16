@@ -27,6 +27,7 @@ import {
   DocumentKind,
   LabelOrigin,
   LabelStatus,
+  DecisionMode,
 } from '../../../generated/prisma/enums';
 import {
   TOPIC_CLASSIFIER,
@@ -165,12 +166,15 @@ export async function suggestCapLabels(
       grouped.delete(key);
   }
 
-  // Les corrections de l'équipe : chaque chapitre ou bloc rangé à la main,
-  // avec son texte et sa raison. Le modèle voit les plus proches de chaque
+  // Les corrections de l'équipe : chaque chapitre ou bloc rangé à la main
+  // par une personne (jamais par un assistant), avec son texte et sa raison. Le modèle voit les plus proches de chaque
   // extrait avant de le ranger, et ne refait pas une erreur déjà corrigée.
   const corrections: Correction[] = (
     await prisma.capLabel.findMany({
-      where: { origin: LabelOrigin.person, status: LabelStatus.validated },
+      where: {
+        decisionMode: DecisionMode.person,
+        status: LabelStatus.validated,
+      },
       select: {
         candidateId: true,
         documentUrl: true,
@@ -304,7 +308,10 @@ export async function suggestCapLabels(
   // Les corrections de l'équipe, avec le sens de leur bloc : le modèle voit
   // les plus proches par le sens.
   const personLabels = await prisma.capLabel.findMany({
-    where: { origin: LabelOrigin.person, status: LabelStatus.validated },
+    where: {
+      decisionMode: DecisionMode.person,
+      status: LabelStatus.validated,
+    },
   });
   const correctionVectors = personLabels.flatMap((l) => {
     const v = ctx.vectorOf(ctx.blockOf(l));
@@ -345,7 +352,11 @@ export async function suggestCapLabels(
     const title = titles.get(c.documentUrl) ?? '';
     const voices: Proposal[] = [
       { method: 'grille', code: v ? nearestTopic(v, ctx.topicVectors) : null },
-      { method: 'classeur', code: guess ? classCodes[guess.k] : null },
+      {
+        method: 'classeur',
+        code: guess ? classCodes[guess.k] : null,
+        ...(guess ? { p: guess.p } : {}),
+      },
       { method: 'titre', code: await topicOfTitle(title) },
       {
         method: 'rubrique',

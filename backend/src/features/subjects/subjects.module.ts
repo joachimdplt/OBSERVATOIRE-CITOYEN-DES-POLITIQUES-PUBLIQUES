@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { OllamaTopicClassifier } from '../../adapters/classifier/ollama-topic-classifier';
 import { TOPIC_CLASSIFIER } from '../../ports/topic-classifier';
+import { CheckCapLabelsController } from './check-cap-labels/check-cap-labels';
 import { ListCapLabelsController } from './list-cap-labels/list-cap-labels';
 import { ReviewCapLabelsController } from './review-cap-labels/review-cap-labels';
 import { RemoveCapLabelController } from './remove-cap-label/remove-cap-label';
@@ -13,6 +14,7 @@ import { SuggestCapLabelsController } from './suggest-cap-labels/suggest-cap-lab
     ListCapLabelsController,
     RemoveCapLabelController,
     ReviewCapLabelsController,
+    CheckCapLabelsController,
   ],
   providers: [{ provide: TOPIC_CLASSIFIER, useClass: OllamaTopicClassifier }],
 })

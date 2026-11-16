@@ -21,6 +21,8 @@ import { Route as AdminIndicatorsNewRouteImport } from './routes/_admin/indicato
 import { Route as AdminProvidersNewRouteImport } from './routes/_admin/providers.new'
 import { Route as AdminPublicationsIndexRouteImport } from './routes/_admin/publications.index'
 import { Route as AdminPublicationsSlugRouteImport } from './routes/_admin/publications.$slug'
+import { Route as AdminVerificationIndexRouteImport } from './routes/_admin/verification.index'
+import { Route as AdminVerificationCandidateIdRouteImport } from './routes/_admin/verification.$candidateId'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/_admin',
@@ -81,6 +83,17 @@ const AdminPublicationsSlugRoute = AdminPublicationsSlugRouteImport.update({
   path: '/publications/$slug',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminVerificationIndexRoute = AdminVerificationIndexRouteImport.update({
+  id: '/verification/',
+  path: '/verification/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminVerificationCandidateIdRoute =
+  AdminVerificationCandidateIdRouteImport.update({
+    id: '/verification/$candidateId',
+    path: '/verification/$candidateId',
+    getParentRoute: () => AdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AdminIndexRoute
@@ -93,7 +106,9 @@ export interface FileRoutesByFullPath {
   '/indicators/new': typeof AdminIndicatorsNewRoute
   '/providers/new': typeof AdminProvidersNewRoute
   '/publications/$slug': typeof AdminPublicationsSlugRoute
+  '/verification/$candidateId': typeof AdminVerificationCandidateIdRoute
   '/publications/': typeof AdminPublicationsIndexRoute
+  '/verification/': typeof AdminVerificationIndexRoute
 }
 export interface FileRoutesByTo {
   '/signin': typeof SigninRoute
@@ -106,7 +121,9 @@ export interface FileRoutesByTo {
   '/indicators/new': typeof AdminIndicatorsNewRoute
   '/providers/new': typeof AdminProvidersNewRoute
   '/publications/$slug': typeof AdminPublicationsSlugRoute
+  '/verification/$candidateId': typeof AdminVerificationCandidateIdRoute
   '/publications': typeof AdminPublicationsIndexRoute
+  '/verification': typeof AdminVerificationIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -121,7 +138,9 @@ export interface FileRoutesById {
   '/_admin/indicators/new': typeof AdminIndicatorsNewRoute
   '/_admin/providers/new': typeof AdminProvidersNewRoute
   '/_admin/publications/$slug': typeof AdminPublicationsSlugRoute
+  '/_admin/verification/$candidateId': typeof AdminVerificationCandidateIdRoute
   '/_admin/publications/': typeof AdminPublicationsIndexRoute
+  '/_admin/verification/': typeof AdminVerificationIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -136,7 +155,9 @@ export interface FileRouteTypes {
     | '/indicators/new'
     | '/providers/new'
     | '/publications/$slug'
+    | '/verification/$candidateId'
     | '/publications/'
+    | '/verification/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/signin'
@@ -149,7 +170,9 @@ export interface FileRouteTypes {
     | '/indicators/new'
     | '/providers/new'
     | '/publications/$slug'
+    | '/verification/$candidateId'
     | '/publications'
+    | '/verification'
   id:
     | '__root__'
     | '/_admin'
@@ -163,7 +186,9 @@ export interface FileRouteTypes {
     | '/_admin/indicators/new'
     | '/_admin/providers/new'
     | '/_admin/publications/$slug'
+    | '/_admin/verification/$candidateId'
     | '/_admin/publications/'
+    | '/_admin/verification/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -257,6 +282,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPublicationsSlugRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/verification/': {
+      id: '/_admin/verification/'
+      path: '/verification'
+      fullPath: '/verification/'
+      preLoaderRoute: typeof AdminVerificationIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/verification/$candidateId': {
+      id: '/_admin/verification/$candidateId'
+      path: '/verification/$candidateId'
+      fullPath: '/verification/$candidateId'
+      preLoaderRoute: typeof AdminVerificationCandidateIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
@@ -270,7 +309,9 @@ interface AdminRouteChildren {
   AdminIndicatorsNewRoute: typeof AdminIndicatorsNewRoute
   AdminProvidersNewRoute: typeof AdminProvidersNewRoute
   AdminPublicationsSlugRoute: typeof AdminPublicationsSlugRoute
+  AdminVerificationCandidateIdRoute: typeof AdminVerificationCandidateIdRoute
   AdminPublicationsIndexRoute: typeof AdminPublicationsIndexRoute
+  AdminVerificationIndexRoute: typeof AdminVerificationIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -283,7 +324,9 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminIndicatorsNewRoute: AdminIndicatorsNewRoute,
   AdminProvidersNewRoute: AdminProvidersNewRoute,
   AdminPublicationsSlugRoute: AdminPublicationsSlugRoute,
+  AdminVerificationCandidateIdRoute: AdminVerificationCandidateIdRoute,
   AdminPublicationsIndexRoute: AdminPublicationsIndexRoute,
+  AdminVerificationIndexRoute: AdminVerificationIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
