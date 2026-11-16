@@ -5,7 +5,8 @@
  *
  *   npx tsx src/scripts/night-loop.ts [heure de fin, 7 par défaut] [minutes entre deux tours, 60]
  *
- * Chaque rapport s'ajoute à reports/nuit-AAAA-MM-JJ.md.
+ * Chaque rapport s'ajoute à reports/nuit-AAAA-MM-JJ.md. Laisser le Mac
+ * branché et le capot ouvert.
  */
 import 'dotenv/config';
 import { spawn } from 'node:child_process';
@@ -49,6 +50,12 @@ async function stats(prisma: PrismaClient) {
 }
 
 async function main() {
+  // Le Mac ne s'endort pas tant que la boucle tourne (sinon les tours
+  // s'arrêtent avec lui). Le capot fermé sur batterie l'endort quand même.
+  spawn('caffeinate', ['-i', '-w', String(process.pid)], {
+    stdio: 'ignore',
+    detached: true,
+  }).unref();
   const prisma = new PrismaClient({
     adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
   });
