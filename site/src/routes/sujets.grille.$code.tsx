@@ -34,23 +34,40 @@ type Candidate = Subject['candidates'][number]
 /** « LR_Produire_Plus_LIVRET.pdf » se lit « LR Produire Plus LIVRET ». */
 const documentName = (title: string) =>
   /\.pdf$/i.test(title)
-    ? title.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ').trim()
+    ? title
+        .replace(/\.pdf$/i, '')
+        .replace(/[_-]+/g, ' ')
+        .trim()
     : title
 
 const isPdf = (url: string) => /\.pdf(\?|#|$)/i.test(url)
 
-/** Un ordre tiré au hasard, après le chargement : aucun candidat toujours en tête. */
-function useShuffled<T>(list: T[]) {
-  const [order, setOrder] = useState(list)
+/**
+ * L'ordre tiré au hasard pour cette visite : le même d'un sujet à l'autre et
+ * pendant toute la lecture (un rechargement des données ne le change pas).
+ * Une nouvelle visite tire un nouvel ordre : aucun candidat toujours en tête.
+ */
+let visitOrder: string[] | null = null
+
+function useShuffled<T extends { slug: string }>(list: T[]) {
+  const [order, setOrder] = useState<string[] | null>(visitOrder)
   useEffect(() => {
-    const copy = [...list]
-    for (let i = copy.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[copy[i], copy[j]] = [copy[j], copy[i]]
+    if (!visitOrder) {
+      const copy = list.map((c) => c.slug)
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[copy[i], copy[j]] = [copy[j], copy[i]]
+      }
+      visitOrder = copy
     }
-    setOrder(copy)
+    setOrder(visitOrder)
   }, [list])
-  return order
+  if (!order) return list
+  const rank = (slug: string) => {
+    const i = order.indexOf(slug)
+    return i === -1 ? order.length : i
+  }
+  return [...list].sort((a, b) => rank(a.slug) - rank(b.slug))
 }
 
 /**
@@ -96,12 +113,13 @@ function SubjectPage() {
           >
             ← Sujets
           </Link>
-          <h1 className={`${DISPLAY} truncate text-[clamp(1.4rem,3vw,2rem)] leading-tight`}>
+          <h1
+            className={`${DISPLAY} truncate text-[clamp(1.4rem,3vw,2rem)] leading-tight`}
+          >
             {s.topic.label}
           </h1>
         </div>
       </div>
-
 
       <section className="px-6 pt-8 pb-20 md:px-10">
         <div className="mx-auto grid max-w-[1280px] gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
@@ -155,7 +173,13 @@ function SubjectPage() {
   )
 }
 
-function CandidateCard({ index, candidate: c }: { index: number; candidate: Candidate }) {
+function CandidateCard({
+  index,
+  candidate: c,
+}: {
+  index: number
+  candidate: Candidate
+}) {
   return (
     <li
       id={`candidat-${index}`}
@@ -189,7 +213,9 @@ function CandidateCard({ index, candidate: c }: { index: number; candidate: Cand
       </Link>
 
       {c.programmeStatus !== 'complete' && c.programmeNote && (
-        <p className={`mt-4 rounded-[14px] bg-[#F4F6F8] px-4 py-3 text-[0.88rem] leading-relaxed ${MUTED}`}>
+        <p
+          className={`mt-4 rounded-[14px] bg-[#F4F6F8] px-4 py-3 text-[0.88rem] leading-relaxed ${MUTED}`}
+        >
           <span className="font-bold text-[#0B1A2A]">Documents partiels.</span>{' '}
           {c.programmeNote}
         </p>
@@ -201,7 +227,9 @@ function CandidateCard({ index, candidate: c }: { index: number; candidate: Cand
           return (
             <div key={i}>
               <a
-                href={page ? `${ch.document.url}#page=${page}` : ch.document.url}
+                href={
+                  page ? `${ch.document.url}#page=${page}` : ch.document.url
+                }
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#F4F6F8] px-3 py-1 text-[0.82rem] font-bold text-[#0B1A2A] no-underline hover:underline"
@@ -209,8 +237,12 @@ function CandidateCard({ index, candidate: c }: { index: number; candidate: Cand
                 <span className={`shrink-0 font-semibold ${MUTED}`}>
                   {isPdf(ch.document.url) ? 'Document' : 'Son site'} ·
                 </span>
-                <span className="truncate">{documentName(ch.document.title)}</span>
-                {page !== null && <span className="shrink-0 font-semibold">· p. {page}</span>}
+                <span className="truncate">
+                  {documentName(ch.document.title)}
+                </span>
+                {page !== null && (
+                  <span className="shrink-0 font-semibold">· p. {page}</span>
+                )}
                 <ArrowUpRight size={12} className="shrink-0" />
               </a>
               <div className="mt-4 border-l-2 border-[#0B1A2A]/10 pl-5 md:pl-7">
@@ -270,8 +302,12 @@ function Names({
 }) {
   return (
     <div>
-      <p className="px-3 pb-1 text-[0.75rem] font-bold text-[#5B6470]">{title}</p>
-      <p className="px-3 pb-2 text-[0.78rem] leading-snug text-[#5B6470]">{note}</p>
+      <p className="px-3 pb-1 text-[0.75rem] font-bold text-[#5B6470]">
+        {title}
+      </p>
+      <p className="px-3 pb-2 text-[0.78rem] leading-snug text-[#5B6470]">
+        {note}
+      </p>
       <ul>
         {list.map((c) => (
           <li key={c.slug}>
@@ -310,7 +346,9 @@ function Approach({
             rel="noreferrer"
             className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#F4F6F8] px-3 py-1 text-[0.82rem] font-bold text-[#0B1A2A] no-underline hover:underline"
           >
-            <span className={`shrink-0 font-semibold ${MUTED}`}>Son constat ·</span>
+            <span className={`shrink-0 font-semibold ${MUTED}`}>
+              Son constat ·
+            </span>
             <span className="truncate">{k.label}</span>
             <ArrowUpRight size={12} className="shrink-0" />
           </a>
@@ -320,12 +358,20 @@ function Approach({
             </p>
             <ul className="space-y-2">
               {k.indicators.map((i) => (
-                <li key={i.name} className="text-[0.95rem] leading-relaxed text-[#0B1A2A]">
+                <li
+                  key={i.name}
+                  className="text-[0.95rem] leading-relaxed text-[#0B1A2A]"
+                >
                   <span className="font-bold">{i.name}</span> : {i.sentence}{' '}
                   <span className={`text-[0.8rem] ${MUTED}`}>
                     ({i.unit} ·{' '}
                     {i.sourceUrl ? (
-                      <a href={i.sourceUrl} target="_blank" rel="noreferrer" className="underline">
+                      <a
+                        href={i.sourceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline"
+                      >
                         {i.source}
                       </a>
                     ) : (
@@ -347,13 +393,16 @@ function Approach({
             rel="noreferrer"
             className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#F4F6F8] px-3 py-1 text-[0.82rem] font-bold text-[#0B1A2A] no-underline hover:underline"
           >
-            <span className={`shrink-0 font-semibold ${MUTED}`}>Sa consultation ·</span>
+            <span className={`shrink-0 font-semibold ${MUTED}`}>
+              Sa consultation ·
+            </span>
             <span className="truncate">{t.theme}</span>
             <ArrowUpRight size={12} className="shrink-0" />
           </a>
           <p className="mt-3 border-l-2 border-[#0B1A2A]/10 pl-5 text-[0.95rem] leading-relaxed text-[#0B1A2A] md:pl-7">
-            Une consultation ouverte sur ce thème : {t.text}, déposés par
-            des participants, selon sa page au {frenchDate(a.fetchedAt.slice(0, 10))}.{' '}
+            Une consultation ouverte sur ce thème : {t.text}, déposés par des
+            participants, selon sa page au{' '}
+            {frenchDate(a.fetchedAt.slice(0, 10))}.{' '}
             <span className={MUTED}>
               Ces solutions sont celles des participants, pas les siennes.
             </span>
