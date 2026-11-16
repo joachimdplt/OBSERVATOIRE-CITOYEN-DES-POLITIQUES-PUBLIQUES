@@ -12,8 +12,10 @@ données) prime sur tout le reste.
   molecules, organisms ; design du suivi de parc, monochrome.
 - `backend/` : l'API NestJS, Prisma, PostgreSQL ; `/api/public/*` et
   `/api/admin/*`.
-- `docs/` : le cahier des charges de référence (01 à 04), et `05-alimentation.md`
-  qui décrit comment l'outil se nourrit aujourd'hui.
+- `docs/` : le cahier des charges de référence (01 à 04), `05-alimentation.md`
+  qui décrit comment l'outil se nourrit aujourd'hui, et `06-rangement.md` qui
+  décrit le nettoyage des programmes, la grille, les vecteurs, le classeur,
+  le vote et leur fiabilité mesurée.
 
 ## Les règles qui ne se négocient pas
 
