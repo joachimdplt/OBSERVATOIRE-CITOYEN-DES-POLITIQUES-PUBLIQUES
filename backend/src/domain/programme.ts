@@ -571,6 +571,36 @@ function readCard(lines: string[]): ProgrammePassage[] {
 }
 
 /**
+ * Un témoignage signé (« Sylvain, technicien de maintenance · Lognes ») :
+ * les mots d'une autre personne, publiés par le candidat, pas les siens.
+ */
+export function isTestimony(quote: string): boolean {
+  return /^(» ?)?\p{Lu}[\p{L}-]+(\s\p{Lu}[\p{L}-]+)?\s?,\s[^.,·«»]{3,40}\s·\s\p{Lu}/u.test(
+    quote.replace(/\s+/g, ' ').trim(),
+  );
+}
+
+/**
+ * Les passages sans les témoignages signés : chacun, et la phrase entre
+ * guillemets qui l'annonce juste avant (« Mon patron dit… » puis « Anne,
+ * employée de commerce · Arles … »). Les passages sont dans l'ordre du texte.
+ */
+export function withoutTestimonies<T>(
+  passages: T[],
+  text: (p: T) => string,
+): T[] {
+  return passages.filter((p, i) => {
+    if (isTestimony(text(p))) return false;
+    const next = passages[i + 1];
+    return !(
+      next !== undefined &&
+      isTestimony(text(next)) &&
+      /^\s*«/.test(text(p))
+    );
+  });
+}
+
+/**
  * Les encadrés qu'un site affiche autour de chaque page (liens vers les
  * autres mesures, dernières actualités) : ce ne sont pas les mots du
  * chapitre, et ils se répètent sur toutes les pages.

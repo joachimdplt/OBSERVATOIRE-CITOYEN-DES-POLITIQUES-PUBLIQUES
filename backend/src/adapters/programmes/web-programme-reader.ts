@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { isSiteSidebar } from '../../domain/programme';
+import { isSiteSidebar, withoutTestimonies } from '../../domain/programme';
 import { execFile } from 'node:child_process';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -287,7 +287,7 @@ const clean = (el: HTMLElement) =>
 
 /** Les rubriques de mise en page (« Partager cette page ») ne sont pas du programme. */
 function withoutChrome(passages: ProgrammePassage[]) {
-  return passages
+  return withoutTestimonies(passages, (p) => p.text)
     .map((p) => ({
       ...p,
       text: p.text.replace(/<!doctype[^>]*>/gi, '').trim(),

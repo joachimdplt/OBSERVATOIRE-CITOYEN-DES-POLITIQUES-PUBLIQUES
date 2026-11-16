@@ -4,7 +4,7 @@ import type {
   DiagnosisChapter,
   DiagnosisIndicator,
 } from '../../../domain/campaign';
-import { currentCaptures } from '../../../domain/programme';
+import { currentCaptures, withoutTestimonies } from '../../../domain/programme';
 import {
   CampaignSourceKind,
   DocumentKind,
@@ -109,7 +109,7 @@ export class GetSubjectController {
       orderBy: { position: 'asc' },
     });
     const passagesOf = new Map<string, typeof measures>();
-    for (const m of measures) {
+    for (const m of withoutTestimonies(measures, (m) => m.quote)) {
       const key = `${m.documentId}\n${m.article}`;
       const list = passagesOf.get(key) ?? [];
       list.push(m);

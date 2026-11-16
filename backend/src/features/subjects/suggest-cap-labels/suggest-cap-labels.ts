@@ -17,7 +17,11 @@ import {
   embedTexts,
   loadVoteContext,
 } from '../vote-cap-labels/vote-cap-labels';
-import { currentCaptures, isSiteSidebar } from '../../../domain/programme';
+import {
+  currentCaptures,
+  isSiteSidebar,
+  withoutTestimonies,
+} from '../../../domain/programme';
 import {
   DocumentKind,
   LabelOrigin,
@@ -153,6 +157,9 @@ export async function suggestCapLabels(
     g.passages.push({ quote: m.quote, position: m.position ?? 0 });
     grouped.set(key, g);
   }
+  // Les témoignages signés ne sont pas les mots du candidat.
+  for (const g of grouped.values())
+    g.passages = withoutTestimonies(g.passages, (p) => p.quote);
 
   // Les corrections de l'équipe : chaque chapitre ou bloc rangé à la main,
   // avec son texte et sa raison. Le modèle voit les plus proches de chaque

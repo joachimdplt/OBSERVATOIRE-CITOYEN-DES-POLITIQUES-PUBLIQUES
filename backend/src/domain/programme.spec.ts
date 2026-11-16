@@ -6,6 +6,8 @@ import {
   splitProgramme,
   topicsOf,
   isSiteSidebar,
+  isTestimony,
+  withoutTestimonies,
 } from './programme';
 
 describe('le découpage d’un programme', () => {
@@ -281,5 +283,42 @@ describe('isSiteSidebar', () => {
   it('garde les chapitres du programme', () => {
     expect(isSiteSidebar('Réformer l’assurance chômage')).toBe(false);
     expect(isSiteSidebar('Mesures pour les agriculteurs')).toBe(false);
+  });
+});
+
+describe('isTestimony', () => {
+  it('reconnaît un témoignage signé « Prénom, métier · Ville »', () => {
+    expect(
+      isTestimony(
+        'Sylvain, technicien de maintenance · Lognes Les capitalistes écrasent les salaires.',
+      ),
+    ).toBe(true);
+    expect(
+      isTestimony('Jean-Pierre Mercier , cariste · Poissy Qui licencie ?'),
+    ).toBe(true);
+    expect(
+      isTestimony('» Aurélie , infirmière · Paris La guerre est là.'),
+    ).toBe(true);
+  });
+  it('garde les mots du candidat', () => {
+    expect(
+      isTestimony(
+        'Enfin, le volet réglementaire donnera des engagements de stabilité.',
+      ),
+    ).toBe(false);
+    expect(isTestimony('Photo · Lutte ouvrière')).toBe(false);
+  });
+});
+
+describe('withoutTestimonies', () => {
+  it('retire le témoignage et la phrase entre guillemets qui l’annonce', () => {
+    const passages = [
+      '« Mon patron dit qu’il ne peut pas augmenter les salaires. »',
+      'Anne, employée de commerce · Arles Les patrons appellent « charges » nos cotisations.',
+      'Les travailleurs doivent contrôler l’économie.',
+    ];
+    expect(withoutTestimonies(passages, (p) => p)).toEqual([
+      'Les travailleurs doivent contrôler l’économie.',
+    ]);
   });
 });
