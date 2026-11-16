@@ -16,6 +16,7 @@ import { FetchCampaignPageReader } from '../adapters/web/campaign-page-reader';
 import { FetchSiteCrawler } from '../adapters/web/fetch-site-crawler';
 import { FetchSitemap } from '../adapters/web/fetch-sitemap';
 import { YoutubeFeed } from '../adapters/youtube/youtube-feed';
+import { OllamaTopicClassifier } from '../adapters/classifier/ollama-topic-classifier';
 import configuration from '../config/configuration';
 import { PrismaClient } from '../generated/prisma/client';
 import { runDailyCollection } from '../jobs/daily-collection';
@@ -41,6 +42,7 @@ async function main() {
         sitemaps: new FetchSitemap(),
         crawler: new FetchSiteCrawler(),
         campaign: new FetchCampaignPageReader(),
+        classifier: new OllamaTopicClassifier(),
       },
       console,
     );

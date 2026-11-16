@@ -34,9 +34,13 @@ function ReclassScreen() {
   const code = picked && card && picked.id === card.id ? picked.code : null
   const pickedLabel = topics.data?.find((t) => t.code === code)?.label
 
-  const decide = (choice: string | null) => {
+  // L'explication vaut pour la carte où elle a été écrite.
+  const [note, setNote] = useState<{ id: string; text: string } | null>(null)
+  const reason = note && card && note.id === card.id ? note.text : ''
+
+  const decide = (choice: string | null, noTopic = false) => {
     if (!card || busy) return
-    send.mutate({ labelId: card.id, code: choice })
+    send.mutate({ labelId: card.id, code: choice, noTopic, reason })
   }
 
   useEffect(() => {
@@ -48,8 +52,8 @@ function ReclassScreen() {
   }, [navigate])
 
   return (
-    <div className="fixed inset-0 z-20 flex flex-col bg-white">
-      <header className="flex items-center gap-6 border-b border-slate-100 px-6 py-3">
+    <div className="fixed inset-0 z-20 flex flex-col bg-[#F4F6F8]">
+      <header className="glass-bar flex items-center gap-6 px-6 py-3">
         <Link
           to="/verification"
           className="text-sm text-slate-400 hover:text-slate-900"
@@ -91,8 +95,8 @@ function ReclassScreen() {
       </main>
 
       {card && (
-        <footer className="border-t border-slate-100 bg-slate-50 px-6 py-5">
-          <div className="mx-auto max-w-2xl space-y-4">
+        <footer className="glass-bar border-t border-white/70 px-6 py-5">
+          <div className="mx-auto max-w-3xl space-y-4">
             <div className="text-center">
               <p className="text-xs text-slate-400">
                 Refusé en {card.topic.label}. Le bon sujet :
@@ -101,20 +105,45 @@ function ReclassScreen() {
                 {pickedLabel ?? 'choisissez-le dans le panneau'}
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <label className="block text-left">
+              <span className="text-xs text-slate-500">
+                Pourquoi ? Le modèle relit cette explication quand il range
+                un passage proche.
+              </span>
+              <textarea
+                value={reason}
+                onChange={(e) =>
+                  setNote({ id: card.id, text: e.target.value })
+                }
+                onKeyDown={(e) => e.stopPropagation()}
+                rows={2}
+                placeholder="Ex. : la répression des manifestations relève des libertés, pas de l’emploi."
+                className="glass mt-1 w-full resize-none rounded-2xl px-4 py-2 text-sm text-[#0B1A2A] outline-none placeholder:text-slate-400"
+              />
+            </label>
+            <div className="grid grid-cols-3 gap-4">
               <button
                 type="button"
                 disabled={busy}
                 onClick={() => decide(null)}
-                className="flex h-16 items-center justify-center rounded-xl border border-slate-300 bg-white text-lg font-medium text-slate-900 hover:bg-slate-100 disabled:opacity-40"
+                className="glass flex h-16 items-center justify-center rounded-full px-4 text-base font-semibold text-[#0B1A2A] hover:bg-white/80 disabled:opacity-40"
               >
                 Pas une position du candidat
               </button>
               <button
                 type="button"
+                disabled={busy}
+                onClick={() => decide(null, true)}
+                title="Sa position, mais elle ne vise aucune politique publique : une analyse, un appel, un slogan."
+                className="glass flex h-16 items-center justify-center rounded-full px-4 text-base font-semibold text-[#0B1A2A] hover:bg-white/80 disabled:opacity-40"
+              >
+                Sans sujet de politique publique
+              </button>
+              <button
+                type="button"
                 disabled={busy || !code}
                 onClick={() => decide(code)}
-                className="flex h-16 items-center justify-center rounded-xl bg-slate-900 text-lg font-medium text-white hover:bg-slate-800 disabled:opacity-40"
+                className="glass-dark flex h-16 items-center justify-center rounded-full px-4 text-base font-semibold text-white hover:opacity-90 disabled:opacity-40"
               >
                 Ranger ici
               </button>
@@ -126,9 +155,8 @@ function ReclassScreen() {
                 topics={topics.data}
                 current={card.topic.code}
                 selected={code}
-                onPick={(c) =>
-                  c !== card.topic.code && setPicked({ id: card.id, code: c })
-                }
+                allowCurrent
+                onPick={(c) => setPicked({ id: card.id, code: c })}
               />
             </div>
           )}

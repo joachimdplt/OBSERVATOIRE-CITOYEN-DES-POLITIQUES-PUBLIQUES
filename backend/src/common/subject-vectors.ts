@@ -4,10 +4,11 @@
  * blocs de chaque chapitre et leur sens). Partagé ici pour qu'aucune slice
  * n'en importe une autre.
  */
-import { currentCaptures } from '../domain/programme';
+import { liveProgrammes } from './live-programmes';
 import { mean, toVector } from '../domain/vote';
-import { DocumentKind, LabelStatus } from '../generated/prisma/enums';
+import { LabelStatus } from '../generated/prisma/enums';
 import { PrismaService } from '../prisma/prisma.service';
+import { inLabel } from '../domain/filing-unit';
 
 /** Le modèle de vecteurs : celui qui a vectorisé les passages et la grille. */
 export const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL ?? 'bge-m3';
@@ -43,23 +44,12 @@ export async function embedMissingPassages(
   prisma: PrismaService,
   log: (line: string) => void = () => {},
 ) {
-  const documents = await prisma.politicalDocument.findMany({
-    where: {
-      kind: DocumentKind.programme,
-      sourceRef: { not: null },
-      retiredAt: null,
-    },
+  const documents = await liveProgrammes(prisma, {
     select: { id: true, sourceRef: true, fetchedAt: true, createdAt: true },
   });
-  const current = currentCaptures(
-    documents.map((d) => ({
-      id: d.id,
-      sourceRef: d.sourceRef!,
-      fetchedAt: d.fetchedAt ?? d.createdAt,
-    })),
-  );
+  const current = documents.map((d) => d.id);
   const measures = await prisma.measure.findMany({
-    where: { documentId: { in: [...current] } },
+    where: { documentId: { in: current } },
     select: { id: true, article: true, quote: true },
   });
   const done = new Set(
@@ -102,30 +92,10 @@ export async function loadVoteContext(prisma: PrismaService) {
     await prisma.topicVector.findMany({ where: { model: EMBEDDING_MODEL } })
   ).map((t) => ({ major: majorOf.get(t.code)!, vector: toVector(t.vector) }));
 
-  const documents = await prisma.politicalDocument.findMany({
-    where: {
-      kind: DocumentKind.programme,
-      sourceRef: { not: null },
-      retiredAt: null,
-    },
-    select: {
-      id: true,
-      url: true,
-      sourceRef: true,
-      fetchedAt: true,
-      createdAt: true,
-    },
+  const documents = await liveProgrammes(prisma, {
+    select: { id: true, url: true },
   });
-  const current = currentCaptures(
-    documents.map((d) => ({
-      id: d.id,
-      sourceRef: d.sourceRef!,
-      fetchedAt: d.fetchedAt ?? d.createdAt,
-    })),
-  );
-  const docOfUrl = new Map(
-    documents.filter((d) => current.has(d.id)).map((d) => [d.url, d.id]),
-  );
+  const docOfUrl = new Map(documents.map((d) => [d.url, d.id]));
   const measures = await prisma.measure.findMany({
     where: { documentId: { in: [...docOfUrl.values()] } },
     select: { id: true, documentId: true, article: true, position: true },
@@ -155,10 +125,11 @@ export async function loadVoteContext(prisma: PrismaService) {
     documentUrl: string;
     heading: string;
     fromPosition: number | null;
+    positions?: number[];
   }) => {
     const docId = docOfUrl.get(l.documentUrl);
     return (byChapter.get(`${docId}\n${l.heading}`) ?? [])
-      .filter((m) => (m.position ?? 0) >= (l.fromPosition ?? 0))
+      .filter((m) => inLabel(l, m.position))
       .slice(0, BLOCK);
   };
   /** Le sens d'un bloc : la moyenne des vecteurs de ses passages. */

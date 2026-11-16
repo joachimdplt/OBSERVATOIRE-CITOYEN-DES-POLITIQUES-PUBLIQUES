@@ -18,6 +18,7 @@ import type {
   TerritoryValues,
   IndicatorLine,
   IndicatorSheet,
+  CandidateSubject,
 } from '../types/public'
 
 /**
@@ -140,6 +141,15 @@ export const getCandidate = createServerFn({ method: 'GET' })
   .handler(({ data }) =>
     get<CandidateSheet>(
       `/elections/${encodeURIComponent(data.election)}/candidates/${encodeURIComponent(data.slug)}`,
+    ),
+  )
+
+/** Ce que dit un candidat, sujet par sujet. */
+export const getCandidateSubjects = createServerFn({ method: 'GET' })
+  .validator(z.object({ election: z.string(), slug: z.string() }))
+  .handler(({ data }) =>
+    get<CandidateSubject[]>(
+      `/elections/${encodeURIComponent(data.election)}/candidates/${encodeURIComponent(data.slug)}/subjects`,
     ),
   )
 

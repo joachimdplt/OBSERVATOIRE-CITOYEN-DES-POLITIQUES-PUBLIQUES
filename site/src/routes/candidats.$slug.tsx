@@ -6,8 +6,16 @@ import { LiveBadge } from '../components/molecules/LiveBadge'
 import { Carousel } from '../components/molecules/Carousel'
 import { VideoEmbed } from '../components/molecules/VideoEmbed'
 import { CandidateApproach } from '../components/organisms/candidates/CandidateApproach'
-import { CandidateProgramme } from '../components/organisms/candidates/CandidateProgramme'
-import { getCandidate, getCandidateProgramme } from '../services/public-api'
+import { CandidateDocuments } from '../components/organisms/candidates/CandidateDocuments'
+import {
+  CandidateSubjects,
+  documentLabel,
+} from '../components/organisms/candidates/CandidateSubjects'
+import {
+  getCandidate,
+  getCandidateProgramme,
+  getCandidateSubjects,
+} from '../services/public-api'
 import type { CandidateSheet } from '../types/public'
 import { frenchDate } from '../utils/date'
 import { seo } from '../utils/seo'
@@ -16,14 +24,17 @@ const ELECTION = 'presidentielle-2027'
 
 export const Route = createFileRoute('/candidats/$slug')({
   loader: async ({ params }) => {
-    const [candidate, programme] = await Promise.all([
+    const [candidate, programme, subjects] = await Promise.all([
       getCandidate({ data: { election: ELECTION, slug: params.slug } }),
       getCandidateProgramme({
         data: { election: ELECTION, slug: params.slug },
       }).catch(() => null),
+      getCandidateSubjects({
+        data: { election: ELECTION, slug: params.slug },
+      }).catch(() => []),
     ])
     if (!candidate) throw notFound()
-    return { ...candidate, programmeProfile: programme }
+    return { ...candidate, programmeProfile: programme, subjects }
   },
   head: ({ loaderData }) => ({
     meta: seo({
@@ -40,12 +51,6 @@ const MUTED = 'text-[#5B6470]'
 
 const isPdf = (url: string) => /\.pdf(\?|#|$)/i.test(url)
 
-/** « LR_Produire_Plus_LIVRET.pdf » se lit « LR Produire Plus LIVRET ». */
-const pdfName = (title: string) =>
-  title
-    .replace(/\.pdf$/i, '')
-    .replace(/[_-]+/g, ' ')
-    .trim()
 const DISPLAY = 'font-extrabold tracking-[-0.03em] text-[#0B1A2A]'
 
 const STATUS = {
@@ -59,12 +64,39 @@ const NETWORKS = {
   instagram: 'Instagram',
   x: 'X',
   tiktok: 'TikTok',
+  facebook: 'Facebook',
 } as const
 
 const LINK = {
   own_channel: 'sa chaîne',
   name_in_title: 'nommé dans le titre',
 } as const
+
+/** Un nom réduit à ses lettres : « Place publique » → « placepublique ». */
+const letters = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z]/g, '')
+
+/**
+ * Les comptes du candidat et de son parti seulement : ceux que donne
+ * Wikidata, et ceux dont le nom contient son nom de famille ou celui de son
+ * parti. Les comptes de ses soutiens, relevés sur son site, n'en sont pas.
+ */
+function ownAccounts(c: CandidateSheet) {
+  const last = letters(c.name.split(' ').at(-1) ?? '')
+  const party = c.party ? letters(c.party) : ''
+  return c.accounts.filter((a) => {
+    if (a.source.startsWith('https://www.wikidata.org/')) return true
+    const handle = letters(a.handle)
+    return (
+      (last.length >= 3 && handle.includes(last)) ||
+      (party.length >= 3 && handle.includes(party))
+    )
+  })
+}
 
 /**
  * La page d'un candidat : sa déclaration et sa source, l'état de son
@@ -166,9 +198,26 @@ function CandidatePage() {
                       },
                     ]
                   : []),
-                ...c.accounts.map((a) => ({
+                ...(c.partyWebsite
+                  ? [
+                      {
+                        label: 'Son parti',
+                        value: new URL(c.partyWebsite).hostname.replace(
+                          /^www\./,
+                          '',
+                        ),
+                        href: c.partyWebsite,
+                      },
+                    ]
+                  : []),
+                ...ownAccounts(c).map((a) => ({
                   label: NETWORKS[a.network],
-                  value: a.network === 'youtube' ? 'Sa chaîne' : `@${a.handle}`,
+                  // Une chaîne YouTube connue par son identifiant technique
+                  // (UC…) se dit « Sa chaîne » ; sinon par son nom.
+                  value:
+                    a.network === 'youtube' && /^UC[\w-]{20,}$/.test(a.handle)
+                      ? 'Sa chaîne'
+                      : `@${a.handle}`,
                   href: a.url,
                   hint: a.source.startsWith('https://www.wikidata.org/')
                     ? `D’après Wikidata (${a.source.replace('https://www.wikidata.org/wiki/', '')})`
@@ -178,7 +227,7 @@ function CandidatePage() {
               more={[
                 ...others.map((d) => ({
                   label: 'Document',
-                  value: pdfName(d.title),
+                  value: documentLabel(d.title, d.url),
                   href: d.url,
                   download: true,
                 })),
@@ -188,18 +237,21 @@ function CandidatePage() {
         </div>
       </section>
 
-      <Videos candidate={c} />
+      {/* Ce qu'il dit, sujet par sujet ; puis ses documents en entier,
+          chapitre par chapitre ; puis ses vidéos. */}
+      <CandidateSubjects subjects={c.subjects ?? []} />
       {c.programmeProfile && (
         <CandidateApproach approach={c.programmeProfile.approach} />
       )}
       {c.programmeProfile && (
-        <CandidateProgramme
+        <CandidateDocuments
           programme={c.programmeProfile}
           election={ELECTION}
           candidate={c.slug}
         />
       )}
       <NoProgramme candidate={c} />
+      <Videos candidate={c} />
       <section className="px-6 pb-16 md:px-10">
         <div className="mx-auto max-w-[1120px]">
           <div>

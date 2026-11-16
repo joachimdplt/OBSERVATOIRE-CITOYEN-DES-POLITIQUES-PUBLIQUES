@@ -8,11 +8,10 @@
  * vectorisé par ce modèle ne l'est pas de nouveau ; une relance reprend où
  * la précédente s'était arrêtée.
  */
+import { liveProgrammes } from '../common/live-programmes';
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { currentCaptures } from '../domain/programme';
 import { PrismaClient } from '../generated/prisma/client';
-import { DocumentKind } from '../generated/prisma/enums';
 
 const MODEL = process.env.EMBEDDING_MODEL ?? 'bge-m3';
 const URL = process.env.OLLAMA_URL ?? 'http://localhost:11434';
@@ -66,23 +65,12 @@ async function main() {
       );
     }
 
-    const documents = await prisma.politicalDocument.findMany({
-      where: {
-        kind: DocumentKind.programme,
-        sourceRef: { not: null },
-        retiredAt: null,
-      },
-      select: { id: true, sourceRef: true, fetchedAt: true, createdAt: true },
+    const documents = await liveProgrammes(prisma, {
+      select: { id: true, sourceRef: true, fetchedAt: true },
     });
-    const current = currentCaptures(
-      documents.map((d) => ({
-        id: d.id,
-        sourceRef: d.sourceRef!,
-        fetchedAt: d.fetchedAt ?? d.createdAt,
-      })),
-    );
+    const current = documents.map((d) => d.id);
     const measures = await prisma.measure.findMany({
-      where: { documentId: { in: [...current] } },
+      where: { documentId: { in: current } },
       select: { id: true, article: true, quote: true },
     });
     const done = new Set(

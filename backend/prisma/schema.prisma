@@ -52,6 +52,8 @@ model User {
   retiredDocuments     PoliticalDocument[]   @relation("DocumentRetiredBy")
   decidedCapLabels     CapLabel[]            @relation("LabelDecidedBy")
   labelChecks          LabelCheck[]
+  chapterSections      ChapterSection[]
+  measureReports       MeasureReport[]
 
   @@map("users")
 }
@@ -606,6 +608,27 @@ model PoliticalDocument {
   @@map("political_documents")
 }
 
+/// La section d'un document où se trouve un chapitre, quand le document
+/// l'écrit dans une image que la lecture ne voit pas (le bandeau « Hausse
+/// des dépenses » d'un contre-budget). Saisie par l'équipe, mot pour mot,
+/// avec la page et la provenance ; elle s'affiche au-dessus du chapitre,
+/// elle ne change ni ses mots ni son rangement.
+model ChapterSection {
+  id          String   @id @default(uuid())
+  documentUrl String
+  page        Int
+  heading     String
+  section     String
+  /// D'où vient la section : « lue sur l'image de la page 4 par l'équipe ».
+  source      String
+  createdById String
+  createdAt   DateTime @default(now())
+  createdBy   User     @relation(fields: [createdById], references: [id])
+
+  @@unique([documentUrl, page, heading])
+  @@map("chapter_sections")
+}
+
 /// Une mesure : un article, sa citation exacte, et un libellé qui reformule.
 model Measure {
   id          String            @id @default(uuid())
@@ -712,6 +735,8 @@ model Candidate {
   wikidataId         String?
   /// Son site de campagne officiel : ses comptes publics y sont relevés.
   website            String?
+  /// Le site de son parti ou de son mouvement, donné par l'équipe.
+  partyWebsite       String?
   /// Sa photo sous licence libre, venue de Wikimedia Commons, avec son crédit.
   photoUrl           String?
   photoAuthor        String?
@@ -929,6 +954,7 @@ enum SocialNetwork {
   instagram
   x
   tiktok
+  facebook
 }
 
 /// Un compte public d'un candidat, d'après une source datée (Wikidata) : le
@@ -1148,6 +1174,15 @@ enum CheckVerdict {
   corrected
   /// Après un refus : le texte n'est pas une position du candidat.
   dismissed
+  /// Après un refus : c'est une position du candidat, mais elle ne vise
+  /// aucune politique publique (le code 000 du Manifesto Project).
+  no_topic
+  /// Après un refus : le texte a disparu à la relecture de son document ;
+  /// fermé par le compte de l'outil.
+  vanished
+  /// Après un refus : le chapitre se range désormais passage par passage
+  /// (des propositions numérotées) ; fermé par le compte de l'outil.
+  split
 }
 
 enum LabelOrigin {
@@ -1181,6 +1216,13 @@ model CapLabel {
   /// Le rang du premier passage du bloc rangé, quand un long chapitre est
   /// rangé bloc par bloc ; vide quand le chapitre est rangé en entier.
   fromPosition Int?
+  /// L'unité rangée : « chapter » (un chapitre, ou un bloc d'un long
+  /// chapitre) ou « passage:<rang> » (un seul passage, pour un texte suivi
+  /// sans titre par mesure). Deux passages d'un même chapitre peuvent ainsi
+  /// aller dans le même sujet, chacun sur sa carte.
+  unit        String      @default("chapter")
+  /// Le rang du passage rangé seul ; vide pour un chapitre ou un bloc.
+  positions   Int[]       @default([])
   capCode     String
   origin      LabelOrigin
   /// La similarité donnée par le modèle (elle classe, elle ne prouve rien).
@@ -1204,7 +1246,7 @@ model CapLabel {
   topic       CapTopic    @relation(fields: [capCode], references: [code])
   decidedBy   User?       @relation("LabelDecidedBy", fields: [decidedById], references: [id])
 
-  @@unique([candidateId, documentUrl, heading, capCode])
+  @@unique([candidateId, documentUrl, heading, capCode, unit])
   @@index([capCode, status])
   @@map("cap_labels")
 }
@@ -1282,6 +1324,26 @@ model ClassifierCalibration {
   total      Int?
   /// Le bas de la marge à 95 % de la justesse au-dessus du seuil.
   low        Float?
+  /// Le détail du test : la justesse d'ensemble et, pour chaque seuil, les
+  /// chapitres justes, testés, et la part rangée sans Qwen.
+  results    Json?
 
   @@map("classifier_calibrations")
+}
+
+/// Une mesure archivée : le rapport de l'outil Python (tools/measure) et
+/// ses chiffres clés, tels qu'ils étaient ce jour-là. Une mesure ne se
+/// modifie pas et ne s'efface pas ; recalculer en ajoute une.
+model MeasureReport {
+  id          String   @id @default(uuid())
+  measuredAt  DateTime @default(now())
+  /// Les chiffres clés : verdicts, candidats, taux, entropie croisée.
+  summary     Json
+  /// La page du rapport, avec ses graphiques.
+  html        String
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+
+  @@index([measuredAt])
+  @@map("measure_reports")
 }

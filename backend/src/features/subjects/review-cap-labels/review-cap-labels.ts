@@ -1,3 +1,6 @@
+import { NO_TOPIC } from '../../../domain/filing-unit';
+import { fileCorrection } from '../file-correction';
+import { liveProgrammes } from '../../../common/live-programmes';
 import {
   BadRequestException,
   Body,
@@ -14,15 +17,10 @@ import {
   type TeamMember,
 } from '../../../auth/current-user.decorator';
 import { Requires, SessionGuard } from '../../../auth/session.guard';
-import { currentCaptures } from '../../../domain/programme';
 import type { Proposal } from '../../../domain/vote';
-import {
-  DecisionMode,
-  DocumentKind,
-  LabelOrigin,
-  LabelStatus,
-} from '../../../generated/prisma/enums';
+import { DecisionMode, LabelStatus } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { inLabel } from '../../../domain/filing-unit';
 
 /** Les passages montrés pour trancher. */
 const SHOWN = 4;
@@ -45,36 +43,20 @@ export class ReviewCapLabelsController {
       await this.prisma.capTopic.findMany({ where: { level: 1 } })
     ).sort((a, b) => Number(a.code) - Number(b.code));
     const labelOf = new Map(topics.map((t) => [t.code, t.labelFr]));
+    labelOf.set(NO_TOPIC, 'Aucun sujet de politique publique');
     const labels = await this.prisma.capLabel.findMany({
       where: { status: LabelStatus.review },
       include: { candidate: { select: { name: true } } },
     });
-    const documents = await this.prisma.politicalDocument.findMany({
-      where: {
-        kind: DocumentKind.programme,
-        sourceRef: { not: null },
-        retiredAt: null,
-        url: { in: [...new Set(labels.map((l) => l.documentUrl))] },
-      },
+    const documents = await liveProgrammes(this.prisma, {
+      where: { url: { in: [...new Set(labels.map((l) => l.documentUrl))] } },
       select: {
         id: true,
         url: true,
         title: true,
-        sourceRef: true,
-        fetchedAt: true,
-        createdAt: true,
       },
     });
-    const current = currentCaptures(
-      documents.map((d) => ({
-        id: d.id,
-        sourceRef: d.sourceRef!,
-        fetchedAt: d.fetchedAt ?? d.createdAt,
-      })),
-    );
-    const live = new Map(
-      documents.filter((d) => current.has(d.id)).map((d) => [d.url, d]),
-    );
+    const live = new Map(documents.map((d) => [d.url, d]));
     const measures = await this.prisma.measure.findMany({
       where: {
         documentId: { in: [...live.values()].map((d) => d.id) },
@@ -97,7 +79,7 @@ export class ReviewCapLabelsController {
           (m) =>
             m.documentId === d.id &&
             m.article === l.heading &&
-            (m.position ?? 0) >= (l.fromPosition ?? 0),
+            inLabel(l, m.position),
         )
         .slice(0, SHOWN)
         .map((m) => ({ quote: m.quote, page: m.page }));
@@ -172,23 +154,7 @@ export class ReviewCapLabelsController {
         data: { status: LabelStatus.rejected, ...signed },
       });
       if (!code) return;
-      const key = {
-        candidateId: label.candidateId,
-        documentUrl: label.documentUrl,
-        heading: label.heading,
-        capCode: code,
-      };
-      await tx.capLabel.upsert({
-        where: { candidateId_documentUrl_heading_capCode: key },
-        create: {
-          ...key,
-          fromPosition: label.fromPosition,
-          origin: LabelOrigin.person,
-          status: LabelStatus.validated,
-          ...signed,
-        },
-        update: { status: LabelStatus.validated, ...signed },
-      });
+      await fileCorrection(tx, label, code, signed);
     });
     return { id, code, decided: true };
   }

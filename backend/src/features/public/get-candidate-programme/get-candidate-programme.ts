@@ -1,3 +1,4 @@
+import { liveProgrammes } from '../../../common/live-programmes';
 import {
   BadRequestException,
   Controller,
@@ -7,7 +8,6 @@ import {
   Query,
 } from '@nestjs/common';
 import {
-  currentCaptures,
   isSiteSidebar,
   isTestimonyChapter,
   withoutTestimonies,
@@ -17,10 +17,7 @@ import type {
   DiagnosisChapter,
   ParticipationCount,
 } from '../../../domain/campaign';
-import {
-  CampaignSourceKind,
-  DocumentKind,
-} from '../../../generated/prisma/enums';
+import { CampaignSourceKind } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 /** Un intitulé qui tient lieu d'étape : au moins deux mots, ou un mot de sujet. */
@@ -181,17 +178,10 @@ export class GetCandidateProgrammeController {
 
   /** Ses documents en vigueur et ses passages, dans l'ordre du programme. */
   private async reading(candidateId: string, programmeUrl: string | null) {
-    const all = await this.prisma.politicalDocument.findMany({
-      where: {
-        kind: DocumentKind.programme,
-        sourceRef: { not: null },
-        retiredAt: null,
-      },
+    const all = await liveProgrammes(this.prisma, {
       select: {
         id: true,
-        sourceRef: true,
         fetchedAt: true,
-        createdAt: true,
         candidateId: true,
         title: true,
         url: true,
@@ -199,14 +189,7 @@ export class GetCandidateProgrammeController {
       },
       orderBy: { createdAt: 'asc' },
     });
-    const current = currentCaptures(
-      all.map((d) => ({
-        id: d.id,
-        sourceRef: d.sourceRef!,
-        fetchedAt: d.fetchedAt ?? d.createdAt,
-      })),
-    );
-    const live = all.filter((d) => current.has(d.id));
+    const live = all;
     // Ses documents, source par source dans l'ordre où elles ont été lues ;
     // dans une source, sa page d'entrée (la table du programme) d'abord.
     const sourceRank = new Map<string, number>();

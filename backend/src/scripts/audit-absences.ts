@@ -5,13 +5,13 @@
  *
  *   npx tsx src/scripts/audit-absences.ts > absences.tsv
  */
+import { liveProgrammes } from '../common/live-programmes';
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { currentCaptures } from '../domain/programme';
 import { cosine, toVector } from '../domain/vote';
 import { EMBEDDING_MODEL } from '../common/subject-vectors';
 import { PrismaClient } from '../generated/prisma/client';
-import { DocumentKind, LabelStatus } from '../generated/prisma/enums';
+import { LabelStatus } from '../generated/prisma/enums';
 
 const SHOWN = 5;
 
@@ -30,31 +30,16 @@ async function main() {
     await prisma.topicVector.findMany({ where: { model: EMBEDDING_MODEL } })
   ).map((t) => ({ major: majorOf.get(t.code)!, v: toVector(t.vector) }));
 
-  const docs = await prisma.politicalDocument.findMany({
-    where: {
-      kind: DocumentKind.programme,
-      sourceRef: { not: null },
-      retiredAt: null,
-      candidateId: { not: null },
-    },
+  const docs = await liveProgrammes(prisma, {
+    where: { candidateId: { not: null } },
     select: {
       id: true,
       url: true,
       title: true,
       candidateId: true,
-      sourceRef: true,
-      fetchedAt: true,
-      createdAt: true,
     },
   });
-  const current = currentCaptures(
-    docs.map((d) => ({
-      id: d.id,
-      sourceRef: d.sourceRef!,
-      fetchedAt: d.fetchedAt ?? d.createdAt,
-    })),
-  );
-  const live = docs.filter((d) => current.has(d.id));
+  const live = docs;
   const docOf = new Map(live.map((d) => [d.id, d]));
   const measures = await prisma.measure.findMany({
     where: { documentId: { in: live.map((d) => d.id) } },

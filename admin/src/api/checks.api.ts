@@ -42,6 +42,18 @@ export async function fetchNextReclass(
 }
 
 /** Le bon sujet, ou `null` : le texte n'est pas une position du candidat. */
-export async function sendReclass(labelId: string, code: string | null) {
-  await apiClient.post('/admin/subjects/checks/reclass', { labelId, code })
+/** Le bon sujet ; ou, sans sujet, « pas une position » ou « sans
+ * politique publique visée » (noTopic). */
+export async function sendReclass(
+  labelId: string,
+  code: string | null,
+  noTopic = false,
+  reason = '',
+) {
+  await apiClient.post('/admin/subjects/checks/reclass', {
+    labelId,
+    code,
+    noTopic,
+    reason,
+  })
 }

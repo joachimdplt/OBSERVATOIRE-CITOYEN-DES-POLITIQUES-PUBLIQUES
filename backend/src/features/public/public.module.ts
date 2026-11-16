@@ -13,6 +13,7 @@ import { GetCandidateController } from './get-candidate/get-candidate';
 import { GetCandidateProgrammeController } from './get-candidate-programme/get-candidate-programme';
 import { GetUpdatesController } from './get-updates/get-updates';
 import { GetSubjectController } from './get-subject/get-subject';
+import { GetCandidateSubjectsController } from './get-candidate-subjects/get-candidate-subjects';
 import { ListCapTopicsController } from './list-cap-topics/list-cap-topics';
 import { ListFunctionsController } from './list-functions/list-functions';
 import { GetTopicController } from './get-topic/get-topic';
@@ -37,6 +38,7 @@ const CONTROLLERS = [
   GetElectionController,
   GetCandidateController,
   GetCandidateProgrammeController,
+  GetCandidateSubjectsController,
   ListTopicsController,
   GetTopicController,
   GetIndicatorController,

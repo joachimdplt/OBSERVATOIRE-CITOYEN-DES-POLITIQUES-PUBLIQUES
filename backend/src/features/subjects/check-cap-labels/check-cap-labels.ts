@@ -1,3 +1,5 @@
+import { fileCorrection } from '../file-correction';
+import { liveProgrammes } from '../../../common/live-programmes';
 import { createHash } from 'node:crypto';
 import {
   BadRequestException,
@@ -15,12 +17,16 @@ import {
   type TeamMember,
 } from '../../../auth/current-user.decorator';
 import { Requires, SessionGuard } from '../../../auth/session.guard';
-import { currentCaptures } from '../../../domain/programme';
 import { rateOf, sampleSize } from '../../../domain/sampling';
+import {
+  agreement,
+  doubleState,
+  latestByPerson,
+  type PersonVerdict,
+} from '../../../domain/double-check';
 import {
   CheckVerdict,
   DecisionMode,
-  DocumentKind,
   LabelOrigin,
   LabelStatus,
 } from '../../../generated/prisma/enums';
@@ -38,6 +44,8 @@ type Population = {
   candidateId: string;
   status: LabelStatus;
   verdict: CheckVerdict | null;
+  /** L'avis de chaque personne, pour la double vérification. */
+  verdicts: PersonVerdict[];
 };
 
 /**
@@ -80,8 +88,7 @@ export class CheckCapLabelsController {
         status: true,
         checks: {
           orderBy: { checkedAt: 'desc' },
-          take: 1,
-          select: { verdict: true },
+          select: { verdict: true, checkedById: true, checkedAt: true },
         },
       },
     });
@@ -90,6 +97,11 @@ export class CheckCapLabelsController {
       candidateId: l.candidateId,
       status: l.status,
       verdict: l.checks[0]?.verdict ?? null,
+      verdicts: l.checks.map((k) => ({
+        by: k.checkedById,
+        accepted: k.verdict === CheckVerdict.accepted,
+        at: k.checkedAt,
+      })),
     }));
   }
 
@@ -108,11 +120,29 @@ export class CheckCapLabelsController {
       toReclass: checked.filter((l) => l.verdict === CheckVerdict.refused)
         .length,
       rate: rateOf(accepted, checked.length, labels.length),
+      // Les rangements lus par deux personnes, et leur accord.
+      agreement: agreement(
+        labels.flatMap((l) => {
+          const people = latestByPerson(l.verdicts);
+          return people.length >= 2
+            ? [[people[0].accepted, people[1].accepted] as [boolean, boolean]]
+            : [];
+        }),
+      ),
     };
   }
 
+  /** Ce qui attend une seconde lecture de cette personne : lu par une
+   * autre, pas encore par elle. */
+  private awaitsSecond(l: Population, me: string) {
+    return (
+      doubleState(l.verdicts) === 'single' &&
+      !l.verdicts.some((v) => v.by === me)
+    );
+  }
+
   @Get()
-  async candidates() {
+  async candidates(@CurrentUser() user: TeamMember) {
     const [candidates, labels] = await Promise.all([
       this.prisma.candidate.findMany({ select: { id: true, name: true } }),
       this.population(),
@@ -122,6 +152,9 @@ export class CheckCapLabelsController {
         id: c.id,
         name: c.name,
         ...this.progress(labels.filter((l) => l.candidateId === c.id)),
+        secondReads: labels.filter(
+          (l) => l.candidateId === c.id && this.awaitsSecond(l, user.id),
+        ).length,
       }))
       .filter((c) => c.population > 0)
       .sort((a, b) => a.population - b.population);
@@ -164,7 +197,10 @@ export class CheckCapLabelsController {
   }
 
   @Get(':candidateId/next')
-  async next(@Param('candidateId') candidateId: string) {
+  async next(
+    @Param('candidateId') candidateId: string,
+    @CurrentUser() user: TeamMember,
+  ) {
     const candidate = await this.prisma.candidate.findUnique({
       where: { id: candidateId },
       select: { id: true, name: true },
@@ -172,16 +208,33 @@ export class CheckCapLabelsController {
     if (!candidate) throw new NotFoundException('Candidat inconnu');
     const labels = await this.population(candidateId);
     const progress = this.progress(labels);
-    const order = labels
-      .filter((l) => l.verdict === null)
-      .map((l) => ({ id: l.id, key: drawOrder(l.id) }))
-      .sort((a, b) => a.key.localeCompare(b.key));
+    // D'abord les secondes lectures (lues par une autre personne, à
+    // l'aveugle : son avis n'est pas montré), puis les cartes jamais lues.
+    const draw = (list: Population[]) =>
+      list
+        .map((l) => ({ id: l.id, key: drawOrder(l.id) }))
+        .sort((a, b) => a.key.localeCompare(b.key));
+    const order = [
+      ...draw(labels.filter((l) => this.awaitsSecond(l, user.id))).map((x) => ({
+        ...x,
+        second: true,
+      })),
+      ...draw(labels.filter((l) => l.verdict === null)).map((x) => ({
+        ...x,
+        second: false,
+      })),
+    ];
 
     // Le premier rangement dont le texte se lit encore ; un document retiré
     // depuis ne fait pas de carte.
-    for (const { id } of order) {
+    for (const { id, second } of order) {
       const card = await this.card(id);
-      if (card) return { candidate, progress, card };
+      if (card)
+        return {
+          candidate,
+          progress,
+          card: { ...card, secondReading: second },
+        };
     }
     return { candidate, progress, card: null };
   }
@@ -191,36 +244,26 @@ export class CheckCapLabelsController {
       where: { id },
       include: { topic: true },
     });
-    const documents = await this.prisma.politicalDocument.findMany({
-      where: {
-        kind: DocumentKind.programme,
-        sourceRef: { not: null },
-        retiredAt: null,
-        url: label.documentUrl,
-      },
+    const documents = await liveProgrammes(this.prisma, {
+      where: { url: label.documentUrl },
       select: {
         id: true,
         url: true,
         title: true,
-        sourceRef: true,
         fetchedAt: true,
         createdAt: true,
       },
     });
-    const current = currentCaptures(
-      documents.map((d) => ({
-        id: d.id,
-        sourceRef: d.sourceRef!,
-        fetchedAt: d.fetchedAt ?? d.createdAt,
-      })),
-    );
-    const document = documents.find((d) => current.has(d.id));
+    const [document] = documents;
     if (!document) return null;
     const passages = await this.prisma.measure.findMany({
       where: {
         documentId: document.id,
         article: label.heading,
-        position: { gte: label.fromPosition ?? 0 },
+        position:
+          label.positions.length > 0
+            ? { in: label.positions }
+            : { gte: label.fromPosition ?? 0 },
       },
       orderBy: { position: 'asc' },
       take: SHOWN,
@@ -232,9 +275,21 @@ export class CheckCapLabelsController {
       orderBy: { code: 'asc' },
       select: { labelFr: true },
     });
+    // La section du document, quand l'équipe l'a lue sur une image.
+    const section = await this.prisma.chapterSection.findFirst({
+      where: {
+        documentUrl: label.documentUrl,
+        heading: label.heading,
+        page: passages[0].page ?? -1,
+      },
+      select: { section: true, source: true },
+    });
     return {
       id: label.id,
       heading: label.heading,
+      section,
+      // Un passage rangé seul, ou un chapitre (ou un bloc de chapitre).
+      unit: label.unit.startsWith('passage:') ? 'passage' : 'chapter',
       document: {
         title: document.title,
         url: document.url,
@@ -270,13 +325,21 @@ export class CheckCapLabelsController {
 
   /**
    * Après un refus, la personne range le chapitre dans le bon sujet, ou dit
-   * que le texte n'est pas une position du candidat. Le rangement refusé
+   * que le texte n'est pas une position du candidat, ou que c'est une
+   * position qui ne vise aucune politique publique. Le rangement refusé
    * reste retiré ; le bon sujet devient un rangement de personne, affiché.
    */
   @Post('reclass')
   @HttpCode(200)
   async reclass(
-    @Body() body: { labelId?: string; code?: string | null },
+    @Body()
+    body: {
+      labelId?: string;
+      code?: string | null;
+      noTopic?: boolean;
+      /** Pourquoi ce sujet : le modèle la lit avec les corrections proches. */
+      reason?: string;
+    },
     @CurrentUser() user: TeamMember,
   ) {
     const label = await this.prisma.capLabel.findUnique({
@@ -289,47 +352,60 @@ export class CheckCapLabelsController {
         'Ce rangement n’attend pas de reclassement.',
       );
     const code = body.code ?? null;
-    if (code === label.capCode)
-      throw new BadRequestException(
-        'C’est le sujet refusé : choisissez-en un autre.',
-      );
     if (
       code &&
       !(await this.prisma.capTopic.findFirst({ where: { code, level: 1 } }))
     )
       throw new BadRequestException('Sujet inconnu');
+    const reason = body.reason?.trim() || null;
     const signed = {
       status: LabelStatus.validated,
       decisionMode: DecisionMode.person,
       decidedById: user.id,
       decidedAt: new Date(),
+      reason,
     };
+    // Le sujet refusé était le bon : le refus est retiré par la même
+    // personne, et le rangement redevient affiché, à son nom.
+    if (code === label.capCode) {
+      await this.prisma.$transaction([
+        this.prisma.labelCheck.create({
+          data: {
+            labelId: label.id,
+            verdict: CheckVerdict.accepted,
+            checkedById: user.id,
+          },
+        }),
+        this.prisma.capLabel.update({
+          where: { id: label.id },
+          data: signed,
+        }),
+      ]);
+      return { id: label.id, code };
+    }
     await this.prisma.$transaction(async (tx) => {
       await tx.labelCheck.create({
         data: {
           labelId: label.id,
-          verdict: code ? CheckVerdict.corrected : CheckVerdict.dismissed,
+          verdict: code
+            ? CheckVerdict.corrected
+            : body.noTopic
+              ? CheckVerdict.no_topic
+              : CheckVerdict.dismissed,
           correctedCode: code,
           checkedById: user.id,
         },
       });
-      if (!code) return;
-      const key = {
-        candidateId: label.candidateId,
-        documentUrl: label.documentUrl,
-        heading: label.heading,
-        capCode: code,
-      };
-      await tx.capLabel.upsert({
-        where: { candidateId_documentUrl_heading_capCode: key },
-        create: {
-          ...key,
-          fromPosition: label.fromPosition,
-          origin: LabelOrigin.person,
-          ...signed,
-        },
-        update: signed,
-      });
+      // Sans sujet, l'explication reste sur le rangement refusé.
+      if (!code) {
+        if (reason)
+          await tx.capLabel.update({
+            where: { id: label.id },
+            data: { reason },
+          });
+        return;
+      }
+      await fileCorrection(tx, label, code, signed);
     });
     return { id: label.id, code };
   }
@@ -352,6 +428,20 @@ export class CheckCapLabelsController {
         'Ce rangement attend une relecture : il ne se vérifie pas par carte.',
       );
     const now = new Date();
+    const earlier = await this.prisma.labelCheck.findMany({
+      where: { labelId: label.id },
+      select: { verdict: true, checkedById: true, checkedAt: true },
+    });
+    // Deux personnes en désaccord : le rangement part à trancher, et ne
+    // s'affiche pas tant que ce n'est pas fait.
+    const state = doubleState([
+      ...earlier.map((k) => ({
+        by: k.checkedById,
+        accepted: k.verdict === CheckVerdict.accepted,
+        at: k.checkedAt,
+      })),
+      { by: user.id, accepted: verdict === CheckVerdict.accepted, at: now },
+    ]);
     await this.prisma.$transaction([
       this.prisma.labelCheck.create({
         data: { labelId: label.id, verdict, checkedById: user.id },
@@ -362,15 +452,17 @@ export class CheckCapLabelsController {
         where: { id: label.id },
         data: {
           status:
-            verdict === CheckVerdict.accepted
-              ? LabelStatus.validated
-              : LabelStatus.rejected,
+            state === 'disagreed'
+              ? LabelStatus.review
+              : verdict === CheckVerdict.accepted
+                ? LabelStatus.validated
+                : LabelStatus.rejected,
           decisionMode: DecisionMode.person,
           decidedById: user.id,
           decidedAt: now,
         },
       }),
     ]);
-    return { id: label.id, verdict };
+    return { id: label.id, verdict, state };
   }
 }

@@ -5,19 +5,10 @@ import { atText } from '../../../utils/highlight'
 import { smoothScrollTo } from '../../../utils/scroll'
 import { getProgrammePassages } from '../../../services/public-api'
 import { QuoteText } from '../../molecules/QuoteText'
+import { documentLabel } from './CandidateSubjects'
 
 const MUTED = 'text-[#5B6470]'
 const DISPLAY = 'font-extrabold tracking-[-0.03em] text-[#0B1A2A]'
-
-/** « LR_Produire_Plus_LIVRET.pdf » se lit « LR Produire Plus LIVRET ». */
-const documentName = (title: string) =>
-  /\.pdf$/i.test(title)
-    ? title
-        .replace(/\.pdf$/i, '')
-        .replace(/[_-]+/g, ' ')
-        .trim()
-    : title
-
 
 /**
  * Le programme d'un candidat, lu en entier, sans une phrase écrite par une
@@ -35,6 +26,9 @@ export function CandidateProgramme({
   candidate: string
 }) {
   const { summary: s } = p
+  // Replié : ses positions par sujet, plus haut, suffisent à la plupart des
+  // lecteurs ; le texte entier s'ouvre à la demande.
+  const [shown, setShown] = useState(false)
   if (s.passages === 0) return null
   // Un candidat qui procède par état des lieux et consultation : ses
   // comptes sont ceux de sa démarche, plus haut ; ici, ses textes seuls.
@@ -45,19 +39,25 @@ export function CandidateProgramme({
         <h2 className={`${DISPLAY} text-[clamp(1.6rem,3vw,2.2rem)]`}>
           {approach
             ? 'Ses textes et ses prises de position'
-            : 'Son programme, lu en entier'}
+            : 'Son programme en entier'}
         </h2>
 
-
-        {p.chapters.length > 0 && (
-          <Reader programme={p} election={election} candidate={candidate} />
-        )}
+        {p.chapters.length > 0 &&
+          (shown ? (
+            <Reader programme={p} election={election} candidate={candidate} />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShown(true)}
+              className="nav-pill h-11 px-5 text-sm"
+            >
+              Lire tout le programme
+            </button>
+          ))}
       </div>
     </section>
   )
 }
-
-
 
 type Passage = Programme['passages'][number]
 
@@ -159,7 +159,6 @@ function Reader({
       ?.scrollIntoView({ inline: 'nearest', block: 'nearest' })
   }, [active])
 
-
   const go = (i: number) => {
     need(i)
     const el = document.getElementById(`chapitre-${i}`)
@@ -168,7 +167,6 @@ function Reader({
 
   return (
     <div>
-
       <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
         <aside className="hidden lg:block">
           <nav className="sticky top-[110px] max-h-[calc(100vh-130px)] overflow-y-auto rounded-[28px] glass p-3">
@@ -204,26 +202,26 @@ function Reader({
           {/* Sur téléphone, la barre des chapitres reste en haut ; elle
               n'est construite que sur un écran étroit. */}
           {narrow && (
-          <nav
-            ref={bar}
-            className="sticky top-[86px] z-[4] -mx-6 flex gap-2 overflow-x-auto bg-[#F4F6F8]/90 px-6 py-2 backdrop-blur lg:hidden"
-          >
-            {groups.map((g, i) => (
-              <button
-                key={i}
-                type="button"
-                data-index={i}
-                onClick={() => go(i)}
-                className={`max-w-[240px] shrink-0 truncate rounded-full px-3.5 py-1.5 text-[0.82rem] font-bold transition-colors ${
-                  active === i
-                    ? 'bg-[#0B1A2A] text-white'
-                    : 'bg-white text-[#0B1A2A]'
-                }`}
-              >
-                {g.label}
-              </button>
-            ))}
-          </nav>
+            <nav
+              ref={bar}
+              className="sticky top-[86px] z-[4] -mx-6 flex gap-2 overflow-x-auto bg-[#F4F6F8]/90 px-6 py-2 backdrop-blur lg:hidden"
+            >
+              {groups.map((g, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  data-index={i}
+                  onClick={() => go(i)}
+                  className={`max-w-[240px] shrink-0 truncate rounded-full px-3.5 py-1.5 text-[0.82rem] font-bold transition-colors ${
+                    active === i
+                      ? 'bg-[#0B1A2A] text-white'
+                      : 'bg-white text-[#0B1A2A]'
+                  }`}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </nav>
           )}
 
           <ol className="mt-4 space-y-5 lg:mt-0">
@@ -276,7 +274,6 @@ function Chapter({
     return () => observer.disconnect()
   }, [complete])
 
-
   const sections = passages ? sectionsOf(passages, d.title) : []
   let lastPage: number | null = null
   return (
@@ -294,7 +291,7 @@ function Chapter({
         <span className={`shrink-0 font-semibold ${MUTED}`}>
           {kindOf(d.url) === 'En document' ? 'Document' : 'Son site'} ·
         </span>
-        <span className="truncate">{documentName(d.title)}</span>
+        <span className="truncate">{documentLabel(d.title, d.url)}</span>
         {g.from !== null && (
           <span className="shrink-0 font-semibold">
             · {g.from === g.to ? `p. ${g.from}` : `p. ${g.from} à ${g.to}`}
@@ -354,13 +351,13 @@ function Chapter({
           aria-busy="true"
           className="mt-4 rounded-[18px] bg-[#F4F6F8]"
           style={{
-            height: Math.min(4000, 60 + (g.count - (passages?.length ?? 0)) * 110),
+            height: Math.min(
+              4000,
+              60 + (g.count - (passages?.length ?? 0)) * 110,
+            ),
           }}
         />
       )}
     </li>
   )
 }
-
-
-

@@ -64,6 +64,8 @@ type Props = {
   /** Pour reclasser : le sujet choisi (en noir) et le choix d'un sujet. */
   selected?: string | null
   onPick?: (code: string) => void
+  /** Le sujet de la machine se choisit aussi : un refus fait par erreur. */
+  allowCurrent?: boolean
 }
 
 /**
@@ -72,7 +74,13 @@ type Props = {
  * le même écran : tous ses sous-sujets, chacun avec sa définition. Pour
  * reclasser, la fiche permet de choisir ce sujet. Échap ferme la fiche.
  */
-export function TopicDock({ topics, current, selected, onPick }: Props) {
+export function TopicDock({
+  topics,
+  current,
+  selected,
+  onPick,
+  allowCurrent = false,
+}: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const [mouse, setMouse] = useState<number | null>(null)
   const [hovered, setHovered] = useState<string | null>(null)
@@ -107,7 +115,7 @@ export function TopicDock({ topics, current, selected, onPick }: Props) {
           current={openTopic.code === current}
           onClose={() => setOpen(null)}
           onPick={
-            onPick && openTopic.code !== current
+            onPick && (allowCurrent || openTopic.code !== current)
               ? () => {
                   onPick(openTopic.code)
                   setOpen(null)
@@ -126,7 +134,7 @@ export function TopicDock({ topics, current, selected, onPick }: Props) {
           setMouse(null)
           setHovered(null)
         }}
-        className="relative flex h-[76px] items-end gap-1 rounded-2xl border border-slate-200 bg-white/80 px-3 pb-2.5 shadow-sm backdrop-blur"
+        className="glass-dock relative flex h-[76px] items-center gap-1 rounded-[40px] px-3"
       >
         {topics.map((t, i) => {
           const Icon = ICONS[t.code] ?? Landmark
@@ -152,10 +160,8 @@ export function TopicDock({ topics, current, selected, onPick }: Props) {
                 aria-expanded={isOpen}
                 onClick={() => setOpen(isOpen ? null : t.code)}
                 style={{ width: size, height: size }}
-                className={`flex items-center justify-center rounded-xl transition-[width,height] duration-75 ease-out ${
-                  isDark
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                className={`glass-bubble flex items-center justify-center rounded-full ${
+                  isDark ? 'glass-bubble-active text-white' : 'text-[#0B1A2A]'
                 } ${isOpen ? 'ring-2 ring-slate-900 ring-offset-2' : ''}`}
               >
                 <Icon size={Math.round(size * 0.45)} strokeWidth={1.8} />
@@ -204,7 +210,7 @@ function Sheet({
             onClick={onPick}
             className="h-9 rounded-lg bg-white px-4 text-sm font-medium text-slate-900 hover:bg-slate-200"
           >
-            Choisir ce sujet
+            {current ? 'Finalement, ce sujet est juste' : 'Choisir ce sujet'}
           </button>
         )}
         <button

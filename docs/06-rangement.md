@@ -7,8 +7,10 @@ fiabilité mesurée.
 
 > Principe : chaque rangement affiché sur le site est soit décidé par une
 > personne, soit décidé par une machine dans un cas où sa fiabilité a été
-> mesurée au moins égale à l'autre voie. Un rangement incertain part en
-> relecture ; il ne s'affiche pas tant qu'une personne ne l'a pas tranché.
+> mesurée sur des verdicts de personnes. Un rangement incertain part « À
+> trancher » ; il ne s'affiche pas tant qu'une personne ne l'a pas tranché.
+> La vérification par une personne, ses cartes et sa mesure sont décrites
+> dans le document 07.
 
 ## 1. Le parcours d'un programme
 
@@ -21,10 +23,12 @@ fiabilité mesurée.
    écartés à la lecture (section 2).
 3. **Vecteurs** : chaque passage est traduit en une liste de nombres qui
    résume son sens (section 4).
-4. **Rangement** : quatre avis sont calculés, puis un vote décide, ou envoie
-   le chapitre en relecture (section 6).
-5. **Relecture** : dans l'admin, l'équipe valide, corrige ou retire. Seuls
-   les rangements validés s'affichent sur le site.
+4. **Rangement** (chaque matin, juste après la collecte, ou à la demande
+   avec le bouton « Mettre à jour » de la page Mesure) : quatre avis sont calculés, puis un
+   vote décide, ou envoie le chapitre « À trancher » (section 6).
+5. **Vérification** : dans l'admin, une personne valide ou refuse le
+   rangement de la machine, candidat par candidat, sur un échantillon tiré
+   au hasard ; un refus se reclasse ensuite dans le bon sujet (document 07).
 
 ## 2. Le nettoyage : ne garder que les mots du candidat
 
@@ -61,7 +65,24 @@ plus rangées.
 - À l'affichage : la page d'un candidat et la page d'un sujet filtrent les
   mêmes passages, pour les programmes collectés avant ces règles.
 
+### Le titre de la page
+
+Un passage d'un PDF sans titre de chapitre reprend le nom du fichier : il
+n'a pas de chapitre et n'est pas rangé. Sur un site, une page par mesure
+(Attal) a pour titre celui de la mesure : c'est son chapitre, et il est
+rangé. Jusqu'au 16 novembre 2026, la règle valait aussi pour les sites, et
+49 mesures d'Attal n'avaient jamais été rangées.
+
 ### Reste à traiter
+
+**Les faux titres des PDF.** La lecture d'un PDF prend parfois pour un titre
+un morceau de mise en page : un chiffre mis en avant (« 15 années »), un mot
+en capitales (« INSCRIRE »). Le passage qui suit est coupé et parfois
+répété. Sur les 10 refus de Retailleau, 6 venaient de là et 2 de sommaires
+(une liste de titres sans texte). À corriger : ne plus prendre pour titre un
+morceau court en capitales, recoller un passage qui commence en minuscule,
+retirer les passages répétés, écarter les sommaires.
+
 
 Les encadrés répétés du site d'Édouard Philippe (« Famille », « Finances
 publiques », exemples de questions du champ de recherche) ont des titres
@@ -155,6 +176,65 @@ officielle.
   autochtones, terres publiques, ressources en eau, outre-mer.
 - **23 Culture** : un seul sous-sujet.
 
+### La règle de rangement
+
+Un passage se range selon **la politique publique qu'il vise**, pas selon
+ce dont il parle au sens large. C'est la pratique du CAP : le codeur
+cherche le problème de politique publique principalement abordé. Pour
+chaque passage, la personne qui vérifie (et le modèle) suit ces étapes :
+
+1. **Lire le passage sans son titre.** Un titre couvre souvent plusieurs
+   sujets.
+2. **Trouver l'objet** : quelle politique, quelle règle ou quelle situation
+   le passage veut changer ou dénonce.
+3. **Séparer la cause de ses conséquences.** Un passage qui dénonce les
+   restrictions de titres de séjour et décrit leurs effets (perte d'emploi,
+   travail non déclaré, bas salaires) se range en 9 Immigration, pas en
+   5 Travail et emploi.
+4. **Prendre la catégorie la plus précise**, pas celle des mots les plus
+   fréquents. Dix fois « travailleurs » ne font pas un passage Travail ; une
+   mention des dépenses publiques ne fait pas un passage Macroéconomie.
+5. **Signaler l'ambiguïté.** Si deux sujets sont développés à égalité, le
+   passage reçoit les deux rangements, ou part en « À trancher », plutôt
+   qu'un seul rangement présenté comme certain.
+6. **Un dispositif à l'école se range en 6 Éducation.** Un outil
+   numérique en classe, une « Classe Culture », un lycée de la mer : c'est
+   l'école qui change, pas la technologie ni la culture. Cas relevés le
+   16 novembre 2026 : l'IA à l'école (Attal), la Classe Culture
+   (Retailleau), le lycée de la mer (Mélenchon), tous trois refusés en
+   vérification.
+
+Après un refus, la personne a trois issues en plus du bon sujet : « pas une
+position du candidat » (un témoignage, un texte d'un tiers), « sans sujet
+de politique publique » (sa position, mais une analyse, un appel ou un
+slogan qui ne vise aucune politique : le code 000 du Manifesto Project) ;
+et l'outil ferme lui-même une carte dont le texte a disparu à la relecture.
+À chaque issue, la personne peut écrire pourquoi. L'explication est gardée
+avec le rangement corrigé ; quand le modèle range un passage proche, il lit
+les corrections les plus ressemblantes avec leur explication (« Note de
+l'équipe »). Le classeur à vecteurs, lui, n'apprend que du sujet choisi, pas
+de l'explication.
+
+Les passages écartés (« sans sujet de politique publique », « pas une
+position du candidat », ou « aucun sujet précis » dans À trancher) sont des
+**contre-exemples** : le modèle les voit avec leur explication, et peut
+répondre « 0, aucun sujet de politique publique ». Un passage dont
+l'exemple le plus proche par le sens est un contre-exemple n'est jamais
+rangé seul par le classeur : le modèle le lit. Quand le modèle répond
+« aucun sujet », le passage part dans À trancher ; il n'est jamais écarté
+sans personne. Essai du 16 novembre 2026 : sans exemple, Qwen range une
+attaque contre le RN en Travail et emploi ; avec le contre-exemple de
+l'équipe, il répond « aucun sujet » pour une attaque contre Mélenchon, et
+range toujours « interdire les licenciements » en Travail et emploi.
+Une signature (« Nathalie Arthaud, Arlette Laguiller et Jean-Pierre
+Mercier. ») et un appel à soutenir la campagne ne sont plus rangés
+(`isCampaignLogistics`).
+
+Deux opérations restent distinctes : vérifier la source (le texte est-il
+bien celui du candidat, bien extrait ?) et ranger (dans quel sujet ?). La
+seconde comporte une part d'interprétation ; la règle ci-dessus la rend
+explicable et contestable sur des critères précis.
+
 ### Les choix de l'équipe
 
 La définition officielle ne tranche pas tous les cas. L'équipe a tranché
@@ -175,8 +255,9 @@ champ `reason`). Les plus fréquents :
   2 Discriminations.
 - **Sécurité intérieure → 12 Justice et criminalité**, et non 16 Défense.
 
-Ces choix ne sont pas encore réunis dans un guide de rangement en français ;
-c'est la prochaine étape (section 11).
+Ces choix appliquent la règle ci-dessus à des cas fréquents. Ils ne sont
+pas encore réunis dans un guide complet en français ; c'est la prochaine
+étape (section 11).
 
 ## 4. Les vecteurs : comparer le sens
 
@@ -275,9 +356,11 @@ peu fait de plus grands pas, un poids qui oscille de plus petits.
 
 ### Sur quoi il apprend
 
-Sur tous les rangements affichés (validés par l'équipe, ou rangés par le
-vote), à chaque lancement du rangement. Chaque relecture de l'équipe
-l'améliore donc au lancement suivant.
+Il est réentraîné de zéro à chaque rangement. Tant que les verdicts de
+personnes sont trop peu nombreux, il apprend sur tous les rangements
+affichés. À partir de 300 rangements vérifiés par une personne, sur au
+moins 4 candidats, il n'apprend plus que sur eux (`domain/calibration.ts`).
+Les décisions prises par un assistant ne servent jamais d'exemple.
 
 ## 6. Le vote : quatre avis, puis une décision
 
@@ -296,13 +379,14 @@ Pour chaque chapitre à ranger (`suggest-cap-labels.ts`) :
 ### La décision
 
 1. **Rangement direct, sans modèle de langue**, dans deux cas :
-   - le classeur est sûr à **70 % ou plus** (section 7) ;
+   - le classeur est sûr de lui au-delà du **seuil mesuré** (section 7) ;
    - ou la grille et le classeur donnent le même sujet, et le titre ou la
      rubrique le confirme.
 2. **Sinon, Qwen3 tranche.** Ce modèle de langue (licence Apache 2.0) tourne
    sur la machine de l'équipe. Il reçoit la grille en français avec les
-   sous-sujets, le chapitre, et comme exemples les corrections de l'équipe
-   les plus proches par le sens, avec leur raison. Sa réponse est
+   sous-sujets, le chapitre, et comme exemples les décisions de personnes
+   les plus proches par le sens, avec leur raison (jamais celles d'un
+   assistant). Sa réponse est
    contrainte à la liste des codes : il ne peut rien inventer. Sa
    température est nulle : un même chapitre reçoit toujours la même réponse.
    Fichier : `backend/src/adapters/classifier/ollama-topic-classifier.ts`.
@@ -310,103 +394,99 @@ Pour chaque chapitre à ranger (`suggest-cap-labels.ts`) :
    sujet** (fonction `vote`, `backend/src/domain/vote.ts`). Le titre et la
    rubrique, qui sont le classement du candidat lui-même, ne décident jamais
    seuls : ils peuvent seulement confirmer.
-4. **Sinon, le chapitre part en relecture**, et une personne décide.
+4. **Sinon, le chapitre part « À trancher »**, et une personne décide.
 
-## 7. Le seuil de 70 % : un compromis mesuré
+## 7. Le seuil : quand le classeur range seul
 
 ### Comment on teste
 
-Script : `backend/src/scripts/test-vector-classifier.ts`.
+Script : `backend/src/scripts/test-vector-classifier.ts`, ou le bouton
+« Mettre à jour » de la page Mesure de l'admin.
 
-- **La référence** : des chapitres relus par l'équipe. Leur rangement est
-  tenu pour la bonne réponse ; on la cache au classeur et on compare.
-- **La validation croisée en 5 parts** : on entraîne sur tout sauf une part,
-  on teste sur cette part, et on recommence 5 fois. Chaque chapitre est
-  testé une fois, sans avoir servi à l'entraînement.
-- **On coupe par chapitre** : deux blocs d'un même chapitre se ressemblent
-  beaucoup. Si l'un servait à l'entraînement et l'autre au test, le
-  classeur reconnaîtrait le chapitre et le test serait faussé.
+- **La référence** : les chapitres vérifiés par une personne sur les cartes
+  (document 07), jamais les décisions d'un assistant.
+- **Le vrai classeur** : le test entraîne la fonction même du rangement
+  (`domain/softmax.ts`), pas une copie.
+- **La validation croisée en 5 parts**, **coupée par chapitre** : chaque
+  chapitre est testé une fois, sans avoir servi à l'entraînement, et deux
+  blocs d'un même chapitre ne sont jamais l'un à l'entraînement, l'autre au
+  test.
+
+### La règle
+
+Le seuil retenu est le plus petit (de 0,5 à 0,95) où le classeur est juste
+au moins 90 fois sur 100 **en bas de sa marge**, sur au moins 30 chapitres.
+Si aucun seuil n'y arrive, le classeur ne range plus jamais seul. La mesure
+ne s'enregistre qu'à partir de 4 candidats vérifiés ; le rangement suivant
+l'applique (table `classifier_calibrations`, une ligne par mesure, aucune ne
+s'efface).
 
 ### Les résultats (16 novembre 2026)
 
-Entraînement sur 1 380 chapitres, test sur 150 chapitres relus.
+Sur environ 280 blocs vérifiés par une personne, 5 candidats, jamais vus à
+l'entraînement :
 
-- Confiance ≥ 50 % : juste 89 fois sur 100 (±6), 61 % des chapitres rangés
-  sans Qwen.
-- Confiance ≥ 60 % : 94 % (±6), 46 % des chapitres.
-- **Confiance ≥ 70 % : 96 % (±5), 37 % des chapitres.**
-- Confiance ≥ 80 % : 34 justes sur 34, 23 % des chapitres.
-- Confiance ≥ 90 % : 12 justes sur 12, 8 % des chapitres.
+| Le classeur range seul dès | Juste | Rangés sans Qwen |
+|---|---|---|
+| 0,5 | 94 % | 69 % |
+| 0,6 | 96 % | 59 % |
+| 0,7 | 96 % | 48 % |
+| 0,8 | 99 % | 34 % |
 
-Autres mesures du même test :
+- Justesse du classeur seul, sans seuil : **83 %**.
+- **Entropie croisée : 0,71**, contre 3,04 au hasard : quand il se trompe,
+  il est rarement sûr de lui.
+- Seuil retenu : **0,5 ou 0,6** selon le tirage. 0,5 est juste à la limite
+  des 90 % : d'une mesure à l'autre, la règle bascule. Plus de verdicts
+  stabiliseront le choix.
 
-- le classeur seul, sans seuil : 79 % (±7) ;
-- quand le classeur et Qwen sont d'accord : 98 % (±2), pour 74 % des
-  chapitres.
-
-### Le compromis
-
-Plus le seuil est haut, plus le classeur a raison, mais moins il range de
-chapitres seul ; il faut alors appeler Qwen, qui est lent.
-
-**La règle** : un rangement automatique doit être au moins aussi fiable que
-l'autre voie, Qwen confirmé par un autre avis, mesuré juste 91 fois sur 100.
-
-- À 60 %, le classeur fait 94 %, mais le bas de sa marge (88 %) passe sous
-  cette barre.
-- **À 70 %, il fait 96 %, et le bas de sa marge reste à 91 %.**
-- À 80 %, on perd encore un tiers des chapitres rangés seuls, pour un gain
-  que le test ne permet pas de prouver (voir les limites).
+La page Mesure de l'admin montre, pour la dernière mesure, la justesse par
+sujet (rappel et précision) et les confusions les plus fréquentes.
 
 ### La marge d'erreur
 
-    ± = 1,96 × √( p × (1 − p) / n )
+    ± = 1,96 × √( p × (1 − p) / n ) × √( (N − n) / (N − 1) )
 
-C'est l'intervalle de confiance à 95 % : « 96 % ± 5 » veut dire que le vrai
-taux est entre 91 et 100 %, avec 95 chances sur 100. Plus le nombre de
-chapitres testés (n) est grand, plus la marge est petite.
+C'est l'intervalle de confiance à 95 %. Le second facteur, la correction de
+population finie, rétrécit la marge quand une bonne part des N rangements
+d'un candidat est vérifiée. Quand tout est juste, la formule ne vaut plus :
+la règle de trois donne un taux d'erreur possible jusqu'à 3 / n.
 
 ## 8. La fiabilité en conditions réelles
 
-Le 16 novembre 2026, les 1 208 rangements automatiques en attente ont été
-relus un par un :
+Le 16 novembre 2026, une personne a vérifié sur les cartes un échantillon
+tiré au hasard de 5 candidats : **274 verdicts, 94,5 % de rangements
+justes**.
 
-- **995 justes** : confirmés ;
-- **95 dans le mauvais sujet** : corrigés ;
-- **118 qui n'étaient pas des positions du candidat** : retirés (menus,
-  appels aux dons, remerciements, glossaires, témoignages).
+| Candidat | Cartes | Juste |
+|---|---|---|
+| Tondelier | 41 | 100 % |
+| Lisnard | 41 | 100 % |
+| Mélenchon | 58 | 98 % |
+| Attal | 65 | 94 % |
+| Retailleau | 64 | 84 % |
 
-Sur les vrais passages de programme, 995 justes sur 1 090, soit **91 %** :
-la mesure du test est confirmée. Les 118 retraits ne sont pas des erreurs de
-rangement mais de nettoyage.
+La plupart des refus ne sont pas des erreurs de sujet mais de découpage des
+PDF (section 2, « Reste à traiter »). Sur les refus de Retailleau, 7 sur 10
+étaient des décisions prises seules par l'assistant le 15 et le
+16 novembre, que l'on croyait relues par une personne.
 
-Corrections les plus fréquentes : retraites rangées en Protection sociale au
-lieu de Travail et emploi ; intelligence artificielle rangée en
-Technologies au lieu de son usage (Éducation, Fonctionnement de l'État).
-
-Après cette relecture : 1 460 rangements validés, aucun en attente.
-
-Chaque décision est gardée en base, dans `cap_labels`, avec son statut et,
-pour une correction ou un retrait, sa raison.
+Le 15 et le 16 novembre 2026, un assistant avait pris 2 035 décisions de
+rangement, enregistrées comme celles de l'équipe. Elles sont marquées
+« assistant » depuis : elles ne servent ni de référence ni d'exemple.
 
 ## 9. Les limites
 
-- **« 100 % » n'est pas une preuve.** 34 justes sur 34 restent compatibles
-  avec un vrai taux d'erreur allant jusqu'à 9 % (règle de trois : 3 / n).
-  La formule de la marge ne vaut pas pour 0 % ou 100 %.
-- **Le test est petit** : 150 chapitres. Les 1 208 rangements relus le
-  16 novembre n'y sont pas encore.
-- **Un peu de hasard** : les exemples sont mélangés au hasard avant chaque
-  passage ; deux apprentissages donnent des chiffres qui diffèrent d'un ou
-  deux points.
-- **Une seule référence** : l'équipe. Une erreur systématique de l'équipe
-  sur un type de passage serait invisible au test.
-- **La précision de Qwen est flatteuse** dans ce test : les chapitres relus
-  qu'il avait bien rangés y sont majoritaires.
-- **Les définitions françaises ne sont pas relues** : traduites par un
-  assistant, elles s'affichent dans l'admin, pas encore sur le site ; le
-  lecteur du site ne sait pas encore où finit un sujet et où commence le
-  suivant.
+- **Une seule personne vérifie.** La double vérification existe (document
+  07), mais tant qu'un second compte n'a pas relu, l'accord entre deux
+  personnes reste non mesuré.
+- **Le hasard du test** : les chapitres sont tirés au hasard ; deux mesures
+  diffèrent d'un ou deux points, et le seuil peut basculer entre 0,5 et 0,6.
+- **Le classeur apprend encore sur des décisions d'assistant** tant que les
+  300 verdicts de personnes ne sont pas atteints.
+- **Les définitions françaises ne sont pas relues** : traduites
+  automatiquement, elles s'affichent avec la définition officielle en
+  anglais, qui fait foi.
 
 ## 10. Le rapprochement de données (data matching)
 
@@ -443,32 +523,83 @@ Méthode de référence pour la version probabiliste : **Fellegi-Sunter**
 - **Le Parlement** : relier un texte de l'Assemblée à la mesure d'un
   candidat qui en parle.
 
+## 10 bis. L'unité rangée : le chapitre ou le passage
+
+Aujourd'hui, on range **par chapitre** : le titre et ses passages reçoivent
+un seul sujet. Cela suppose un programme écrit « un titre, une mesure ». Un
+texte suivi ne s'y prête pas : la brochure de 36 pages d'Arthaud (52
+passages, 7 chapitres) ne donne que 3 rangements, alors qu'un seul de ses
+chapitres parle de prix, de salaires, de chômage et de licenciements. Un
+candidat qui écrit en prose est alors presque absent des sujets du site.
+
+La pratique de référence range plus finement. Le Comparative Agendas
+Project code les programmes de partis à la main, au niveau le plus fin, la
+quasi-phrase ; le Manifesto Project aussi, avec les mêmes règles de
+découpage : une quasi-phrase porte un seul message et se comprend seule.
+
+Décision à prendre : ranger **par passage** (un paragraphe, l'unité déjà
+citée) les chapitres longs dont les passages changent de sujet, et garder le
+chapitre pour un titre suivi de sa mesure. À mesurer d'abord : combien de
+chapitres sont concernés, candidat par candidat.
+
+Sources :
+[jeux de données CAP, programmes de partis](https://www.comparativeagendas.net/project/belgium/datasets),
+[consignes de codage du Manifesto Project (Volkens, 2002)](https://ssoar.info/ssoar/bitstream/document/12512/1/ssoar-2002-volkens-manifesto_coding_instructions.pdf),
+[règles communes CAP et Manifesto Project](https://informahealthcare.com/doi/full/10.1080/13597566.2016.1141767).
+
+### Les chapitres découpés, pour tous les candidats (16 novembre 2026)
+
+Deux formes de chapitre se rangent passage par passage, quel que soit le
+candidat :
+
+- **Les propositions numérotées** : au moins deux passages, et au moins la
+  moitié, commencent par « Proposition 8 - », « Mesure 3 : » ou « 12. »
+  (`isEnumeratedChapter`). 7 chapitres : 6 chez Retailleau, 1 chez
+  Dupont-Aignan.
+- **Les listes de mesures qui changent de sujet** : au moins trois passages,
+  dont six sur dix commencent par un infinitif (« Stopper », « Renforcer »),
+  et dont les mesures que le classeur range avec au moins 50 % de confiance
+  relèvent d'au moins deux sujets, le plus fréquent en couvrant moins de
+  sept sur dix (`isMeasureList`, `spansSeveralTopics`). Sur 323 listes,
+  54 changent de sujet (676 mesures) : Dupont-Aignan 17, Mélenchon 14,
+  Tondelier 10, Retailleau 4, Philippot 3, Glucksmann 3, Ruffin 2,
+  Attal 1. Les 269 autres restent d'un bloc.
+
+**Un chapitre dont un rangement a été validé par une personne n'est jamais
+découpé** : sa décision prime, y compris quand elle a donné plusieurs
+sujets au même chapitre. Pour les autres, le rangement d'un bloc est
+retiré par l'outil, avec sa raison, et un refus qui attendait son
+reclassement est fermé. Un chapitre découpé le reste aux rangements
+suivants. (Un premier essai, le 16 novembre, restreignait les rangements
+validés aux seules mesures de leur sujet : 19 rangements validés avaient
+été réduits ; ils ont été rétablis avant que rien ne soit rangé à
+nouveau.)
+
 ## 11. Prochaines étapes
 
-1. **Un guide de rangement en français** : pour chacun des 21 sujets, une
-   définition, les sous-sujets avec leur définition traduite, les cas qui y entrent et
-   ceux qui n'y entrent pas, les choix de l'équipe, deux ou trois exemples réels.
-   Affiché sur le site, utilisé en relecture, donné au classeur.
-2. **Le rapprochement par empreintes** pour le décor répété (section 10).
-3. **Une nouvelle mesure** avec les 1 208 rangements relus dans le jeu de
-   test : marges d'environ ±2 points.
-4. **Une seconde relecture indépendante** de 100 à 200 chapitres, pour
-   mesurer l'accord entre deux personnes (kappa de Cohen), comme le font les
-   chercheurs du CAP. Elle dit jusqu'où un humain lui-même est fiable.
-5. **La page Sources du site** à mettre à jour : elle dit encore que Qwen
-   range chaque chapitre seul.
+1. **Corriger le découpage des PDF** (section 2) : la première source de
+   refus.
+2. **Vérifier les autres candidats**, pour atteindre 300 verdicts sur au
+   moins 4 candidats et faire apprendre le classeur sur eux seuls.
+3. **Un second compte** pour la double vérification et la mesure de
+   l'accord entre deux personnes (kappa de Cohen).
+4. **Un guide de rangement en français** à partir des raisons données en
+   vérification et des confusions mesurées.
+5. **Le rapprochement par empreintes** pour le décor répété (section 10).
 
 ## Fichiers
 
 - Nettoyage : `backend/src/domain/programme.ts`,
   `backend/src/adapters/programmes/web-programme-reader.ts`.
-- Rangement : `backend/src/features/subjects/suggest-cap-labels/suggest-cap-labels.ts`.
-- Vecteurs et contexte du vote :
-  `backend/src/features/subjects/vote-cap-labels/vote-cap-labels.ts`.
+- Rangement : `backend/src/features/subjects/suggest-cap-labels/suggest-cap-labels.ts` ;
+  chaque matin : `backend/src/jobs/daily-collection.ts`.
+- Vecteurs et contexte du vote : `backend/src/common/subject-vectors.ts`.
 - Vote, cosinus, moyenne : `backend/src/domain/vote.ts`.
-- Classeur appris : `backend/src/domain/softmax.ts`.
+- Classeur appris et entropie croisée : `backend/src/domain/softmax.ts`.
+- Seuil et apprentissage sur les verdicts : `backend/src/domain/calibration.ts`.
 - Modèle de langue : `backend/src/adapters/classifier/ollama-topic-classifier.ts`.
-- Test : `backend/src/scripts/test-vector-classifier.ts`.
+- Test et seuil : `backend/src/scripts/test-vector-classifier.ts`.
 - Grille : `backend/src/scripts/import-cap.ts`, table `cap_topics` ;
+  définitions françaises : `backend/src/domain/cap-definitions.ts` ;
   vecteurs de la grille : `backend/src/scripts/embed-passages.ts`, table
   `topic_vectors`.

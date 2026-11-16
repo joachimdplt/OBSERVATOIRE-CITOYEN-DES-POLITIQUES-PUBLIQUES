@@ -29,6 +29,14 @@ describe('le taux de rangements justes', () => {
     expect(r.measured && r.low).toBeCloseTo(0.9, 3);
   });
 
+  it('rétrécit la marge quand une bonne part de la population est vérifiée', () => {
+    const sans = rateOf(54, 64);
+    const avec = rateOf(54, 64, 182);
+    expect(sans.measured && avec.measured).toBe(true);
+    if (sans.measured && avec.measured)
+      expect(avec.high - avec.low).toBeLessThan(sans.high - sans.low);
+  });
+
   it('n’a plus de marge quand toute la population est vérifiée', () => {
     const r = rateOf(14, 16, 16);
     expect(r.measured && [r.low, r.high]).toEqual([0.875, 0.875]);

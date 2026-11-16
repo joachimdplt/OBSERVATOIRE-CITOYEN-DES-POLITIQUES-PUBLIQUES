@@ -26,7 +26,7 @@ import type { LucideIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 /** Une icône par grand sujet de la grille, la même que dans l'admin. */
-const ICONS: Record<string, LucideIcon> = {
+export const ICONS: Record<string, LucideIcon> = {
   '1': TrendingUp,
   '2': Scale,
   '3': HeartPulse,

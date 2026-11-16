@@ -1,4 +1,4 @@
-import { trainSoftmax } from './softmax';
+import { crossEntropy, trainSoftmax } from './softmax';
 
 describe('le classeur appris sur les vecteurs', () => {
   it('apprend deux classes séparables et dit qu’il en est sûr', () => {
@@ -12,5 +12,16 @@ describe('le classeur appris sur les vecteurs', () => {
     expect(predict(new Float32Array([1, 0])).k).toBe(1);
     expect(predict(new Float32Array([0, 1])).k).toBe(0);
     expect(predict(new Float32Array([1, 0])).p).toBeGreaterThan(0.7);
+  });
+
+  it('minimise l’entropie croisée : bien plus bas qu’au hasard', () => {
+    const data = Array.from({ length: 90 }, (_, i) => {
+      const k = i % 3;
+      const x = new Float32Array(3).map(() => 0.1 * Math.random());
+      x[k] = 1;
+      return { x, y: k };
+    });
+    const predict = trainSoftmax(data, 3, { epochs: 150, lr: 0.05 });
+    expect(crossEntropy(predict, data)!).toBeLessThan(Math.log(3) / 3);
   });
 });

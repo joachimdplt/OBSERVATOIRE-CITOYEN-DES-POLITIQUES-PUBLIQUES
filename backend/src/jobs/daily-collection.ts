@@ -8,6 +8,11 @@ import { collectProgrammes } from '../features/programmes/collect-programmes/col
 import { discoverSitePages } from '../features/campaign/discover-site-pages/discover-site-pages';
 import { readCampaignSources } from '../features/campaign/read-campaign-sources/read-campaign-sources';
 import { collectVideos } from '../features/videos/collect-videos/collect-videos';
+import { suggestCapLabels } from '../features/subjects/suggest-cap-labels/suggest-cap-labels';
+import {
+  TOPIC_CLASSIFIER,
+  type TopicClassifier,
+} from '../ports/topic-classifier';
 import { Role } from '../generated/prisma/enums';
 import {
   PARLIAMENT_SOURCE,
@@ -56,6 +61,7 @@ export class DailyCollection {
     @Inject(SITEMAP_SOURCE) private sitemaps: SitemapSource,
     @Inject(SITE_CRAWLER) private crawler: SiteCrawler,
     @Inject(CAMPAIGN_PAGE_READER) private campaign: CampaignPageReader,
+    @Inject(TOPIC_CLASSIFIER) private classifier: TopicClassifier,
   ) {}
 
   @Cron(`0 ${DAILY_HOUR} * * *`, {
@@ -77,6 +83,7 @@ export class DailyCollection {
         sitemaps: this.sitemaps,
         crawler: this.crawler,
         campaign: this.campaign,
+        classifier: this.classifier,
       },
       this.log,
     );
@@ -95,6 +102,8 @@ export type CollectionDeps = {
   sitemaps: SitemapSource;
   crawler: SiteCrawler;
   campaign: CampaignPageReader;
+  /** Le modèle de langue du vote, pour ranger les chapitres nouveaux. */
+  classifier: TopicClassifier;
 };
 
 /** La collecte de chaque source, l'une après l'autre, chacune datée et gardée. */
@@ -140,6 +149,9 @@ export async function runDailyCollection(
   await step('programmes', () =>
     collectProgrammes(prisma, deps.programmes, deps.keep, actor.id),
   );
+  // Les chapitres nouveaux sont rangés dans la foulée : le classeur est
+  // réentraîné, puis chaque chapitre passe par le vote.
+  await step('subjects', () => suggestCapLabels(prisma, deps.classifier));
   // Les comptes d'abord : une chaîne nouvelle est lue dans la foulée.
   await step('accounts', () =>
     collectCandidateAccounts(prisma, deps.accounts, deps.sites),

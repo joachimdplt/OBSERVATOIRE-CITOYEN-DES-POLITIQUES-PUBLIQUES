@@ -622,3 +622,16 @@ export function isSiteSidebar(heading: string): boolean {
     heading.trim(),
   );
 }
+
+/**
+ * Un libellé de bouton, pas un titre : « Lire le texte intégral », « Réduire
+ * le texte », « Voir plus »… Un bouton déroulant (<summary>) en porte souvent
+ * deux à la fois.
+ */
+export function isInterfaceLabel(text: string): boolean {
+  const button =
+    /(lire|voir|afficher) (la suite|plus|moins|tout|tout le communiqu[ée]|le texte( int[ée]gral)?|l[’']article)|(r[ée]duire|masquer|replier) le texte|voir moins|fermer/;
+  return new RegExp(`^(${button.source})( (${button.source}))*$`, 'i').test(
+    text.trim().replace(/\s+/g, ' '),
+  );
+}

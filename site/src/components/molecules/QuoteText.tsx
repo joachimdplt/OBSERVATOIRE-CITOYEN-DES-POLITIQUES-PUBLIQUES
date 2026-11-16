@@ -12,9 +12,11 @@ export function QuoteText({
   terms?: string[]
 }) {
   const parts = splitOnTerms(text, terms)
+  // Une citation qui porte déjà ses guillemets ne les reçoit pas deux fois.
+  const quoted = /^\s*[«“"]/.test(text) && /[»”"]\s*$/.test(text)
   return (
     <blockquote className="text-[1rem] leading-[1.65] text-[#0B1A2A]">
-      «&nbsp;
+      {quoted ? '' : '«\u00a0'}
       {parts.map((p, i) =>
         i % 2 === 1 ? (
           <mark
@@ -27,7 +29,7 @@ export function QuoteText({
           <span key={i}>{p}</span>
         ),
       )}
-      &nbsp;»
+      {quoted ? '' : '\u00a0»'}
     </blockquote>
   )
 }

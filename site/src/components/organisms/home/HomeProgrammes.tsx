@@ -45,9 +45,9 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
           {election.name} : {candidates.length} candidats
         </h2>
         <p className={`mt-1.5 text-[0.85rem] ${MUTED}`}>
-          Les programmes sont susceptibles d’évoluer : nous les relisons
-          chaque matin. Ordre tiré au hasard à chaque visite. Photos sous
-          licence libre, créditées sur la page de chaque candidat.
+          Les programmes sont susceptibles d’évoluer : nous les relisons chaque
+          matin. Ordre tiré au hasard à chaque visite. Photos sous licence
+          libre, créditées sur la page de chaque candidat.
         </p>
         <div className="mt-4 flex flex-wrap gap-2 text-[0.9rem] font-semibold">
           <Chip active={only === null} onClick={() => setOnly(null)}>

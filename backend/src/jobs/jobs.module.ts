@@ -18,10 +18,13 @@ import { FetchSiteCrawler } from '../adapters/web/fetch-site-crawler';
 import { FetchSitemap } from '../adapters/web/fetch-sitemap';
 import { SITE_CRAWLER } from '../ports/site-crawler';
 import { SITEMAP_SOURCE } from '../ports/sitemap-source';
+import { OllamaTopicClassifier } from '../adapters/classifier/ollama-topic-classifier';
+import { TOPIC_CLASSIFIER } from '../ports/topic-classifier';
 import { SiteReading } from './site-reading';
 import { DailyCollection } from './daily-collection';
 
-/** Les tâches planifiées de l'API : la collecte quotidienne. */
+/** Les tâches planifiées de l'API : la collecte quotidienne, puis le
+ * rangement des chapitres nouveaux. */
 @Module({
   imports: [ScheduleModule.forRoot()],
   providers: [
@@ -37,6 +40,7 @@ import { DailyCollection } from './daily-collection';
     { provide: PHOTO_SOURCE, useClass: WikimediaPhotos },
     { provide: ACCOUNT_SOURCE, useClass: WikidataAccounts },
     { provide: SITE_ACCOUNT_SOURCE, useClass: WebsiteAccounts },
+    { provide: TOPIC_CLASSIFIER, useClass: OllamaTopicClassifier },
   ],
   exports: [DailyCollection],
 })

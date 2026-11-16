@@ -32,7 +32,9 @@ function CheckScreen() {
   const reached = progress ? progress.checked >= progress.target : false
   // L'échantillon atteint, les cartes s'arrêtent ; continuer est un choix.
   const [goOn, setGoOn] = useState(false)
-  const paused = reached && !goOn
+  // Une seconde lecture ne s'arrête pas à l'échantillon : elle vaut pour
+  // chaque rangement déjà lu par une autre personne.
+  const paused = reached && !goOn && !next.data?.card?.secondReading
   const card = paused ? null : (next.data?.card ?? null)
   const hasMore = (next.data?.card ?? null) !== null
   const busy = send.isPending || next.isFetching
@@ -53,8 +55,8 @@ function CheckScreen() {
   })
 
   return (
-    <div className="fixed inset-0 z-20 flex flex-col bg-white">
-      <header className="flex items-center gap-6 border-b border-slate-100 px-6 py-3">
+    <div className="fixed inset-0 z-20 flex flex-col bg-[#F4F6F8]">
+      <header className="glass-bar flex items-center gap-6 px-6 py-3">
         <Link
           to="/verification"
           className="text-sm text-slate-400 hover:text-slate-900"
@@ -64,6 +66,11 @@ function CheckScreen() {
         <span className="font-medium text-slate-900">
           {next.data?.candidate.name}
         </span>
+        {card?.secondReading && (
+          <span className="glass-dark rounded-full px-3 py-1 text-xs font-semibold text-white">
+            Seconde lecture
+          </span>
+        )}
         {progress && (
           <span className="ml-auto flex items-center gap-3 text-sm tabular-nums text-slate-500">
             <span className="h-1 w-40 overflow-hidden rounded-full bg-slate-100">
@@ -93,11 +100,12 @@ function CheckScreen() {
       </main>
 
       {card && (
-        <footer className="border-t border-slate-100 bg-slate-50 px-6 py-5">
+        <footer className="glass-bar border-t border-white/70 px-6 py-5">
           <div className="mx-auto max-w-2xl space-y-4">
             <div className="text-center">
               <p className="text-xs text-slate-400">
-                La machine a rangé ce chapitre en
+                La machine a rangé ce{' '}
+                {card.unit === 'passage' ? 'passage' : 'chapitre'} en
               </p>
               <p className="text-xl font-semibold text-slate-900">
                 {card.topic.label}
@@ -108,7 +116,7 @@ function CheckScreen() {
                 type="button"
                 disabled={busy}
                 onClick={() => decide('refused')}
-                className="flex h-16 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white text-lg font-medium text-slate-900 hover:bg-slate-100 disabled:opacity-40"
+                className="glass flex h-16 items-center justify-center gap-2 rounded-full text-lg font-semibold text-[#0B1A2A] hover:bg-white/80 disabled:opacity-40"
               >
                 <X size={20} /> Refuser
               </button>
@@ -116,7 +124,7 @@ function CheckScreen() {
                 type="button"
                 disabled={busy}
                 onClick={() => decide('accepted')}
-                className="flex h-16 items-center justify-center gap-2 rounded-xl bg-slate-900 text-lg font-medium text-white hover:bg-slate-800 disabled:opacity-40"
+                className="glass-dark flex h-16 items-center justify-center gap-2 rounded-full text-lg font-semibold text-white hover:opacity-90 disabled:opacity-40"
               >
                 <Check size={20} /> Valider
               </button>

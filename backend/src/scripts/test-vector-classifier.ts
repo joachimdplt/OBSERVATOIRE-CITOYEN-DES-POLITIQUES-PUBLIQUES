@@ -6,6 +6,7 @@
  *   npx tsx src/scripts/test-vector-classifier.ts
  */
 import 'dotenv/config';
+import { trainSoftmax } from '../domain/softmax';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { loadVoteContext } from '../common/subject-vectors';
 import { PrismaClient } from '../generated/prisma/client';
@@ -25,87 +26,6 @@ import {
 } from '../domain/calibration';
 
 type Example = { chapter: string; x: Float32Array; y: number };
-
-/** Une régression logistique à plusieurs classes, apprise par Adam. */
-function train(data: Example[], classes: number, dim: number, epochs = 60) {
-  const W = new Float32Array(classes * dim);
-  const b = new Float32Array(classes);
-  const mW = new Float32Array(W.length),
-    vW = new Float32Array(W.length);
-  const mB = new Float32Array(classes),
-    vB = new Float32Array(classes);
-  const lr = 0.01,
-    l2 = 1e-4,
-    b1 = 0.9,
-    b2 = 0.999,
-    eps = 1e-8;
-  let t = 0;
-  const p = new Float32Array(classes);
-  for (let e = 0; e < epochs; e++) {
-    const order = [...data.keys()].sort(() => Math.random() - 0.5);
-    for (let start = 0; start < order.length; start += 32) {
-      const batch = order.slice(start, start + 32);
-      const gW = new Float32Array(W.length);
-      const gB = new Float32Array(classes);
-      for (const i of batch) {
-        const { x, y } = data[i];
-        let max = -Infinity;
-        for (let k = 0; k < classes; k++) {
-          let s = b[k];
-          const o = k * dim;
-          for (let j = 0; j < dim; j++) s += W[o + j] * x[j];
-          p[k] = s;
-          if (s > max) max = s;
-        }
-        let sum = 0;
-        for (let k = 0; k < classes; k++) sum += p[k] = Math.exp(p[k] - max);
-        for (let k = 0; k < classes; k++) {
-          const g = p[k] / sum - (k === y ? 1 : 0);
-          gB[k] += g;
-          const o = k * dim;
-          for (let j = 0; j < dim; j++) gW[o + j] += g * x[j];
-        }
-      }
-      t++;
-      const n = batch.length;
-      for (let i = 0; i < W.length; i++) {
-        const g = gW[i] / n + l2 * W[i];
-        mW[i] = b1 * mW[i] + (1 - b1) * g;
-        vW[i] = b2 * vW[i] + (1 - b2) * g * g;
-        W[i] -=
-          (lr * (mW[i] / (1 - b1 ** t))) /
-          (Math.sqrt(vW[i] / (1 - b2 ** t)) + eps);
-      }
-      for (let k = 0; k < classes; k++) {
-        const g = gB[k] / n;
-        mB[k] = b1 * mB[k] + (1 - b1) * g;
-        vB[k] = b2 * vB[k] + (1 - b2) * g * g;
-        b[k] -=
-          (lr * (mB[k] / (1 - b1 ** t))) /
-          (Math.sqrt(vB[k] / (1 - b2 ** t)) + eps);
-      }
-    }
-  }
-  return (x: Float32Array) => {
-    let best = 0,
-      score = -Infinity;
-    const s = new Float32Array(classes);
-    for (let k = 0; k < classes; k++) {
-      let v = b[k];
-      const o = k * dim;
-      for (let j = 0; j < dim; j++) v += W[o + j] * x[j];
-      s[k] = v;
-      if (v > score) {
-        score = v;
-        best = k;
-      }
-    }
-    // La probabilité de la meilleure classe : la confiance.
-    let sum = 0;
-    for (let k = 0; k < classes; k++) sum += Math.exp(s[k] - score);
-    return { k: best, margin: 1 / sum };
-  };
-}
 
 async function main() {
   const prisma = new PrismaClient({
@@ -192,28 +112,40 @@ async function main() {
 
   // Validation croisée en 5 parts, par chapitre : un chapitre testé n'est
   // jamais dans l'entraînement.
-  const chapters = [...new Set(truth.map((t) => t.chapter))].sort(
-    () => Math.random() - 0.5,
-  );
+  const chapters = [...new Set(truth.map((t) => t.chapter))];
+  for (let i = chapters.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [chapters[i], chapters[j]] = [chapters[j], chapters[i]];
+  }
   const fold = new Map(chapters.map((c, i) => [c, i % 5]));
   const results: {
     right: string;
     model: string | null;
     got: string;
     margin: number;
+    pRight: number;
   }[] = [];
   for (let f = 0; f < 5; f++) {
     const test = truth.filter((t) => fold.get(t.chapter) === f);
     const testChapters = new Set(test.map((t) => t.chapter));
     const t0 = Date.now();
-    const predict = train(
-      trainSet.filter((e) => !testChapters.has(e.chapter)),
+    // Le vrai classeur du rangement (domain/softmax.ts), pas une copie.
+    const predict = trainSoftmax(
+      trainSet
+        .filter((e) => !testChapters.has(e.chapter))
+        .map((e) => ({ x: e.x, y: e.y })),
       codes.length,
-      dim,
     );
     for (const t of test) {
-      const { k, margin } = predict(t.x);
-      results.push({ right: t.right, model: t.model, got: codes[k], margin });
+      const { k, p, probabilities } = predict(t.x);
+      const y = index.get(t.right);
+      results.push({
+        right: t.right,
+        model: t.model,
+        got: codes[k],
+        margin: p,
+        pRight: y === undefined ? 0 : probabilities[y],
+      });
     }
     console.log(
       `  part ${f + 1}/5 : appris en ${((Date.now() - t0) / 1000).toFixed(1)} s, ${test.length} blocs testés`,
@@ -239,6 +171,12 @@ async function main() {
       `  classeur seul, confiance ≥ ${cut} : ${pct(sure.filter((r) => r.got === r.right).length, sure.length)} · ${Math.round((100 * sure.length) / n)} % des blocs`,
     );
   }
+  const ce =
+    results.reduce((s, r) => s - Math.log(Math.max(1e-12, r.pRight)), 0) /
+    results.length;
+  console.log(
+    `  entropie croisée                 : ${ce.toFixed(2)} (au hasard : ${Math.log(codes.length).toFixed(2)})`,
+  );
   // Le seuil mesuré, enregistré : le rangement suivant le prendra.
   const calibrated = chooseThreshold(
     results.map((r) => ({ confidence: r.margin, right: r.got === r.right })),
@@ -265,6 +203,54 @@ async function main() {
         right: calibrated?.right ?? null,
         total: calibrated?.total ?? null,
         low: calibrated?.low ?? null,
+        results: {
+          right: results.filter((r) => r.got === r.right).length,
+          total: results.length,
+          // L'entropie croisée sur vos cartes : − log p(bon sujet), en
+          // moyenne ; au hasard, log(nombre de sujets).
+          crossEntropy: ce,
+          crossEntropyRandom: Math.log(codes.length),
+          // Par sujet : combien de chapitres, la précision (quand il dit ce
+          // sujet, a-t-il raison ?) et le rappel (trouve-t-il ce sujet ?).
+          subjects: codes
+            .map((code) => {
+              const truthOf = results.filter((r) => r.right === code);
+              const said = results.filter((r) => r.got === code);
+              const hit = truthOf.filter((r) => r.got === code).length;
+              return {
+                code,
+                support: truthOf.length,
+                precision: said.length ? hit / said.length : null,
+                recall: truthOf.length ? hit / truthOf.length : null,
+              };
+            })
+            .filter((x) => x.support > 0),
+          // Les confusions les plus fréquentes : le bon sujet, et celui donné.
+          confusions: [
+            ...results
+              .filter((r) => r.got !== r.right)
+              .reduce((m, r) => {
+                const k = `${r.right}>${r.got}`;
+                m.set(k, (m.get(k) ?? 0) + 1);
+                return m;
+              }, new Map<string, number>()),
+          ]
+            .sort((x, y) => y[1] - x[1])
+            .slice(0, 8)
+            .map(([k, count]) => {
+              const [right, got] = k.split('>');
+              return { right, got, count };
+            }),
+          thresholds: [0.5, 0.6, 0.7, 0.8, 0.9].map((cut) => {
+            const kept = results.filter((r) => r.margin >= cut);
+            return {
+              threshold: cut,
+              right: kept.filter((r) => r.got === r.right).length,
+              total: kept.length,
+              coverage: kept.length / results.length,
+            };
+          }),
+        },
       },
     });
   await prisma.$disconnect();

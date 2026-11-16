@@ -65,7 +65,13 @@ export function rateOf(
       low: 0,
       high: Math.min(1, 3 / total),
     };
-  const m = Z * Math.sqrt((rate * (1 - rate)) / total);
+  // Quand une bonne part de la population est vérifiée, la marge rétrécit
+  // d'autant (correction de population finie).
+  const finite =
+    population !== undefined && population > 1
+      ? Math.sqrt((population - total) / (population - 1))
+      : 1;
+  const m = Z * Math.sqrt((rate * (1 - rate)) / total) * finite;
   return {
     measured: true,
     right,

@@ -20,17 +20,35 @@ export type CheckProgress = {
   /** Les refus pas encore rangés ailleurs ni écartés. */
   toReclass: number
   rate: Rate
+  /** L'accord entre deux personnes, sur les rangements lus deux fois. */
+  agreement: {
+    pairs: number
+    agreed: number
+    rate: number
+    kappa: number
+  } | null
 }
 
-export type CandidateChecks = CheckProgress & { id: string; name: string }
+export type CandidateChecks = CheckProgress & {
+  id: string
+  name: string
+  /** Lus par une autre personne, à relire par celle-ci. */
+  secondReads: number
+}
 
 /** Une carte : un chapitre du candidat et le sujet donné par la machine. */
 export type CheckCard = {
   id: string
   heading: string
+  /** La section du document lue sur une image par l'équipe, avec sa provenance. */
+  section?: { section: string; source: string } | null
+  /** Ce que la machine a rangé : un passage seul, ou un chapitre. */
+  unit: 'passage' | 'chapter'
   document: { title: string; url: string; fetchedAt: string }
   passages: { quote: string; page: number | null }[]
   topic: { code: string; label: string; subtopics: string[] }
+  /** Déjà lue par une autre personne : seconde lecture, à l'aveugle. */
+  secondReading?: boolean
 }
 
 export type NextCheck = {

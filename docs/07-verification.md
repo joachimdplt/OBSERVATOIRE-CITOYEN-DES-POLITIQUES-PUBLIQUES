@@ -14,15 +14,22 @@ réellement humaine, candidat par candidat et couche par couche.
 
 | Élément | État |
 |---|---|
-| Lot 0 : `decisionMode` en base, 2 035 décisions requalifiées `assistant` | fait (migration `label_checks`) |
-| Lot 0 : exemples de Qwen et référence du test limités aux décisions `person` | fait ; le test refuse de tourner sous 50 blocs |
-| Lot 0 : le classeur garde sa confiance dans les voix (`proposals`, champ `p`) | fait, pour les rangements faits désormais |
-| Lot 0 : l'apprentissage du classeur | bascule seul sur les verdicts de personnes à partir de 300, sur au moins 4 candidats (`domain/calibration.ts`) |
-| Lot 0 : le seuil du classeur sûr de lui | mesuré par `test-vector-classifier.ts` sur les verdicts de personnes, enregistré dans `classifier_calibrations` ; 0,7 par défaut tant qu'aucune mesure n'existe |
-| Lot 1 : textes du 06 et page Sources | à faire |
-| Lot 2 : cartes plein écran, valider ou refuser | fait : admin, menu « Vérification » |
-| Lot 2 : ranger ailleurs un chapitre refusé | seconde couche, à faire |
-| Lot 3 : taux par candidat, marge à 95 % | fait, dans l'admin et dans `tools/measure` |
+| `decisionMode` en base, 2 035 décisions requalifiées `assistant` | fait |
+| Exemples de Qwen et référence du test : décisions `person` seulement | fait |
+| Apprentissage du classeur sur les seuls verdicts | automatique à partir de 300 verdicts sur 4 candidats (`domain/calibration.ts`) |
+| Seuil du classeur | mesuré sur les verdicts, enregistré dans `classifier_calibrations` ; 0,5 ou 0,6 au 16 novembre |
+| Textes du 06 et page Sources | faits |
+| Cartes plein écran, valider ou refuser ; arrêt à l'échantillon | fait : menu Rangement › Vérification |
+| Ranger ailleurs un chapitre refusé | fait : « N à reclasser », écran plein écran avec le dock des sujets |
+| Chapitres où le vote ne s'accorde pas | menu Rangement › À trancher |
+| Taux par candidat, marge à 95 % avec correction de population finie | fait |
+| Page Mesure : chiffres clés, classeur du rangement (justesse, entropie croisée, seuils, confusions), rapport archivé | fait ; chaque calcul est gardé (`measure_reports`) |
+| Rangement chaque matin après la collecte | fait |
+| Bouton « Mettre à jour » (page Mesure) : remesurer le seuil, ranger les nouveaux chapitres, archiver le rapport, dans cet ordre | fait |
+| Réseau de neurones (PyTorch, tutoriel DataCamp) comparé au classeur à chaque mise à jour, avec la carte des chapitres et la courbe de la perte | dans le rapport ; pas branché au rangement |
+| Double vérification à l'aveugle, accord et kappa de Cohen | fait ; attend un second compte |
+| Chapitres jamais rangés (titre vague, décor, témoignage, sans réponse) | pas d'écran ; à faire |
+| Découpage des PDF (faux titres, sommaires) | à faire (document 06, section 2) |
 
 ### Les cartes
 
@@ -67,6 +74,20 @@ qu'à partir de 4 candidats vérifiés. `--dry` affiche sans enregistrer.
 Premier essai, 16 novembre 2026, 57 chapitres de Mélenchon : 26 justes sur
 26 au-dessus de 0,6, marge basse 88 %, donc aucun seuil retenu, et mesure
 non enregistrée (un seul candidat).
+
+### La double vérification
+
+Un rangement n'est **vérifié par deux personnes** que lorsque deux comptes
+distincts ont donné le même verdict, chacun à l'aveugle : la seconde
+personne ne voit pas l'avis de la première. Les rangements lus par une autre
+personne passent en tête de ses cartes, marqués « Seconde lecture », même
+après l'échantillon. En désaccord, le rangement part « À trancher » et ne
+s'affiche plus tant qu'une personne n'a pas tranché, avec sa raison.
+
+L'accord se mesure sur les rangements lus deux fois : la part d'accord et
+le kappa de Cohen, qui retire l'accord dû au hasard
+(`domain/double-check.ts`). Il dit jusqu'où une personne seule est fiable.
+Avec un seul compte dans l'équipe, il reste « non mesuré ».
 
 ### Limite connue
 

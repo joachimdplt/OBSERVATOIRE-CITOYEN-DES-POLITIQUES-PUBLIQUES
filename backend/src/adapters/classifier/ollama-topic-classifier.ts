@@ -1,3 +1,4 @@
+import { NO_TOPIC } from '../../domain/filing-unit';
 import { Injectable } from '@nestjs/common';
 import { nearestCorrections, type Correction } from '../../domain/corrections';
 import type {
@@ -11,7 +12,9 @@ const URL = process.env.OLLAMA_URL ?? 'http://localhost:11434';
 
 const SYSTEM =
   'Tu ranges des extraits de programmes politiques français dans la grille du Comparative Agendas Project (CAP). ' +
-  'Tu choisis le grand sujet dont l’extrait parle principalement, d’après les mesures proposées, pas d’après les mots employés. ' +
+  'Tu choisis le grand sujet de la politique publique que l’extrait vise principalement : la politique, la règle ou la situation qu’il veut changer ou dénonce, d’après les mesures proposées, pas d’après les mots employés ni d’après son titre. ' +
+  'Sépare la cause de ses conséquences : un extrait qui dénonce une politique migratoire en décrivant ses effets sur l’emploi relève de l’immigration, pas de l’emploi. ' +
+  'Un dispositif à l’école (un outil numérique, une sortie culturelle, un lycée spécialisé) relève de l’éducation, pas de la technologie ni de la culture : c’est l’école qui change. ' +
   'Tu ne juges pas, tu ne résumes pas, tu ne donnes aucune position. Tu réponds uniquement par le code. Les réponses déjà données ont été vérifiées par l’équipe : suis-les pour des extraits semblables.';
 
 /**
@@ -46,7 +49,8 @@ export class OllamaTopicClassifier implements TopicClassifier {
       .join('\n');
     // La grille dans la consigne, la même pour tous les extraits : Ollama
     // la garde en mémoire d'un extrait à l'autre.
-    const system = `${SYSTEM}\n\nGrands sujets (code — intitulé : sous-sujets) :\n${majors}`;
+    const none = `${NO_TOPIC} — Aucun sujet de politique publique : un jugement sur un parti ou un adversaire, un appel à soutenir, une analyse générale ou un slogan qui ne vise aucune politique, ou un texte qui n’est pas une position du candidat.`;
+    const system = `${SYSTEM}\n\nGrands sujets (code — intitulé : sous-sujets) :\n${majors}\n${none}`;
     const ask = (text: string) =>
       `Extrait :\n« ${text} »\n\nQuel est le grand sujet principal de cet extrait ?`;
     const out: TopicChoice[] = [];
@@ -60,12 +64,10 @@ export class OllamaTopicClassifier implements TopicClassifier {
         },
         { role: 'assistant', content: JSON.stringify({ code: c.code }) },
       ]);
-      const major = await this.choose(
-        system,
-        examples,
-        ask(unit.text),
-        grid.map((t) => t.code),
-      );
+      const major = await this.choose(system, examples, ask(unit.text), [
+        ...grid.map((t) => t.code),
+        NO_TOPIC,
+      ]);
       out.push({ id: unit.id, code: major });
     }
     return out;

@@ -1,3 +1,4 @@
+import { TOOL_ACCOUNT_ID } from '../../../domain/tool-account';
 import { Controller, HttpCode, Inject, Post, UseGuards } from '@nestjs/common';
 import { createHash } from 'node:crypto';
 import {
@@ -56,8 +57,11 @@ export async function collectProgrammes(
   reader: ProgrammeReader,
   keep: (bytes: Buffer) => Promise<string>,
   actorId: string,
+  /** Un seul candidat, par son identifiant (relecture ciblée). */
+  candidateId?: string,
 ) {
   const sources = await prisma.programmeSource.findMany({
+    where: candidateId ? { candidateId } : undefined,
     include: { candidate: true },
   });
   const topics = await prisma.topic.findMany({
@@ -66,7 +70,10 @@ export async function collectProgrammes(
   const report = {
     pages: 0,
     unchanged: 0,
+    restored: 0,
     empty: 0,
+    /** Des documents dont la relecture ne trouve plus de texte. */
+    retired: 0,
     collected: 0,
     passages: 0,
     matches: 0,
@@ -108,9 +115,25 @@ export async function collectProgrammes(
         continue;
       }
       // Une page sans aucun passage (une table faite de liens) ne dit rien :
-      // elle ne devient pas un document.
+      // elle ne devient pas un document. Si elle en était un, lu avec des
+      // règles plus anciennes, il est retiré, signé du compte de l'outil.
       if (file.passages.length === 0) {
         report.empty++;
+        const { count } = await prisma.politicalDocument.updateMany({
+          where: {
+            url: file.url,
+            candidateId: source.candidateId,
+            kind: DocumentKind.programme,
+            retiredAt: null,
+          },
+          data: {
+            retiredAt: new Date(),
+            retiredById: TOOL_ACCOUNT_ID,
+            retiredReason:
+              'La relecture n’y trouve plus de texte de programme (une page faite de liens).',
+          },
+        });
+        report.retired += count;
         continue;
       }
       // L'empreinte du texte lu, pas du fichier : une page web change à
@@ -123,8 +146,29 @@ export async function collectProgrammes(
         )
         .digest('hex');
       const sourceRef = `${url}#${content.slice(0, 16)}`;
-      if (await prisma.politicalDocument.findUnique({ where: { sourceRef } })) {
-        report.unchanged++;
+      const known = await prisma.politicalDocument.findUnique({
+        where: { sourceRef },
+        select: { id: true, fetchedAt: true },
+      });
+      if (known) {
+        // Un texte revenu à une version déjà lue : cette version redevient
+        // celle en vigueur, à la date de cette lecture.
+        const newer = await prisma.politicalDocument.findFirst({
+          where: {
+            url: file.url,
+            candidateId: source.candidateId,
+            retiredAt: null,
+            fetchedAt: { gt: known.fetchedAt ?? new Date(0) },
+          },
+          select: { id: true },
+        });
+        if (newer) {
+          await prisma.politicalDocument.update({
+            where: { id: known.id },
+            data: { fetchedAt: new Date() },
+          });
+          report.restored++;
+        } else report.unchanged++;
         continue;
       }
       const fileHash = await keep(file.bytes);

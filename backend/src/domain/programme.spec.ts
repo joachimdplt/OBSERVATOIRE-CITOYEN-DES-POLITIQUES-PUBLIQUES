@@ -10,6 +10,7 @@ import {
   isTestimonyChapter,
   withoutTestimonies,
 } from './programme';
+import { isInterfaceLabel } from './programme';
 
 describe('le découpage d’un programme', () => {
   const TEXT = `L’AVENIR EN COMMUN
@@ -345,6 +346,28 @@ describe('isTestimonyChapter', () => {
         'Héritage – la France se trouve dans une situation budgétaire dramatique',
         'Déficit public (2026) : -4,7 %',
       ),
+    ).toBe(false);
+  });
+});
+
+describe('isInterfaceLabel', () => {
+  it('reconnaît un libellé de bouton', () => {
+    expect(isInterfaceLabel('Lire le texte intégral Réduire le texte')).toBe(
+      true,
+    );
+    expect(isInterfaceLabel('Voir plus')).toBe(true);
+    expect(isInterfaceLabel('Lire tout le communiqué')).toBe(true);
+  });
+  it('garde un vrai titre', () => {
+    expect(isInterfaceLabel('Le camp des travailleurs')).toBe(false);
+    expect(
+      isInterfaceLabel('Réduire franchement les prélèvements obligatoires'),
+    ).toBe(false);
+    expect(isInterfaceLabel('Réduire notre dépendance énergétique')).toBe(
+      false,
+    );
+    expect(
+      isInterfaceLabel('Lire, écrire, compter : la priorité du primaire.'),
     ).toBe(false);
   });
 });

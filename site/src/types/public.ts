@@ -336,13 +336,15 @@ export type CandidateSheet = {
   programmeStatus: ProgrammeStatus
   programmeUrl: string | null
   website: string | null
+  /** Le site de son parti ou de son mouvement. */
+  partyWebsite: string | null
   programmeNote: string | null
   programmeCheckedAt: string | null
   photo: CandidatePhoto | null
   programme: { documents: number; passages: number }
   /** Ses comptes publics, d'après son élément Wikidata. */
   accounts: {
-    network: 'youtube' | 'instagram' | 'x' | 'tiktok'
+    network: 'youtube' | 'instagram' | 'x' | 'tiktok' | 'facebook'
     handle: string
     url: string
     source: string
@@ -494,4 +496,19 @@ export type Subject = {
     }[]
   }[]
   without: { slug: string; name: string; collected: boolean }[]
+}
+
+/** Ce que dit un candidat dans un sujet de la grille : ses passages, mot pour mot. */
+export type CandidateSubject = {
+  code: string
+  label: string
+  total: number
+  passages: {
+    quote: string
+    page: number | null
+    heading: string
+    document: { title: string; url: string }
+    /** Le rangement a été vérifié par une personne. */
+    checked: boolean
+  }[]
 }

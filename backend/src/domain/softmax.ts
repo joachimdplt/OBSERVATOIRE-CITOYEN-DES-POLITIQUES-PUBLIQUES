@@ -35,7 +35,12 @@ export function trainSoftmax(
   };
   const p = new Float32Array(classes);
   for (let e = 0; e < epochs; e++) {
-    const order = [...data.keys()].sort(() => Math.random() - 0.5);
+    // Un mélange équitable (Fisher-Yates) : chaque ordre a la même chance.
+    const order = [...data.keys()];
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
     for (let start = 0; start < order.length; start += batchSize) {
       const batch = order.slice(start, start + batchSize);
       const gW = new Float32Array(W.length);
@@ -77,6 +82,23 @@ export function trainSoftmax(
     scores(x, out);
     let best = 0;
     for (let k = 1; k < classes; k++) if (out[k] > out[best]) best = k;
-    return { k: best, p: out[best] };
+    return { k: best, p: out[best], probabilities: out };
   };
+}
+
+/**
+ * L'entropie croisée catégorielle sur des exemples : la moyenne de
+ * − log p(bon sujet). C'est la perte que l'apprentissage minimise ; mesurée
+ * sur des exemples jamais vus, elle dit si le classeur se trompe avec
+ * assurance. Au hasard, elle vaut log(nombre de classes).
+ */
+export function crossEntropy(
+  predict: (x: Float32Array) => { probabilities: Float32Array },
+  data: Example[],
+) {
+  if (data.length === 0) return null;
+  let sum = 0;
+  for (const { x, y } of data)
+    sum -= Math.log(Math.max(1e-12, predict(x).probabilities[y]));
+  return sum / data.length;
 }

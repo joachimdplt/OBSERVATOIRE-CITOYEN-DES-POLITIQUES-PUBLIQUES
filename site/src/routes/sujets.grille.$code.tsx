@@ -7,6 +7,7 @@ import { getCapTopics, getSubject } from '../services/public-api'
 import type { CapTopics, Subject } from '../types/public'
 import { smoothScrollTo } from '../utils/scroll'
 import { frenchDate } from '../utils/date'
+import { documentLabel } from '../components/organisms/candidates/CandidateSubjects'
 import { seo } from '../utils/seo'
 
 export const Route = createFileRoute('/sujets/grille/$code')({
@@ -34,15 +35,6 @@ const MUTED = 'text-[#5B6470]'
 const DISPLAY = 'font-extrabold tracking-[-0.03em] text-[#0B1A2A]'
 
 type Candidate = Subject['candidates'][number]
-
-/** « LR_Produire_Plus_LIVRET.pdf » se lit « LR Produire Plus LIVRET ». */
-const documentName = (title: string) =>
-  /\.pdf$/i.test(title)
-    ? title
-        .replace(/\.pdf$/i, '')
-        .replace(/[_-]+/g, ' ')
-        .trim()
-    : title
 
 const isPdf = (url: string) => /\.pdf(\?|#|$)/i.test(url)
 
@@ -122,17 +114,6 @@ function SubjectPage() {
           <div className="lg:hidden">
             <SubjectDock topics={s.grid} active={s.topic.code} />
           </div>
-          <p className={`text-center text-[0.8rem] lg:pt-6 ${MUTED}`}>
-            Les sujets du{' '}
-            <Link
-              to="/sources"
-              hash="sujets"
-              className="font-bold text-[#0B1A2A] hover:underline"
-            >
-              Comparative Agendas Project
-            </Link>
-            , une grille de chercheurs utilisée dans de nombreux pays.
-          </p>
         </div>
       )}
       {/* Le sujet reste en haut de l'écran pendant toute la lecture. */}
@@ -151,6 +132,22 @@ function SubjectPage() {
 
       {/* L'écran du sujet : il glisse quand on change de sujet. */}
       <div style={{ viewTransitionName: 'subject-content' }}>
+        {/* Sous le titre du sujet : d'où vient la grille, sur sa ligne. */}
+        <div className="px-6 pt-3 md:px-10">
+          <p
+            className={`mx-auto max-w-[1280px] text-left text-[0.85rem] ${MUTED}`}
+          >
+            Les sujets du{' '}
+            <Link
+              to="/sources"
+              hash="sujets"
+              className="font-bold text-[#0B1A2A] hover:underline"
+            >
+              Comparative Agendas Project
+            </Link>
+            , une grille de chercheurs utilisée dans de nombreux pays.
+          </p>
+        </div>
         {topic && topic.subtopics.length > 0 && (
           <section className="px-6 pt-8 md:px-10">
             <div className="mx-auto max-w-[1280px]">
@@ -242,7 +239,7 @@ function Subtopics({ subtopics }: { subtopics: Subtopic[] }) {
             {t.description && (
               <p
                 lang="en"
-                className="mt-1 hidden text-[0.8rem] text-[#5B6470]/80 italic group-hover/sub:block"
+                className="mt-1 text-[0.8rem] text-[#5B6470]/80 italic opacity-0 transition-opacity duration-200 group-hover/sub:opacity-100"
               >
                 {t.description}
               </p>
@@ -331,7 +328,7 @@ function CandidateCard({
                     {isPdf(ch.document.url) ? 'Document' : 'Son site'} ·
                   </span>
                   <span className="truncate">
-                    {documentName(ch.document.title)}
+                    {documentLabel(ch.document.title, ch.document.url)}
                   </span>
                   {page !== null && (
                     <span className="shrink-0 font-semibold">· p. {page}</span>

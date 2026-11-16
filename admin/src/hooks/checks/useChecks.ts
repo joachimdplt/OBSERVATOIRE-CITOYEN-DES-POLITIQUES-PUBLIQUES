@@ -59,8 +59,17 @@ export function useNextReclass(candidateId: string) {
 export function useSendReclass(candidateId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ labelId, code }: { labelId: string; code: string | null }) =>
-      sendReclass(labelId, code),
+    mutationFn: ({
+      labelId,
+      code,
+      noTopic,
+      reason,
+    }: {
+      labelId: string
+      code: string | null
+      noTopic?: boolean
+      reason?: string
+    }) => sendReclass(labelId, code, noTopic, reason),
     onSuccess: () =>
       Promise.all([
         qc.invalidateQueries({ queryKey: queryKeys.nextReclass(candidateId) }),

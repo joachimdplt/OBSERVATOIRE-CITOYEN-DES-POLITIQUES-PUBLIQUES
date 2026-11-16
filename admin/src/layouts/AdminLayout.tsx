@@ -1,97 +1,161 @@
 import { Link, Outlet } from '@tanstack/react-router'
-import { LogOut } from 'lucide-react'
-import { ROLE_LABELS } from '../data/labels'
+import { LogOut, Settings2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { can } from '../domain/roles'
-import type { TeamMember } from '../types/session'
+import type { Role, TeamMember } from '../types/session'
 
 type Props = { member: TeamMember; onSignOut: () => void }
 
+type NavLink = {
+  to:
+    | '/'
+    | '/publications'
+    | '/reviews'
+    | '/verification'
+    | '/subjects'
+    | '/mesure'
+  label: string
+  exact?: boolean
+  /** La capacité qu'il faut pour voir ce lien. */
+  needs?: Parameters<typeof can>[1]
+}
+
 /**
- * L'administration : un bandeau sobre, qui est connecté, de quoi se
- * déconnecter, et l'écran en dessous.
+ * La navigation, rangée par travail : le rangement des programmes, les
+ * publications, les données. Un nom par écran, sans doublon.
+ */
+const GROUPS: { title: string; links: NavLink[] }[] = [
+  {
+    title: 'Rangement',
+    links: [
+      { to: '/verification', label: 'Vérification' },
+      { to: '/subjects', label: 'À trancher' },
+      { to: '/mesure', label: 'Mesure' },
+    ],
+  },
+  {
+    title: 'Publications',
+    links: [
+      { to: '/publications', label: 'Publications' },
+      { to: '/reviews', label: 'Relecture', needs: 'review' },
+    ],
+  },
+  {
+    title: 'Données',
+    links: [{ to: '/', label: 'Catalogue', exact: true }],
+  },
+]
+
+const visible = (role: Role, link: NavLink) =>
+  !link.needs || can(role, link.needs)
+
+/**
+ * L'administration, dans le même verre liquide que le site public : un
+ * menu de verre à gauche, les écrans rangés par groupe, la page ouverte en
+ * bulle sombre, et les réglages en bas.
  */
 export function AdminLayout({ member, onSignOut }: Props) {
   return (
-    <div className="min-h-dvh">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-6">
-          <nav className="flex items-center gap-6 text-sm">
-            <Link to="/" className="font-semibold tracking-tight">
-              Observatoire{' '}
-              <span className="font-normal text-slate-400">
-                · administration
-              </span>
-            </Link>
-            <Link
-              to="/"
-              activeOptions={{ exact: true }}
-              className="text-slate-600 hover:text-slate-900"
-              activeProps={{ className: 'font-medium text-slate-900' }}
-            >
-              Catalogue
-            </Link>
-            <Link
-              to="/publications"
-              className="text-slate-600 hover:text-slate-900"
-              activeProps={{ className: 'font-medium text-slate-900' }}
-            >
-              Publications
-            </Link>
-            <Link
-              to="/subjects"
-              className="text-slate-600 hover:text-slate-900"
-              activeProps={{ className: 'font-medium text-slate-900' }}
-            >
-              Sujets à relire
-            </Link>
-            <Link
-              to="/verification"
-              className="text-slate-600 hover:text-slate-900"
-              activeProps={{ className: 'font-medium text-slate-900' }}
-            >
-              Vérification
-            </Link>
-            <Link
-              to="/mesure"
-              className="text-slate-600 hover:text-slate-900"
-              activeProps={{ className: 'font-medium text-slate-900' }}
-            >
-              Mesure
-            </Link>
-            {can(member.role, 'review') && (
-              <Link
-                to="/reviews"
-                className="text-slate-600 hover:text-slate-900"
-                activeProps={{ className: 'font-medium text-slate-900' }}
-              >
-                Relecture
-              </Link>
-            )}
-          </nav>
-          <div className="flex items-center gap-3">
-            <span className="text-right">
-              <span className="block text-sm text-slate-800">
-                {member.name}
-              </span>
-              <span className="block text-[11px] text-slate-400">
-                {ROLE_LABELS[member.role]}
-              </span>
-            </span>
-            <button
-              type="button"
-              onClick={onSignOut}
-              title="Se déconnecter"
-              aria-label="Se déconnecter"
-              className="text-slate-400 transition-colors hover:text-slate-900"
-            >
-              <LogOut size={16} />
-            </button>
-          </div>
-        </div>
-      </header>
-      <main className="mx-auto max-w-5xl space-y-6 px-6 py-8">
+    <div className="min-h-dvh md:pl-[248px]">
+      <aside className="glass z-10 flex flex-col gap-1 rounded-[28px] p-3 md:fixed md:top-3 md:bottom-3 md:left-3 md:w-[224px] max-md:m-3">
+        <Link
+          to="/"
+          className="glass-nav-brand mb-3 flex h-10 items-center rounded-full px-4 text-sm font-extrabold tracking-tight text-white no-underline"
+        >
+          Observatoire
+        </Link>
+        <nav className="flex flex-1 flex-col gap-4 overflow-y-auto text-sm font-semibold">
+          {GROUPS.map((g) => {
+            const links = g.links.filter((l) => visible(member.role, l))
+            if (links.length === 0) return null
+            return (
+              <div key={g.title} className="flex flex-col gap-0.5">
+                <p className="px-3 pb-1 text-xs font-bold text-[#5B6470]">
+                  {g.title}
+                </p>
+                {links.map((l) => (
+                  <Link
+                    key={l.to}
+                    to={l.to}
+                    activeOptions={{ exact: l.exact ?? false }}
+                    className="nav-pill w-full"
+                    activeProps={{
+                      className: 'nav-pill nav-pill-active w-full',
+                    }}
+                  >
+                    {l.label}
+                  </Link>
+                ))}
+              </div>
+            )
+          })}
+        </nav>
+        <Settings name={member.name} onSignOut={onSignOut} />
+      </aside>
+      <main className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         <Outlet />
       </main>
+    </div>
+  )
+}
+
+/**
+ * Les réglages : une bulle qui ouvre un petit menu de verre, avec la
+ * personne connectée et de quoi se déconnecter. Un clic ailleurs ou Échap
+ * le referme.
+ */
+function Settings({
+  name,
+  onSignOut,
+}: {
+  name: string
+  onSignOut: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const box = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const close = (e: MouseEvent | KeyboardEvent) => {
+      if (
+        e instanceof KeyboardEvent
+          ? e.key === 'Escape'
+          : !box.current?.contains(e.target as Node)
+      )
+        setOpen(false)
+    }
+    window.addEventListener('mousedown', close)
+    window.addEventListener('keydown', close)
+    return () => {
+      window.removeEventListener('mousedown', close)
+      window.removeEventListener('keydown', close)
+    }
+  }, [open])
+  return (
+    <div ref={box} className="relative">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+        className={`nav-pill w-full gap-1.5 ${open ? 'nav-pill-active' : ''}`}
+      >
+        <Settings2 size={15} />
+        Réglages
+      </button>
+      {open && (
+        <div className="glass absolute bottom-full left-0 mb-2 w-full rounded-[18px] p-1.5 text-sm">
+          <p className="px-3 py-2 text-[#5B6470]">
+            Connecté :{' '}
+            <span className="font-semibold text-[#0B1A2A]">{name}</span>
+          </p>
+          <button
+            type="button"
+            onClick={onSignOut}
+            className="nav-pill w-full justify-start gap-2"
+          >
+            <LogOut size={15} /> Se déconnecter
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -41,6 +41,7 @@ from report import write_report
 HERE = Path(__file__).parent
 DATA = HERE / "data" / "checks.json"
 REPORT = (HERE / "data" / "rapport.html").resolve()
+SUMMARY = (HERE / "data" / "resume.json").resolve()
 Z = 1.96
 MIN_ROWS = 50
 THRESHOLDS = (0.5, 0.6, 0.7, 0.8, 0.9)
@@ -232,7 +233,9 @@ def retrained(rows: list[dict]) -> dict | None:
     print(
         "\n  Limite : un refus n'entre ici qu'une fois reclassé dans le bon sujet."
     )
+    curve = learning_curve(x, y, groups, len(codes))
     return {
+        "curve": curve,
         "n": len(known),
         "subjects": len(codes),
         "chapters": len(set(groups)),
@@ -243,6 +246,73 @@ def retrained(rows: list[dict]) -> dict | None:
         "bins": table,
         "ece": ece,
     }
+
+
+DRAWS = 5
+
+
+def learning_curve(x, y, groups, n_classes: int) -> list[dict]:
+    """La courbe d'apprentissage : la justesse et l'entropie croisée du
+    classeur appris sur une part croissante des verdicts (20 % à 100 % des
+    chapitres), toujours testé sur des chapitres jamais vus. Chaque point est
+    la moyenne de cinq tirages différents ; l'écart entre tirages dit ce qui
+    relève du hasard."""
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.model_selection import GroupKFold
+
+    print("\n  Courbe d'apprentissage (moyenne de 5 tirages) :")
+    print(f"  {'blocs':>6}  {'justesse':>9}  {'écart':>12}  entropie croisée")
+    all_chapters = np.array(sorted(set(groups)))
+    points = []
+    for frac in (0.2, 0.4, 0.6, 0.8, 1.0):
+        rates, ces, sizes = [], [], []
+        for seed in range(DRAWS if frac < 1.0 else 1):
+            rng = np.random.default_rng(seed)
+            chapters = all_chapters.copy()
+            rng.shuffle(chapters)
+            keep = set(chapters[: max(5, int(len(chapters) * frac))])
+            idx = np.array([i for i, g in enumerate(groups) if g in keep])
+            if len(set(groups[idx])) < 5:
+                continue
+            proba = np.zeros((len(idx), n_classes))
+            for train, test in GroupKFold(n_splits=5).split(x[idx], y[idx], groups[idx]):
+                model = LogisticRegression(C=10.0, max_iter=3000)
+                model.fit(x[idx][train], y[idx][train])
+                proba[np.ix_(test, model.classes_)] = model.predict_proba(x[idx][test])
+            yy = y[idx]
+            rates.append(float((proba.argmax(axis=1) == yy).mean()))
+            ces.append(float(-np.log(np.clip(proba[np.arange(len(yy)), yy], 1e-12, 1)).mean()))
+            sizes.append(len(idx))
+        if not rates:
+            continue
+        point = {
+            "n": int(np.mean(sizes)),
+            "rate": float(np.mean(rates)),
+            "low": float(np.min(rates)),
+            "high": float(np.max(rates)),
+            "ce": float(np.mean(ces)),
+        }
+        points.append(point)
+        print(f"  {point['n']:>6}  {pct(point['rate']):>9}  {pct(point['low'])} à {pct(point['high']):<5}  {point['ce']:.2f}")
+    return points
+
+
+def write_summary(results: dict, rows: list[dict], path: Path) -> None:
+    """Les chiffres clés de la mesure, à archiver avec le rapport : ils
+    permettent de suivre l'évolution d'une mesure à l'autre."""
+    right = sum(r["verdict"] == "accepted" for r in rows)
+    real = ((results.get("classifier") or {}).get("results")) or {}
+    summary = {
+        "demo": results["demo"],
+        "verdicts": len(rows),
+        "candidates": len({r["candidate"] for r in rows}),
+        "accepted": right,
+        "rate": right / len(rows) if rows else None,
+        "classifierRate": real["right"] / real["total"] if real.get("total") else None,
+        "crossEntropy": real.get("crossEntropy"),
+        "crossEntropyRandom": real.get("crossEntropyRandom"),
+    }
+    path.write_text(json.dumps(summary), encoding="utf-8")
 
 
 def main() -> None:
@@ -256,15 +326,29 @@ def main() -> None:
             "Les chiffres ci-dessous montrent le fonctionnement de l'outil ; "
             "ils ne mesurent rien."
         )
-    results = {"demo": data["demo"], "exportedAt": data["exportedAt"], "rows": len(rows)}
+    results = {
+        "demo": data["demo"],
+        "exportedAt": data["exportedAt"],
+        "rows": len(rows),
+        "classifier": data.get("classifier"),
+        "training": data.get("training"),
+        "history": data.get("history") or [],
+        "neural": json.loads((HERE / "data" / "neural.json").read_text())
+        if (HERE / "data" / "neural.json").exists()
+        else None,
+        "topics": data.get("topics") or {},
+        "journal": data.get("journal"),
+    }
     if rows:
         results["candidates"] = by_candidate(rows)
         results["voices"] = by_voice(rows)
         results["stored"] = stored_calibration(rows)
-        results["retrained"] = retrained(rows)
+        # Le classeur d'essai n'est plus affiché : seul le vrai classeur,
+        # mesuré par test-vector-classifier.ts, figure dans le rapport.
     else:
         print("Aucun verdict de personne pour l'instant : passez par les cartes.")
     write_report(results, REPORT)
+    write_summary(results, rows, SUMMARY)
     print(f"\nGraphiques : {REPORT}")
     if "--no-open" not in sys.argv:
         webbrowser.open(REPORT.as_uri())

@@ -15,6 +15,8 @@ const prefixOf = (heading: string) =>
  * - dans l'ordre de ses documents ;
  * - un même encart répété sur plusieurs pages de son site (même titre, même
  *   texte) ne se montre qu'une fois ;
+ * - les passages d'un même chapitre, rangés un par un, se lisent sous un
+ *   seul titre ;
  * - les cartes d'un même tableau (« Héritage – … · Déficit public »,
  *   « Héritage – … · Dette publique ») se lisent ensemble, sous le titre
  *   qu'elles partagent, chacune avec ses lignes.
@@ -32,6 +34,17 @@ export function subjectChapters(
     const key = `${c.heading}\n${c.excerpt.map((e) => e.quote).join('\n')}`;
     if (seen.has(key)) continue;
     seen.add(key);
+    // Des passages d'un même chapitre rangés un par un dans ce sujet : un
+    // seul titre, et leurs citations à la suite.
+    const same = out.find(
+      (o) => o.document.url === c.document.url && o.heading === c.heading,
+    );
+    if (same) {
+      for (const e of c.excerpt)
+        if (!same.excerpt.some((x) => x.quote === e.quote))
+          same.excerpt.push(e);
+      continue;
+    }
     const prefix = prefixOf(c.heading);
     const last = out.at(-1);
     if (

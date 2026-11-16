@@ -1,6 +1,5 @@
+import { liveProgrammes } from '../../../common/live-programmes';
 import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
-import { currentCaptures } from '../../../domain/programme';
-import { DocumentKind } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 /** Les vidéos les plus récentes d'une page de candidat. */
@@ -31,24 +30,11 @@ export class GetCandidateController {
     });
     if (!c) throw new NotFoundException('Candidat inconnu');
 
-    const documents = await this.prisma.politicalDocument.findMany({
-      where: {
-        kind: DocumentKind.programme,
-        candidateId: c.id,
-        sourceRef: { not: null },
-        retiredAt: null,
-      },
-      select: { id: true, sourceRef: true, fetchedAt: true, createdAt: true },
+    const documents = await liveProgrammes(this.prisma, {
+      where: { candidateId: c.id },
+      select: { id: true, sourceRef: true, fetchedAt: true },
     });
-    const current = [
-      ...currentCaptures(
-        documents.map((d) => ({
-          id: d.id,
-          sourceRef: d.sourceRef!,
-          fetchedAt: d.fetchedAt ?? d.createdAt,
-        })),
-      ),
-    ];
+    const current = documents.map((d) => d.id);
     const [passages, videos] = await Promise.all([
       this.prisma.measure.count({ where: { documentId: { in: current } } }),
       this.prisma.videoCandidate.findMany({
@@ -69,6 +55,7 @@ export class GetCandidateController {
       programmeUrl: c.programmeUrl,
       // Son site de campagne officiel.
       website: c.website,
+      partyWebsite: c.partyWebsite,
       programmeNote: c.programmeNote,
       programmeCheckedAt:
         c.programmeCheckedAt?.toISOString().slice(0, 10) ?? null,

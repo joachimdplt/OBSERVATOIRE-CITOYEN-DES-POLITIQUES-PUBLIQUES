@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { isSiteSidebar, withoutTestimonies } from '../../domain/programme';
+import {
+  isSiteSidebar,
+  withoutTestimonies,
+  isInterfaceLabel,
+} from '../../domain/programme';
 import { execFile } from 'node:child_process';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -182,6 +186,13 @@ export class WebProgrammeReader implements ProgrammeReader {
         'script, style, nav, header, footer, aside, form, button, svg, noscript',
       )
       .forEach((e) => e.remove());
+    // Une vignette qui renvoie vers une autre page (un lien qui contient un
+    // titre et un résumé) annonce une page lue à part : ce n'est pas du
+    // texte de cette page. Un lien dans une phrase reste lu.
+    body
+      .querySelectorAll('a[href]')
+      .filter((a) => isTeaser(a, url))
+      .forEach((a) => a.remove());
     const BLOCKS = 'h1, h2, h3, h4, p, li, blockquote';
     // Le titre d'un chapitre repliable (<summary>) compte comme un titre.
     const isBlock = (el: HTMLElement) =>
@@ -191,16 +202,39 @@ export class WebProgrammeReader implements ProgrammeReader {
     const passages: ProgrammePassage[] = [];
     let heading = title;
     let chapter: string | null = null;
+    // Le début d'une mesure écrit dans un point de liste qui a des
+    // sous-points (« Revoir le dispositif… » puis « mis en place en
+    // 2020… ») : il est joint à son premier sous-point, pour ne pas perdre
+    // le début de la phrase.
+    let lead: { el: HTMLElement; text: string } | null = null;
+    const inside = (el: HTMLElement, parent: HTMLElement) => {
+      for (let p = el.parentNode; p; p = p.parentNode)
+        if (p === parent) return true;
+      return false;
+    };
     for (const el of body.querySelectorAll('*')) {
       const id = el.getAttribute('id');
       if (id && chapters.has(id)) chapter = chapters.get(id)!;
       if (!isBlock(el)) continue;
-      // Un bloc qui en contient d'autres se lit par eux.
-      if (el.querySelector(BLOCKS)) continue;
-      const text = clean(el);
+      // Un bloc qui en contient d'autres se lit par eux ; un point de liste
+      // garde son texte propre pour le premier d'entre eux.
+      if (el.querySelector(BLOCKS)) {
+        if (el.tagName === 'LI') {
+          const own = ownText(el);
+          if (own) lead = { el, text: own };
+        }
+        continue;
+      }
+      let text = clean(el);
       if (!text) continue;
-      if (/^(H[1-4]|SUMMARY)$/.test(el.tagName)) heading = text;
-      else if (text.length >= MIN_LENGTH)
+      if (lead && inside(el, lead.el)) {
+        text = `${lead.text} ${text}`;
+        lead = null;
+      }
+      // Le libellé d'un bouton déroulant n'est pas un titre.
+      if (/^(H[1-4]|SUMMARY)$/.test(el.tagName)) {
+        if (!isInterfaceLabel(text)) heading = text;
+      } else if (text.length >= MIN_LENGTH)
         passages.push({ heading: chapter ?? heading, text });
     }
     // Repli : une page dont le texte vit dans des blocs <div> (cartes,
@@ -265,7 +299,7 @@ function walk(body: HTMLElement, title: string): ProgrammePassage[] {
     if (/^H[1-4]$/.test(tag)) {
       flush();
       const text = node.text.replace(/\s+/g, ' ').trim();
-      if (text) heading = text;
+      if (text && !isInterfaceLabel(text)) heading = text;
       return;
     }
     const block = BLOCK_TAGS.has(tag);
@@ -276,6 +310,44 @@ function walk(body: HTMLElement, title: string): ProgrammePassage[] {
   visit(body);
   flush();
   return passages;
+}
+
+/**
+ * Une vignette : un lien vers une autre page (pas une ancre de la page),
+ * qui contient plusieurs éléments de texte (un titre et un résumé) et au
+ * moins quarante caractères.
+ */
+export function isTeaser(a: HTMLElement, url: string): boolean {
+  const href = a.getAttribute('href') ?? '';
+  if (!href || href.startsWith('#')) return false;
+  try {
+    const target = new URL(href, url);
+    const here = new URL(url);
+    if (target.pathname === here.pathname && target.host === here.host)
+      return false;
+  } catch {
+    return false;
+  }
+  const parts = a.querySelectorAll('span, div, p, h1, h2, h3, h4, h5, h6');
+  return parts.length >= 2 && a.text.replace(/\s+/g, ' ').trim().length >= 40;
+}
+
+/**
+ * Le texte propre d'un bloc qui en contient d'autres : ses mots et ses
+ * éléments en ligne, sans les blocs qu'il contient.
+ */
+function ownText(el: HTMLElement): string {
+  return el.childNodes
+    .map((n) =>
+      n instanceof TextNode
+        ? n.text
+        : n instanceof HTMLElement && !BLOCK_TAGS.has(n.tagName)
+          ? n.text
+          : '',
+    )
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /** Le texte d'un bloc, sans la déclaration de document qui s'y glisse. */

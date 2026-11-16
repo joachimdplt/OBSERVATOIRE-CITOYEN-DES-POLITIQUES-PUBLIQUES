@@ -22,9 +22,10 @@ export function CandidateApproach({ approach }: { approach: Approach[] }) {
         <h2 className={`${DISPLAY} text-[clamp(1.6rem,3vw,2.2rem)]`}>
           Sa démarche
         </h2>
-        <p className={`text-justify text-[1rem] leading-relaxed hyphens-auto ${MUTED}`}>
-          Pas de programme d’ensemble : un état des lieux chiffré et une
-          consultation ouverte, repris tels qu’ils sont publiés (relevé le{' '}
+        <p
+          className={`text-justify text-[1rem] leading-relaxed hyphens-auto ${MUTED}`}
+        >
+          Un état des lieux chiffré et une consultation ouverte, repris tels qu’ils sont publiés (relevé le{' '}
           {frenchDate(
             approach
               .map((a) => a.fetchedAt)
@@ -123,7 +124,9 @@ function Consultation({ approach: a }: { approach: Approach }) {
           «&nbsp;{t.text}&nbsp;»
         </p>
       ))}
-      <p className={`mt-3 text-justify text-[0.9rem] leading-relaxed hyphens-auto ${MUTED}`}>
+      <p
+        className={`mt-3 text-justify text-[0.9rem] leading-relaxed hyphens-auto ${MUTED}`}
+      >
         Les comptes que la consultation publie, thème par thème. Les problèmes
         et les solutions sont déposés par les participants : ce ne sont pas les
         mots de la candidate, et ils ne sont pas cités ici.
@@ -161,8 +164,9 @@ function Consultation({ approach: a }: { approach: Approach }) {
 
 /** « 161 problèmes · 223 solutions » se lit en deux comptes, tels quels. */
 function countsOf(text: string) {
-  const parts = text.split('·').map((p) => /^\s*(\d[\d\s]*)\s+(\S.*?)\s*$/.exec(p))
+  const parts = text
+    .split('·')
+    .map((p) => /^\s*(\d[\d\s]*)\s+(\S.*?)\s*$/.exec(p))
   if (parts.some((m) => !m)) return null
   return parts.map((m) => ({ value: m![1].trim(), what: m![2] }))
 }
-

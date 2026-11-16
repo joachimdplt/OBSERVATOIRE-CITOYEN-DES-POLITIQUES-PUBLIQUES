@@ -1,7 +1,6 @@
+import { liveProgrammes } from '../../../common/live-programmes';
 import { Controller, Get } from '@nestjs/common';
-import { currentCaptures } from '../../../domain/programme';
 import { globalShares, sharesByCandidate } from '../../../domain/topic-share';
-import { DocumentKind } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 type Match = {
@@ -48,36 +47,22 @@ export class ListTopicsController {
 
   @Get()
   async list() {
-    const documents = await this.prisma.politicalDocument.findMany({
-      where: {
-        kind: DocumentKind.programme,
-        sourceRef: { not: null },
-        retiredAt: null,
-      },
+    const documents = await liveProgrammes(this.prisma, {
       select: {
         id: true,
-        sourceRef: true,
-        fetchedAt: true,
-        createdAt: true,
         candidate: { select: { slug: true, programmeStatus: true } },
       },
     });
-    const current = currentCaptures(
-      documents.map((d) => ({
-        id: d.id,
-        sourceRef: d.sourceRef!,
-        fetchedAt: d.fetchedAt ?? d.createdAt,
-      })),
-    );
+    const current = documents.map((d) => d.id);
     const candidates = new Map(
       documents
-        .filter((d) => current.has(d.id) && d.candidate)
+        .filter((d) => d.candidate)
         .map((d) => [d.candidate!.slug, d.candidate!.programmeStatus]),
     );
     const topics = await this.prisma.topic.findMany({
       include: {
         matches: {
-          where: { measure: { documentId: { in: [...current] } } },
+          where: { measure: { documentId: { in: current } } },
           select: {
             measure: {
               select: {

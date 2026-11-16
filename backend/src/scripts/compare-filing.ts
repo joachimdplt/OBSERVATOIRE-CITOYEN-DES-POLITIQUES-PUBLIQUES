@@ -7,16 +7,12 @@
  * Pour chaque bloc, chaque méthode ne voit jamais la réponse de son propre
  * chapitre.
  */
+import { liveProgrammes } from '../common/live-programmes';
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { OllamaTopicClassifier } from '../adapters/classifier/ollama-topic-classifier';
-import { currentCaptures } from '../domain/programme';
 import { PrismaClient } from '../generated/prisma/client';
-import {
-  DocumentKind,
-  LabelOrigin,
-  LabelStatus,
-} from '../generated/prisma/enums';
+import { LabelOrigin, LabelStatus } from '../generated/prisma/enums';
 
 const MODEL = 'bge-m3';
 const toVector = (b: Uint8Array) =>
@@ -68,28 +64,13 @@ async function main() {
     await prisma.topicVector.findMany({ where: { model: MODEL } })
   ).map((t) => ({ code: major.get(t.code)!, v: toVector(t.vector) }));
 
-  const docs = await prisma.politicalDocument.findMany({
-    where: {
-      kind: DocumentKind.programme,
-      sourceRef: { not: null },
-      retiredAt: null,
-    },
+  const docs = await liveProgrammes(prisma, {
     select: {
       id: true,
       url: true,
-      sourceRef: true,
-      fetchedAt: true,
-      createdAt: true,
     },
   });
-  const current = currentCaptures(
-    docs.map((d) => ({
-      id: d.id,
-      sourceRef: d.sourceRef!,
-      fetchedAt: d.fetchedAt ?? d.createdAt,
-    })),
-  );
-  const live = docs.filter((d) => current.has(d.id));
+  const live = docs;
   const docByUrl = new Map(live.map((d) => [d.url, d.id]));
   const measures = await prisma.measure.findMany({
     where: { documentId: { in: live.map((d) => d.id) } },

@@ -60,3 +60,25 @@ describe('les chapitres d’un sujet', () => {
     ).toHaveLength(1);
   });
 });
+
+describe('subjectChapters, passages rangés un par un', () => {
+  it('réunit sous un seul titre les passages d’un même chapitre', () => {
+    const doc = { title: 'Brochure', url: 'https://x.fr/b.pdf' };
+    const out = subjectChapters([
+      {
+        heading: 'Le programme',
+        document: doc,
+        excerpt: [{ quote: 'A', page: 8 }],
+        position: 3,
+      },
+      {
+        heading: 'Le programme',
+        document: doc,
+        excerpt: [{ quote: 'B', page: 9 }],
+        position: 4,
+      },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0].excerpt.map((e) => e.quote)).toEqual(['A', 'B']);
+  });
+});

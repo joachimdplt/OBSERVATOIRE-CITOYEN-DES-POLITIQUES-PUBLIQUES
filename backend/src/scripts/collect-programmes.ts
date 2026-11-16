@@ -3,6 +3,7 @@
  * tâche planifiée (cron) :
  *
  *   npm run collect:programmes
+ *   npm run collect:programmes -- --candidate nathalie-arthaud
  *
  * Elle relit chaque adresse indiquée par l'équipe. Un programme dont le texte
  * n'a pas changé n'est pas recollecté ; un texte changé entre comme un
@@ -29,15 +30,22 @@ async function main() {
       orderBy: { createdAt: 'asc' },
     });
     if (!admin) throw new Error('Aucun compte d’administration actif.');
+    // Un seul candidat, par son identifiant de page (--candidate <slug>).
+    const at = process.argv.indexOf('--candidate');
+    const slug = at >= 0 ? process.argv[at + 1] : undefined;
+    const candidate = slug
+      ? await prisma.candidate.findFirstOrThrow({ where: { slug } })
+      : undefined;
     const store = new RawFileStore(new ConfigService(configuration()));
     const report = await collectProgrammes(
       prisma as unknown as PrismaService,
       new WebProgrammeReader(),
       (bytes) => store.keep(bytes),
       admin.id,
+      candidate?.id,
     );
     console.log(
-      `${report.pages} pages lues, ${report.unchanged} inchangées, ${report.collected} nouvelles, ${report.passages} passages, ${report.matches} rattachements.`,
+      `${report.pages} pages lues, ${report.unchanged} inchangées, ${report.restored} revenues à une version déjà lue, ${report.collected} nouvelles, ${report.retired} retirées faute de texte, ${report.passages} passages, ${report.matches} rattachements.`,
     );
     for (const f of report.failed) console.log(`Échec : ${f}`);
   } finally {

@@ -204,7 +204,9 @@ Wikidata, celle de Francis Lalanne n'est pas sous licence libre.
 ## La mise à jour quotidienne
 
 Chaque jour à 6 h, heure de Paris, l'API relance elle-même ses collecteurs :
-textes déposés, programmes, vidéos, photos. Chaque collecte est datée et
+textes déposés, programmes, vidéos, photos. Juste après les programmes, les
+chapitres nouveaux sont rangés par sujet : le classeur est réentraîné, puis
+chaque chapitre passe par le vote (document 06). Chaque collecte est datée et
 gardée avec son compte rendu (table `collection_runs`) ; une collecte qui
 échoue n'arrête pas les autres. `GET /api/public/updates` donne la dernière
 collecte de chaque source et la prochaine ; le site l'affiche dans son

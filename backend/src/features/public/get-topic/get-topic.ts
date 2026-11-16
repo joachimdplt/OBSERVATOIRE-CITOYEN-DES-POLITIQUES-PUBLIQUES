@@ -1,6 +1,6 @@
+import { liveProgrammes } from '../../../common/live-programmes';
 import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
-import { currentCaptures, surnameOf } from '../../../domain/programme';
-import { DocumentKind } from '../../../generated/prisma/enums';
+import { surnameOf } from '../../../domain/programme';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 /**
@@ -17,17 +17,10 @@ export class GetTopicController {
   async get(@Param('slug') slug: string) {
     const topic = await this.prisma.topic.findUnique({ where: { slug } });
     if (!topic) throw new NotFoundException('Enjeu inconnu');
-    const documents = await this.prisma.politicalDocument.findMany({
-      where: {
-        kind: DocumentKind.programme,
-        sourceRef: { not: null },
-        retiredAt: null,
-      },
+    const documents = await liveProgrammes(this.prisma, {
       select: {
         id: true,
-        sourceRef: true,
         fetchedAt: true,
-        createdAt: true,
         candidate: {
           select: {
             slug: true,
@@ -39,17 +32,11 @@ export class GetTopicController {
         },
       },
     });
-    const current = currentCaptures(
-      documents.map((d) => ({
-        id: d.id,
-        sourceRef: d.sourceRef!,
-        fetchedAt: d.fetchedAt ?? d.createdAt,
-      })),
-    );
+    const current = documents.map((d) => d.id);
     const matches = await this.prisma.topicMatch.findMany({
       where: {
         topicId: topic.id,
-        measure: { documentId: { in: [...current] } },
+        measure: { documentId: { in: current } },
       },
       select: {
         term: true,
@@ -78,7 +65,7 @@ export class GetTopicController {
     });
     const candidates = new Map(
       documents
-        .filter((d) => current.has(d.id) && d.candidate)
+        .filter((d) => d.candidate)
         .map((d) => [d.candidate!.slug, d.candidate!]),
     );
     const publication = await this.prisma.publication.findUnique({

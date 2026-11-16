@@ -11,6 +11,14 @@ export function CheckCard({ card }: Props) {
   return (
     <article className="mx-auto w-full max-w-2xl space-y-6">
       <header className="space-y-1">
+        {card.section && (
+          <p
+            className="text-sm font-semibold text-slate-500"
+            title={card.section.source}
+          >
+            {card.section.section}
+          </p>
+        )}
         <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
           {card.heading}
         </h2>

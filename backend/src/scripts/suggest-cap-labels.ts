@@ -13,6 +13,12 @@ import { suggestCapLabels } from '../features/subjects/suggest-cap-labels/sugges
 import { PrismaClient } from '../generated/prisma/client';
 import type { PrismaService } from '../prisma/prisma.service';
 
+/** --refile <slug>[,<slug>] : rerange ces candidats en entier. */
+function refileArg() {
+  const i = process.argv.indexOf('--refile');
+  return i >= 0 ? (process.argv[i + 1] ?? '').split(',').filter(Boolean) : [];
+}
+
 async function main() {
   const prisma = new PrismaClient({
     adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
@@ -22,9 +28,10 @@ async function main() {
       prisma as unknown as PrismaService,
       new OllamaTopicClassifier(),
       (line) => console.log(line),
+      { refile: refileArg() },
     );
     console.log(
-      `${r.chapters} chapitres, ${r.proposed} nouvellement rangés dont ${r.review} à relire (modèle ${r.model || 'aucun'}).`,
+      `${r.chapters} chapitres, ${r.proposed} nouvellement rangés, dont ${r.review} à trancher, ${r.kept} inchangés, ${r.orphans} retirés faute de chapitre (modèle ${r.model || 'aucun'}).`,
     );
   } finally {
     await prisma.$disconnect();

@@ -7,17 +7,16 @@
  * absences.tsv vient de audit-absences ; decisions.tsv donne, par paire,
  * « oui », le rang du passage et la raison.
  */
+import { TOOL_ACCOUNT_ID } from '../domain/tool-account';
+import { liveProgrammes } from '../common/live-programmes';
 import 'dotenv/config';
 import { readFileSync } from 'node:fs';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { currentCaptures } from '../domain/programme';
 import { PrismaClient } from '../generated/prisma/client';
 import {
-  DocumentKind,
   DecisionMode,
   LabelOrigin,
   LabelStatus,
-  Role,
 } from '../generated/prisma/enums';
 
 async function main() {
@@ -34,34 +33,13 @@ async function main() {
     .split('\n')
     .map((l) => l.split('\t'))
     .filter((p) => p[1] === 'oui');
-  const admin = await prisma.user.findFirstOrThrow({
-    where: { role: Role.admin, active: true },
-    orderBy: { createdAt: 'asc' },
-  });
-  const docs = await prisma.politicalDocument.findMany({
-    where: {
-      kind: DocumentKind.programme,
-      sourceRef: { not: null },
-      retiredAt: null,
-    },
+  const docs = await liveProgrammes(prisma, {
     select: {
       id: true,
       url: true,
-      sourceRef: true,
-      fetchedAt: true,
-      createdAt: true,
     },
   });
-  const current = currentCaptures(
-    docs.map((d) => ({
-      id: d.id,
-      sourceRef: d.sourceRef!,
-      fetchedAt: d.fetchedAt ?? d.createdAt,
-    })),
-  );
-  const liveId = new Map(
-    docs.filter((d) => current.has(d.id)).map((d) => [d.url, d.id]),
-  );
+  const liveId = new Map(docs.map((d) => [d.url, d.id]));
 
   let n = 0;
   for (const [pair, , rank, reason] of decisions) {
@@ -94,13 +72,18 @@ async function main() {
     // Un script n'est jamais une personne : sa décision est celle d'un
     // assistant, même signée du compte de l'équipe.
     const signed = {
-      decidedById: admin.id,
+      decidedById: TOOL_ACCOUNT_ID,
       decidedAt: new Date(),
       decisionMode: DecisionMode.assistant,
       reason,
     };
     await prisma.capLabel.upsert({
-      where: { candidateId_documentUrl_heading_capCode: key },
+      where: {
+        candidateId_documentUrl_heading_capCode_unit: {
+          ...key,
+          unit: 'chapter',
+        },
+      },
       create: {
         ...key,
         fromPosition: Number(position),

@@ -1,10 +1,11 @@
+import { liveProgrammes } from '../../../common/live-programmes';
 import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
 import { indicatorTopic, themeTopic } from '../../../domain/approach-topics';
 import type {
   DiagnosisChapter,
   DiagnosisIndicator,
 } from '../../../domain/campaign';
-import { currentCaptures, withoutTestimonies } from '../../../domain/programme';
+import { withoutTestimonies } from '../../../domain/programme';
 import {
   CampaignSourceKind,
   DocumentKind,
@@ -15,6 +16,7 @@ import {
   type SubjectChapter,
 } from '../../../domain/subject-chapters';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { inLabel } from '../../../domain/filing-unit';
 
 /** Les premiers passages cités sous chaque chapitre. */
 const EXCERPT = 2;
@@ -46,35 +48,20 @@ export class GetSubjectController {
         documentUrl: true,
         heading: true,
         fromPosition: true,
+        positions: true,
         model: true,
       },
     });
-    const documents = await this.prisma.politicalDocument.findMany({
-      where: {
-        kind: DocumentKind.programme,
-        sourceRef: { not: null },
-        retiredAt: null,
-        url: { in: [...new Set(labels.map((l) => l.documentUrl))] },
-      },
+    const documents = await liveProgrammes(this.prisma, {
+      where: { url: { in: [...new Set(labels.map((l) => l.documentUrl))] } },
       select: {
         id: true,
-        sourceRef: true,
         fetchedAt: true,
-        createdAt: true,
         url: true,
         title: true,
       },
     });
-    const current = currentCaptures(
-      documents.map((d) => ({
-        id: d.id,
-        sourceRef: d.sourceRef!,
-        fetchedAt: d.fetchedAt ?? d.createdAt,
-      })),
-    );
-    const live = new Map(
-      documents.filter((d) => current.has(d.id)).map((d) => [d.url, d]),
-    );
+    const live = new Map(documents.map((d) => [d.url, d]));
     const candidates = await this.prisma.candidate.findMany({
       where: { election: { slug: 'presidentielle-2027' } },
       select: {
@@ -120,9 +107,7 @@ export class GetSubjectController {
       // Les premiers passages du chapitre, ou, pour un long chapitre rangé
       // bloc par bloc, ceux du bloc qui parle de ce sujet.
       const passages = (passagesOf.get(`${d.id}\n${l.heading}`) ?? [])
-        .filter(
-          (p) => l.fromPosition === null || (p.position ?? 0) >= l.fromPosition,
-        )
+        .filter((p) => inLabel(l, p.position))
         .slice(0, EXCERPT);
       if (passages.length === 0) continue;
       const list = byCandidate.get(l.candidateId) ?? [];
