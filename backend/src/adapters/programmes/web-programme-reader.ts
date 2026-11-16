@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { isSiteSidebar } from '../../domain/programme';
 import { execFile } from 'node:child_process';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -296,7 +297,8 @@ function withoutChrome(passages: ProgrammePassage[]) {
         p.text.length >= MIN_LENGTH &&
         !/^(partager|suivez|suivre|rejoindre|rejoignez|newsletter|inscrivez|adh[ée]rez)/i.test(
           p.heading.trim(),
-        ),
+        ) &&
+        !isSiteSidebar(p.heading),
     );
 }
 

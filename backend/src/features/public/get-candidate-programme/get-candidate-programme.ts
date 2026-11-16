@@ -6,7 +6,7 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import { currentCaptures } from '../../../domain/programme';
+import { currentCaptures, isSiteSidebar } from '../../../domain/programme';
 import { readingChapters } from '../../../domain/programme-reading';
 import type {
   DiagnosisChapter,
@@ -84,7 +84,12 @@ export class GetCandidateProgrammeController {
         const inDoc = mine.filter((m) => m.documentId === d.id);
         const headings: { heading: string; passages: number }[] = [];
         for (const m of inDoc) {
-          if (!meaningful(m.article) || m.article === d.title) continue;
+          if (
+            !meaningful(m.article) ||
+            isSiteSidebar(m.article) ||
+            m.article === d.title
+          )
+            continue;
           const last = headings.at(-1);
           if (last && last.heading === m.article) last.passages++;
           else headings.push({ heading: m.article, passages: 1 });
@@ -240,7 +245,9 @@ export class GetCandidateProgrammeController {
     const mine = measures
       .filter((m) => ownIds.has(m.documentId))
       .filter(
-        (m) => !/^(table des mati[eè]res|sommaire)$/i.test(m.article.trim()),
+        (m) =>
+          !/^(table des mati[eè]res|sommaire)$/i.test(m.article.trim()) &&
+          !isSiteSidebar(m.article),
       )
       .sort(
         (a, b) =>

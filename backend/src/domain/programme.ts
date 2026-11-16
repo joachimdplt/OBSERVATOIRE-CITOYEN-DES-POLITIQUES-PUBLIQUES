@@ -569,3 +569,14 @@ function readCard(lines: string[]): ProgrammePassage[] {
     out.push({ heading: sentenceCase(said(title)), text: rest });
   return out;
 }
+
+/**
+ * Les encadrés qu'un site affiche autour de chaque page (liens vers les
+ * autres mesures, dernières actualités) : ce ne sont pas les mots du
+ * chapitre, et ils se répètent sur toutes les pages.
+ */
+export function isSiteSidebar(heading: string): boolean {
+  return /^(autres mesures|dans les actualit[ée]s|[àa] lire aussi|les mesures d[ée]j[àa] annonc[ée]es|publics pour lesquels)/i.test(
+    heading.trim(),
+  );
+}

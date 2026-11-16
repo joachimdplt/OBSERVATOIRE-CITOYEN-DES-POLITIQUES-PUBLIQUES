@@ -5,6 +5,7 @@ import {
   cardRows,
   splitProgramme,
   topicsOf,
+  isSiteSidebar,
 } from './programme';
 
 describe('le découpage d’un programme', () => {
@@ -268,5 +269,17 @@ describe('les infographies d’un PDF', () => {
     expect(
       cardRows('Nous baisserons la TVA de 5 points.\nEt nous le ferons vite.'),
     ).toEqual([]);
+  });
+});
+
+describe('isSiteSidebar', () => {
+  it('reconnaît les encadrés répétés sur chaque page', () => {
+    expect(isSiteSidebar('Autres mesures')).toBe(true);
+    expect(isSiteSidebar('Dans les actualités')).toBe(true);
+    expect(isSiteSidebar('Les mesures déjà annoncéesFrontières')).toBe(true);
+  });
+  it('garde les chapitres du programme', () => {
+    expect(isSiteSidebar('Réformer l’assurance chômage')).toBe(false);
+    expect(isSiteSidebar('Mesures pour les agriculteurs')).toBe(false);
   });
 });

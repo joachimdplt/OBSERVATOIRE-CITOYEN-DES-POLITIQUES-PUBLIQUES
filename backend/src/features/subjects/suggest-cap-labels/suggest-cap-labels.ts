@@ -17,7 +17,7 @@ import {
   embedTexts,
   loadVoteContext,
 } from '../vote-cap-labels/vote-cap-labels';
-import { currentCaptures } from '../../../domain/programme';
+import { currentCaptures, isSiteSidebar } from '../../../domain/programme';
 import {
   DocumentKind,
   LabelOrigin,
@@ -142,7 +142,7 @@ export async function suggestCapLabels(
     const d = docOf.get(m.documentId)!;
     const heading = m.article.trim();
     if (!heading || heading === d.title) continue;
-    if (isVagueHeading(heading)) continue;
+    if (isVagueHeading(heading) || isSiteSidebar(heading)) continue;
     const key = `${d.candidateId}\n${d.url}\n${heading}`;
     const g = grouped.get(key) ?? {
       candidateId: d.candidateId!,
