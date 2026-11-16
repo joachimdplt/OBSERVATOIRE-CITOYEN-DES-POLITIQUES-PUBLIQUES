@@ -28,10 +28,14 @@ function SourcesPage() {
   return (
     <main className="px-6 pt-16 pb-20 md:px-10">
       <div className="mx-auto max-w-[1280px]">
-        <h1 className={`${DISPLAY} text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.08]`}>
+        <h1
+          className={`${DISPLAY} text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.08]`}
+        >
           Sources
         </h1>
-        <p className={`mt-6 text-justify text-[1.05rem] leading-[1.75] hyphens-auto ${MUTED}`}>
+        <p
+          className={`mt-6 text-justify text-[1.05rem] leading-[1.75] hyphens-auto ${MUTED}`}
+        >
           D’où vient chaque chose affichée sur le site, avec sa référence et sa
           licence.
         </p>
@@ -52,25 +56,24 @@ function SourcesPage() {
               parti et ses interventions à l’Assemblée nationale et au Sénat.
             </p>
             <p>
-              Les chaînes suivies sont celles du candidat et de son parti,
-              quand leur site y renvoie, et celles de l’Assemblée nationale et
-              du Sénat. Sur sa propre chaîne, toutes ses vidéos sont retenues ;
-              sur celle de son parti ou d’une assemblée, seulement celles dont
-              le titre donne son nom complet. Les vidéos sont collectées depuis
-              le 1er janvier 2026.
+              Les chaînes suivies sont celles du candidat et de son parti, quand
+              leur site y renvoie, et celles de l’Assemblée nationale et du
+              Sénat. Sur sa propre chaîne, toutes ses vidéos sont retenues ; sur
+              celle de son parti ou d’une assemblée, seulement celles dont le
+              titre donne son nom complet. Les vidéos sont collectées depuis le
+              1er janvier 2026.
             </p>
           </Block>
 
           <Block id="sujets" title="La grille des sujets">
             <p>
-              Les sujets viennent de la grille du Comparative Agendas Project,
-              une liste mise au point par des universitaires et utilisée par
-              des chercheurs de nombreux pays pour ranger de la même façon les
-              lois, les discours et les programmes.
+              Nous rangeons les programmes dans les 21 sujets du Comparative
+              Agendas Project. Des chercheurs de nombreux pays rangent avec
+              cette même grille les lois, les discours et les programmes.
             </p>
             <p>
-              La liste originale est en anglais ; l’équipe de l’observatoire a
-              traduit les intitulés en français.
+              Nous avons traduit les intitulés. Les définitions sont traduites
+              automatiquement, sans relecture : l’anglais officiel fait foi.
             </p>
             <Facts
               rows={[
@@ -80,7 +83,10 @@ function SourcesPage() {
                   'Licence',
                   `${cap?.licence ?? 'non documenté'} : réutilisation libre, sans usage commercial, en citant les auteurs.`,
                 ],
-                ['Traduction', 'Équipe de l’observatoire.'],
+                [
+                  'Traduction',
+                  'Intitulés : équipe de l’observatoire. Définitions : traduction automatique, non relue.',
+                ],
               ]}
             />
             <Out href="https://www.comparativeagendas.net/">
@@ -90,16 +96,26 @@ function SourcesPage() {
 
           <Block id="rangement" title="Le rangement des chapitres">
             <p>
-              Chaque chapitre d’un programme est rangé dans un sujet de la
-              grille par un modèle de langue, Qwen3, qui tourne sur un
-              ordinateur de l’équipe, sans envoyer les textes ailleurs. Il lit
-              le titre et le début du chapitre et choisit un seul sujet. Les
-              chapitres sans contenu précis (avant-propos, introduction…) ne
+              Une machine range chaque chapitre dans un sujet. Elle lit le titre
+              et les premiers passages, sur un ordinateur de l’équipe, sans
+              envoyer les textes ailleurs. Les chapitres sans contenu précis
+              (avant-propos, menus, appels aux dons, témoignages de soutiens) ne
               sont pas rangés.
             </p>
             <p>
-              Le modèle peut se tromper. Un rangement faux est retiré par
-              l’équipe ; il ne change jamais le texte cité.
+              Quatre méthodes donnent chacune un sujet : la ressemblance avec la
+              définition de la grille, un classeur appris sur les rangements
+              passés, le titre du document du candidat, et ce titre suivi de
+              celui du chapitre. Quand elles s’accordent, le chapitre est rangé.
+              Sinon, un modèle de langue, Qwen3, tranche, et son choix n’est
+              retenu que si une autre méthode le confirme. Sans accord, le
+              chapitre n’est pas affiché.
+            </p>
+            <p>
+              Ce rangement n’est pas encore vérifié pour tous les candidats. Une
+              personne le vérifie candidat par candidat, sur un échantillon tiré
+              au hasard, et range ailleurs ce qui est faux. Le rangement ne
+              change jamais le texte cité.
             </p>
             <p>
               Sur la page d’un sujet, les candidats apparaissent dans un ordre
@@ -107,10 +123,16 @@ function SourcesPage() {
             </p>
             <Facts
               rows={[
-                ['Modèle', 'Qwen3, 8 milliards de paramètres (qwen3:8b)'],
-                ['Auteur', 'Équipe Qwen, Alibaba Cloud'],
-                ['Licence', 'Apache 2.0'],
+                [
+                  'Sens des textes',
+                  'bge-m3, licence MIT, sur un ordinateur de l’équipe',
+                ],
+                [
+                  'Modèle de langue',
+                  'Qwen3, 8 milliards de paramètres (qwen3:8b), licence Apache 2.0',
+                ],
                 ['Exécution', 'Ollama, sur un ordinateur de l’équipe'],
+                ['Vérification', 'Par une personne, candidat par candidat'],
               ]}
             />
             <Out href="https://github.com/QwenLM/Qwen3">Qwen3 sur GitHub</Out>
@@ -121,11 +143,21 @@ function SourcesPage() {
   )
 }
 
-function Block({ id, title, children }: { id: string; title: string; children: ReactNode }) {
+function Block({
+  id,
+  title,
+  children,
+}: {
+  id: string
+  title: string
+  children: ReactNode
+}) {
   return (
-    <section id={id} className="scroll-mt-32 rounded-[28px] bg-white p-6 md:p-10">
+    <section id={id} className="scroll-mt-32 rounded-[28px] glass p-6 md:p-10">
       <h2 className={`${DISPLAY} text-[1.4rem]`}>{title}</h2>
-      <div className={`mt-4 space-y-4 text-justify text-[0.95rem] leading-[1.75] hyphens-auto ${MUTED}`}>
+      <div
+        className={`mt-4 space-y-4 text-justify text-[0.95rem] leading-[1.75] hyphens-auto ${MUTED}`}
+      >
         {children}
       </div>
     </section>

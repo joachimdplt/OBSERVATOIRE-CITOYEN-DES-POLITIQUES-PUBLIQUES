@@ -40,7 +40,7 @@ export function MeasureList({ measures }: { measures: Measure[] }) {
               id={measureAnchor(m)}
               className="scroll-mt-32 rounded-2xl bg-[#F4F6F8] p-5"
             >
-              <blockquote className="border-l-2 border-[#0B1A2A] pl-4 text-[0.98rem] leading-relaxed text-[#0B1A2A]">
+              <blockquote className="glass-text text-justify hyphens-auto text-[0.98rem] leading-relaxed text-[#0B1A2A]">
                 «&nbsp;{m.quote}&nbsp;»
                 <span className="mt-1 block text-[0.8rem] text-[#5B6470]">
                   {m.article}

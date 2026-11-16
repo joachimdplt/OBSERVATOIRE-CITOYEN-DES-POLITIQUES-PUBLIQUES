@@ -119,7 +119,7 @@ export function HomeContribuer() {
         {contribuer.ways.map((way, i) => (
           <div
             key={way.title}
-            className="flex flex-col rounded-[28px] bg-white p-6"
+            className="flex flex-col rounded-[28px] glass p-6"
           >
             <Bubble icon={WAY_ICONS[i]} />
             <p className={`${DISPLAY} mt-5 text-[1.2rem]`}>{way.title}</p>

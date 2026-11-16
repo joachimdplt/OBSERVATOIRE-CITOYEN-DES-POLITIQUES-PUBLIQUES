@@ -7,14 +7,20 @@ import { CandidatePortrait } from '../../molecules/CandidatePortrait'
 
 const MUTED = 'text-[#5B6470]'
 
-const STATES: { status: ProgrammeStatus; count: string; one: string }[] = [
+/**
+ * Un seul fait, sans degré : un programme est collecté, ou non. Dire
+ * « complet » ou « partiel » jugerait un document qui n'est pas le nôtre.
+ */
+type Group = 'with' | 'without'
+const groupOf = (s: ProgrammeStatus): Group =>
+  s === 'none' ? 'without' : 'with'
+const GROUPS: { group: Group; count: string; one: string }[] = [
+  { group: 'with', count: 'avec un programme', one: 'Avec un programme' },
   {
-    status: 'complete',
-    count: 'programmes complets',
-    one: 'Programme complet',
+    group: 'without',
+    count: 'sans programme collecté',
+    one: 'Sans programme collecté',
   },
-  { status: 'partial', count: 'partiels', one: 'Documents partiels' },
-  { status: 'none', count: 'sans programme', one: 'Rien de publié' },
 ]
 
 /**
@@ -24,13 +30,13 @@ const STATES: { status: ProgrammeStatus; count: string; one: string }[] = [
  */
 export function HomeProgrammes({ election }: { election: ElectionSheet }) {
   const { candidates } = election
-  // Un filtre par état du programme ; un second clic le retire.
-  const [only, setOnly] = useState<ProgrammeStatus | null>(null)
+  // Un filtre : avec ou sans programme ; un second clic le retire.
+  const [only, setOnly] = useState<Group | null>(null)
   const shown = only
-    ? candidates.filter((c) => c.programmeStatus === only)
+    ? candidates.filter((c) => groupOf(c.programmeStatus) === only)
     : candidates
-  const count = (s: ProgrammeStatus) =>
-    candidates.filter((c) => c.programmeStatus === s).length
+  const count = (g: Group) =>
+    candidates.filter((c) => groupOf(c.programmeStatus) === g).length
 
   return (
     <section id="candidats" className="scroll-mt-14 px-6 py-16 md:px-10">
@@ -39,33 +45,35 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
           {election.name} : {candidates.length} candidats
         </h2>
         <p className={`mt-1.5 text-[0.85rem] ${MUTED}`}>
-          Ordre tiré au hasard à chaque visite. Photos sous licence libre,
-          créditées sur la page de chaque candidat.
+          Les programmes sont susceptibles d’évoluer : nous les relisons
+          chaque matin. Ordre tiré au hasard à chaque visite. Photos sous
+          licence libre, créditées sur la page de chaque candidat.
         </p>
         <div className="mt-4 flex flex-wrap gap-2 text-[0.9rem] font-semibold">
           <Chip active={only === null} onClick={() => setOnly(null)}>
             Tous · {candidates.length}
           </Chip>
-          {STATES.map((s) => (
+          {GROUPS.map((g) => (
             <Chip
-              key={s.status}
-              active={only === s.status}
-              onClick={() => setOnly(only === s.status ? null : s.status)}
+              key={g.group}
+              active={only === g.group}
+              onClick={() => setOnly(only === g.group ? null : g.group)}
             >
-              {count(s.status)} {s.count}
+              {count(g.group)} {g.count}
             </Chip>
           ))}
         </div>
 
         <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
           {shown.map((c) => {
-            const state = STATES.find((s) => s.status === c.programmeStatus)
+            const group = groupOf(c.programmeStatus)
+            const state = GROUPS.find((g) => g.group === group)
             return (
               <li key={c.slug} className="min-w-0">
                 <Link
                   to="/candidats/$slug"
                   params={{ slug: c.slug }}
-                  className="group flex h-full flex-col rounded-[22px] bg-white p-3 no-underline"
+                  className="group flex h-full flex-col rounded-[22px] glass p-3 no-underline"
                 >
                   <CandidatePortrait name={c.name} photo={c.photo} plain />
                   <span className="mt-3 px-1 leading-tight font-extrabold text-[#0B1A2A] group-hover:underline">
@@ -79,11 +87,9 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
                   <span className="flex-1" />
                   <span
                     className={`mx-1 mt-3 inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-[0.72rem] font-bold ${
-                      c.programmeStatus === 'complete'
-                        ? 'bg-[#0B1A2A] text-white'
-                        : c.programmeStatus === 'partial'
-                          ? 'text-[#0B1A2A] ring-1 ring-[#0B1A2A]/30'
-                          : 'text-[#5B6470] ring-1 ring-[#0B1A2A]/10'
+                      group === 'with'
+                        ? 'text-[#0B1A2A] ring-1 ring-[#0B1A2A]/30'
+                        : 'text-[#5B6470] ring-1 ring-[#0B1A2A]/10'
                     }`}
                   >
                     {state?.one}
@@ -97,7 +103,7 @@ export function HomeProgrammes({ election }: { election: ElectionSheet }) {
         <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
           <Link
             to="/sujets"
-            className="inline-flex h-12 items-center gap-2 rounded-full bg-[#0B1A2A] px-6 font-extrabold text-white no-underline hover:opacity-90"
+            className="inline-flex h-12 items-center gap-2 rounded-full glass-dark px-6 font-extrabold text-white no-underline hover:opacity-90"
           >
             Les sujets de leurs programmes <ArrowRight size={17} />
           </Link>

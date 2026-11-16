@@ -71,7 +71,7 @@ export function CollectedTexts({ texts }: { texts: CollectedText[] }) {
                       <p className="text-[0.8rem] font-bold text-[#5B6470]">
                         {a.article}
                       </p>
-                      <blockquote className="mt-1 border-l-2 border-[#0B1A2A]/30 pl-3 text-[0.9rem] leading-relaxed whitespace-pre-line text-[#0B1A2A]">
+                      <blockquote className="mt-1 glass-text text-justify hyphens-auto text-[0.9rem] leading-relaxed whitespace-pre-line text-[#0B1A2A]">
                         {a.quote}
                       </blockquote>
                     </li>

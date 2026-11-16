@@ -20,7 +20,7 @@ export function ParliamentBlock({ article }: { article: PublicationSheet }) {
   if (count === 0) return null
   return (
     <section className="px-6 py-12 md:px-10">
-      <div className="mx-auto max-w-[1280px] rounded-[28px] bg-white">
+      <div className="mx-auto max-w-[1280px] rounded-[28px] glass">
         <button
           type="button"
           onClick={() => setOpen(!open)}

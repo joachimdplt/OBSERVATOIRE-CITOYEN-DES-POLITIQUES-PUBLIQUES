@@ -66,7 +66,7 @@ export function MeasureComparison({
           vide signifie qu’aucun texte n’a été collecté, pas l’absence de
           position.
         </p>
-        <div className="mt-8 overflow-x-auto rounded-[24px] bg-white">
+        <div className="mt-8 overflow-x-auto rounded-[24px] glass">
           <table className="w-full min-w-[860px] border-collapse text-left text-[0.9rem]">
             <thead>
               <tr className="bg-[#F4F6F8]">

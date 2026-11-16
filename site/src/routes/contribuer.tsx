@@ -146,7 +146,7 @@ function Block({
   return (
     <section
       id={id}
-      className="scroll-mt-32 space-y-4 rounded-[28px] bg-white p-6 md:p-10"
+      className="scroll-mt-32 space-y-4 rounded-[28px] glass p-6 md:p-10"
     >
       <h2 className={`${DISPLAY} text-[1.4rem]`}>{title}</h2>
       {children}

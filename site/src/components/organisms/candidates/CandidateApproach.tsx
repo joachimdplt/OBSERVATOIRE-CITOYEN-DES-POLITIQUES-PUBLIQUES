@@ -65,7 +65,7 @@ function Head({ kicker, approach: a }: { kicker: string; approach: Approach }) {
 
 function Diagnosis({ approach: a }: { approach: Approach }) {
   return (
-    <div className="rounded-[28px] bg-white p-6 md:p-8">
+    <div className="rounded-[28px] glass p-6 md:p-8">
       <Head kicker="Son état des lieux" approach={a} />
       <ol className="mt-8 space-y-10">
         {a.chapters.map((c) => (
@@ -113,7 +113,7 @@ function Consultation({ approach: a }: { approach: Approach }) {
   const totals = a.counts.filter((c) => !c.label)
   const subjects = a.counts.filter((c) => c.label)
   return (
-    <div className="rounded-[28px] bg-white p-6 md:p-8">
+    <div className="rounded-[28px] glass p-6 md:p-8">
       <Head kicker="Sa consultation" approach={a} />
       {totals.map((t) => (
         <p

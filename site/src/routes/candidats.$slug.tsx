@@ -42,13 +42,16 @@ const isPdf = (url: string) => /\.pdf(\?|#|$)/i.test(url)
 
 /** « LR_Produire_Plus_LIVRET.pdf » se lit « LR Produire Plus LIVRET ». */
 const pdfName = (title: string) =>
-  title.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ').trim()
+  title
+    .replace(/\.pdf$/i, '')
+    .replace(/[_-]+/g, ' ')
+    .trim()
 const DISPLAY = 'font-extrabold tracking-[-0.03em] text-[#0B1A2A]'
 
 const STATUS = {
-  complete: 'Programme complet',
-  partial: 'Documents partiels',
-  none: 'Rien de publié',
+  complete: 'Avec un programme',
+  partial: 'Avec un programme',
+  none: 'Sans programme collecté',
 } as const
 
 const NETWORKS = {
@@ -88,9 +91,10 @@ function CandidatePage() {
   const main = pdfs.find((d) => d.principal)
   const others = pdfs.filter((d) => d !== main)
   const site =
-    c.programmeUrl && !isPdf(c.programmeUrl)
+    c.website ??
+    (c.programmeUrl && !isPdf(c.programmeUrl)
       ? c.programmeUrl
-      : (outline.find((d) => !isPdf(d.url))?.url ?? null)
+      : (outline.find((d) => !isPdf(d.url))?.url ?? null))
   return (
     <main>
       <section className="px-6 pt-20 pb-6 md:px-10">
@@ -166,7 +170,9 @@ function CandidatePage() {
                   label: NETWORKS[a.network],
                   value: a.network === 'youtube' ? 'Sa chaîne' : `@${a.handle}`,
                   href: a.url,
-                  hint: `D’après Wikidata (${a.source.replace('https://www.wikidata.org/wiki/', '')})`,
+                  hint: a.source.startsWith('https://www.wikidata.org/')
+                    ? `D’après Wikidata (${a.source.replace('https://www.wikidata.org/wiki/', '')})`
+                    : `D’après ${a.source}`,
                 })),
               ]}
               more={[
@@ -315,7 +321,7 @@ function Addresses({ rows, more }: { rows: Address[]; more: Address[] }) {
   const shown = open ? [...rows, ...more] : rows
   return (
     <div className="mt-6 max-w-[520px]">
-      <ul className="divide-y divide-[#0B1A2A]/8 overflow-hidden rounded-[18px] bg-white">
+      <ul className="divide-y divide-[#0B1A2A]/8 overflow-hidden rounded-[18px] glass">
         {shown.map((r) => (
           <li key={r.href}>
             <a

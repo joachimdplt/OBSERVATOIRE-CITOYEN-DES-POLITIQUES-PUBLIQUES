@@ -69,7 +69,7 @@ function Developers() {
         <Title text={architecture.title} lead={architecture.lead} />
         <div className="mt-10 grid gap-5 md:grid-cols-3">
           {architecture.blocks.map((b) => (
-            <div key={b.name} className="rounded-[24px] bg-white p-6">
+            <div key={b.name} className="rounded-[24px] glass p-6">
               <code className="rounded-md bg-[#0B1A2A] px-2 py-1 text-sm font-semibold text-white">
                 {b.name}
               </code>
@@ -103,7 +103,7 @@ function Developers() {
             </li>
           ))}
         </ol>
-        <div className="mt-12 rounded-[24px] bg-white p-6 md:p-8">
+        <div className="mt-12 rounded-[24px] glass p-6 md:p-8">
           <p className="font-extrabold text-[#0B1A2A]">
             {chemin.guarantees.title}
           </p>
@@ -122,7 +122,7 @@ function Developers() {
         <Title text={alimentation.title} lead={alimentation.lead} />
         <div className="mt-10 grid gap-5 md:grid-cols-2">
           {alimentation.ways.map((w) => (
-            <div key={w.title} className="rounded-[24px] bg-white p-6">
+            <div key={w.title} className="rounded-[24px] glass p-6">
               <p className={`${DISPLAY} text-[1.2rem]`}>{w.title}</p>
               <p className={`mt-2 text-[0.95rem] leading-relaxed ${MUTED}`}>
                 {w.text}
@@ -138,7 +138,7 @@ function Developers() {
 
       <Block>
         <Title text={api.title} lead={api.lead} />
-        <ul className="mt-10 divide-y divide-[#0B1A2A]/10 rounded-[24px] bg-white">
+        <ul className="mt-10 divide-y divide-[#0B1A2A]/10 rounded-[24px] glass">
           {api.routes.map((r) => (
             <li key={r.path} className="space-y-1.5 p-5 md:p-6">
               <p className="flex flex-wrap items-center gap-2 font-mono text-[0.9rem] text-[#0B1A2A]">

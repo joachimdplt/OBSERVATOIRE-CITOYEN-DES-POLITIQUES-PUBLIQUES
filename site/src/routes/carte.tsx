@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, redirect } from '@tanstack/react-router'
 import { z } from 'zod'
 import { LayerPicker } from '../components/organisms/map/LayerPicker'
 import { MapPanel } from '../components/organisms/map/MapPanel'
@@ -27,6 +27,11 @@ const search = z.object({
 })
 
 export const Route = createFileRoute('/carte')({
+  // Mis de côté pour l'instant : la page reste dans le code (branche
+  // articles-carte) mais n'est plus ouverte au public.
+  beforeLoad: () => {
+    throw redirect({ to: '/', statusCode: 302 })
+  },
   validateSearch: search,
   loaderDeps: ({ search: s }) => ({
     layer: s.layer,

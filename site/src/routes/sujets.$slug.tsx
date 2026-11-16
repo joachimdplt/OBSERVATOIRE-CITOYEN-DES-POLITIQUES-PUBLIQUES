@@ -3,6 +3,7 @@ import {
   createFileRoute,
   notFound,
   useNavigate,
+  redirect,
 } from '@tanstack/react-router'
 import { ArrowRight, Map as MapIcon, X } from 'lucide-react'
 import { z } from 'zod'
@@ -28,6 +29,11 @@ const search = z.object({
 })
 
 export const Route = createFileRoute('/sujets/$slug')({
+  // Mis de côté pour l'instant : la page reste dans le code (branche
+  // articles-carte) mais n'est plus ouverte au public.
+  beforeLoad: () => {
+    throw redirect({ to: '/', statusCode: 302 })
+  },
   validateSearch: search,
   loaderDeps: ({ search: s }) => ({ territory: s.territory, level: s.level }),
   loader: async ({ params, deps }) => {
@@ -272,7 +278,7 @@ function PublicationView({ topic }: { topic: TopicSheet | null }) {
           {p.sections.map((section, i) => (
             <li
               key={section.title}
-              className="rounded-[28px] bg-white p-6 md:p-10"
+              className="rounded-[28px] glass p-6 md:p-10"
             >
               <div className="flex items-start gap-4">
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#0B1A2A] text-sm font-extrabold text-white">

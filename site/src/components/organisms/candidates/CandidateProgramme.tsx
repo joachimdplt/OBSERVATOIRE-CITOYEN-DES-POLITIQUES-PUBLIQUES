@@ -171,7 +171,7 @@ function Reader({
 
       <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
         <aside className="hidden lg:block">
-          <nav className="sticky top-[110px] max-h-[calc(100vh-130px)] overflow-y-auto rounded-[28px] bg-white p-3">
+          <nav className="sticky top-[110px] max-h-[calc(100vh-130px)] overflow-y-auto rounded-[28px] glass p-3">
             <ul className="space-y-1">
               {groups.map((g, i) => (
                 <li key={i}>
@@ -283,7 +283,7 @@ function Chapter({
     <li
       ref={card}
       id={`chapitre-${index}`}
-      className="scroll-mt-32 rounded-[28px] bg-white p-5 md:p-8"
+      className="scroll-mt-32 rounded-[28px] glass p-5 md:p-8"
     >
       <a
         href={g.from ? `${d.url}#page=${g.from}` : d.url}
@@ -303,7 +303,7 @@ function Chapter({
         <ArrowUpRight size={12} className="shrink-0" />
       </a>
       {passages && (
-        <div className="mt-4 space-y-5 border-l-2 border-[#0B1A2A]/10 pl-5 md:pl-7">
+        <div className="mt-4 space-y-5 glass-text text-justify hyphens-auto">
           {sections.map((s, k) => (
             <div key={k} className="scroll-mt-40">
               {s.heading && (

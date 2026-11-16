@@ -6,43 +6,22 @@
 export const HOME = {
   hero: {
     title: 'Observatoire citoyen\ndes [[politiques publiques]]',
-    lead: 'Les programmes des candidats, cités mot pour mot, à côté des chiffres officiels.',
+    lead: 'Les programmes des candidats, cités mot pour mot, rangés par sujet.',
     cta: 'Explorer la carte',
     guarantees: [
-      'Chiffres issus des seules publications officielles',
-      'Fichier d’origine conservé, intact',
-      'Aucun chiffre calculé, aucune note',
+      'Apolitique',
+      'Neutre',
+      'Vérifiable',
     ],
   },
 
   comment: {
-    title: 'Comment [[ça marche]]',
-    lead: 'Une lecture de l’ensemble de la campagne de chaque candidat, au fil de sa publication : ses programmes en cours, ses livrets, ses sites, ses vidéos, cités mot pour mot.',
+    title: 'Comment ça marche ?',
     steps: [
-      {
-        title: 'On suit chaque candidat',
-        text: 'Les vingt-cinq candidats déclarés : leurs sites, ceux de leurs partis, leurs chaînes vidéo. Relus chaque jour.',
-      },
-      {
-        title: 'On lit tout, en cours',
-        text: 'Programmes complets ou partiels, livrets, contre-budgets, états des lieux, consultations : lus au fil de leur publication, chapitre par chapitre.',
-      },
-      {
-        title: 'On cite, mot pour mot',
-        text: 'Chaque passage est repris tel quel, avec son document et sa page. Aucun résumé, aucune reformulation.',
-      },
-      {
-        title: 'On garde chaque version',
-        text: 'Un texte qui change entre comme une nouvelle version, daté. L’ancienne reste ; rien ne s’efface.',
-      },
-      {
-        title: 'On dit où en est chacun',
-        text: 'Programme complet, documents partiels ou rien de publié : constaté et daté, la même règle pour tous.',
-      },
-      {
-        title: 'Vous lisez autour de chacun',
-        text: 'Candidat par candidat, sans note ni classement. Le rangement par sujet, selon la classification officielle de l’ONU, est en préparation.',
-      },
+      { title: 'On suit', text: '25 candidats, relus chaque matin.' },
+      { title: 'On cite', text: 'Mot pour mot, avec le document et la page.' },
+      { title: 'On range', text: 'Chaque chapitre dans un sujet.' },
+      { title: 'On garde', text: 'Chaque version, datée. Rien ne s’efface.' },
     ],
     cta: 'Lire les candidats',
     technical: 'La construction technique',

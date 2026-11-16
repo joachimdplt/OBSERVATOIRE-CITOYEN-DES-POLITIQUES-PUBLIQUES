@@ -27,7 +27,7 @@ export class ListCapTopicsController {
       licence: 'CC BY-NC-SA 4.0',
       citation: CITATION,
       translation:
-        'Intitulés français : traduction de l’équipe de l’observatoire.',
+        'Intitulés français : traduction de l’équipe de l’observatoire. Définitions françaises : traduction automatique, non relue ; la définition officielle en anglais fait foi.',
       topics: all
         .filter((t) => t.level === 1)
         .sort(byCode)
@@ -43,6 +43,10 @@ export class ListCapTopicsController {
               label: s.labelFr,
               title: s.title,
               description: s.description,
+              // La définition en français, et qui l'a traduite : une
+              // traduction d'assistant non relue se dit comme telle.
+              descriptionFr: s.descriptionFr,
+              translatedBy: s.descriptionFrBy,
             })),
         })),
     };

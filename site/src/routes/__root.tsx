@@ -8,7 +8,8 @@ export const Route = createRootRoute({
   // aux décisions de l'équipe : un CDN ou un cache les resert pendant cinq
   // minutes, et encore dix le temps d'en préparer une nouvelle.
   headers: () => ({
-    'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
+    'Cache-Control':
+      'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
   }),
   head: () => ({
     meta: [

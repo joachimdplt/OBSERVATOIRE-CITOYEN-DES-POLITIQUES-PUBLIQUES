@@ -67,6 +67,8 @@ export class GetCandidateController {
       declarationSource: c.declarationSource,
       programmeStatus: c.programmeStatus,
       programmeUrl: c.programmeUrl,
+      // Son site de campagne officiel.
+      website: c.website,
       programmeNote: c.programmeNote,
       programmeCheckedAt:
         c.programmeCheckedAt?.toISOString().slice(0, 10) ?? null,

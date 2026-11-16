@@ -19,9 +19,9 @@ const MUTED = 'text-[#5B6470]'
 const SHOWN = 3
 
 const STATUS = {
-  complete: 'Programme complet',
-  partial: 'Documents partiels',
-  none: 'Rien de publié',
+  complete: 'Avec un programme',
+  partial: 'Avec un programme',
+  none: 'Sans programme collecté',
 } as const
 
 const surname = (name: string) => name.split(' ').slice(1).join(' ') || name
@@ -149,7 +149,7 @@ export function ProgrammePassages({ topic }: { topic: TopicSheet }) {
           {/* Le panneau fixe : la mosaïque et les candidats, celui qu'on lit
               en surbrillance, pendant que les textes défilent à côté. */}
           <aside className="hidden lg:block">
-            <div className="sticky top-[110px] rounded-[28px] bg-white p-4">
+            <div className="sticky top-[110px] rounded-[28px] glass p-4">
               <CandidateMosaic candidates={speaking} active={active} />
               <ul className="mt-4 space-y-1">
                 {speaking.map((c) => (
@@ -217,7 +217,7 @@ export function ProgrammePassages({ topic }: { topic: TopicSheet }) {
             </ul>
 
             {silent.length > 0 && (
-              <div className="mt-5 rounded-[28px] bg-white p-6 md:p-8">
+              <div className="mt-5 rounded-[28px] glass p-6 md:p-8">
                 <p className="font-extrabold text-[#0B1A2A]">
                   Aucun passage avec ces termes
                 </p>
@@ -261,7 +261,7 @@ function CandidateCard({ c, terms }: { c: Candidate; terms: string[] }) {
     <li
       ref={card}
       id={`candidat-${c.slug}`}
-      className="scroll-mt-32 rounded-[28px] bg-white p-5 md:p-8"
+      className="scroll-mt-32 rounded-[28px] glass p-5 md:p-8"
     >
       {/* L'en-tête du candidat reste en haut de l'écran tant qu'on lit sa
           carte, sous la barre des étiquettes (téléphone) ou l'en-tête du site. */}
@@ -319,7 +319,7 @@ function CandidateCard({ c, terms }: { c: Candidate; terms: string[] }) {
               )}
               <ArrowUpRight size={12} className="shrink-0" />
             </a>
-            <div className="mt-3 space-y-5 border-l-2 border-[#0B1A2A]/10 pl-5 md:pl-7">
+            <div className="mt-3 space-y-5 glass-text text-justify hyphens-auto">
               {g.sections.map((section, k) => (
                 <div key={k}>
                   {meaningfulHeading(section.heading) &&

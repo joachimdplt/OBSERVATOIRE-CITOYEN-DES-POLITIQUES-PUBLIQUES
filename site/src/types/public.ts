@@ -335,6 +335,7 @@ export type CandidateSheet = {
   declarationSource: string
   programmeStatus: ProgrammeStatus
   programmeUrl: string | null
+  website: string | null
   programmeNote: string | null
   programmeCheckedAt: string | null
   photo: CandidatePhoto | null
@@ -448,7 +449,12 @@ export type CapTopics = {
       code: string
       label: string
       title: string
+      /** La définition officielle, en anglais : elle fait foi. */
       description: string | null
+      /** Sa traduction française, vide si elle n'est pas faite. */
+      descriptionFr: string | null
+      /** `assistant` : traduction automatique, non relue. */
+      translatedBy: 'person' | 'assistant' | null
     }[]
   }[]
 }

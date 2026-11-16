@@ -1,4 +1,9 @@
-import { Link, createFileRoute, notFound } from '@tanstack/react-router'
+import {
+  Link,
+  createFileRoute,
+  notFound,
+  redirect,
+} from '@tanstack/react-router'
 import { Map as MapIcon } from 'lucide-react'
 import { Term } from '../components/atoms/Term'
 import { PublicationBadge } from '../components/molecules/PublicationBadge'
@@ -13,6 +18,11 @@ import { seo } from '../utils/seo'
  * Ses valeurs se lisent sur la carte, où il est une couche parmi les autres.
  */
 export const Route = createFileRoute('/indicators/$code')({
+  // Mis de côté pour l'instant : la page reste dans le code (branche
+  // articles-carte) mais n'est plus ouverte au public.
+  beforeLoad: () => {
+    throw redirect({ to: '/', statusCode: 302 })
+  },
   loader: async ({ params }) => {
     const sheet = await getIndicator({ data: { code: params.code } })
     if (!sheet) throw notFound()
