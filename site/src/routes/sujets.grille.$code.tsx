@@ -46,12 +46,15 @@ const isPdf = (url: string) => /\.pdf(\?|#|$)/i.test(url)
  * L'ordre tiré au hasard pour cette visite : le même d'un sujet à l'autre et
  * pendant toute la lecture (un rechargement des données ne le change pas).
  * Une nouvelle visite tire un nouvel ordre : aucun candidat toujours en tête.
+ * En local (développement), l'ordre ne bouge jamais, pour relire.
  */
 let visitOrder: string[] | null = null
 
 function useShuffled<T extends { slug: string }>(list: T[]) {
   const [order, setOrder] = useState<string[] | null>(visitOrder)
   useEffect(() => {
+    // En local, pour relire : toujours le même ordre, celui de l'API.
+    if (import.meta.env.DEV) return
     if (!visitOrder) {
       const copy = list.map((c) => c.slug)
       for (let i = copy.length - 1; i > 0; i--) {
