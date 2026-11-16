@@ -20,6 +20,7 @@ import {
 import {
   currentCaptures,
   isSiteSidebar,
+  isTestimonyChapter,
   withoutTestimonies,
 } from '../../../domain/programme';
 import {
@@ -158,8 +159,11 @@ export async function suggestCapLabels(
     grouped.set(key, g);
   }
   // Les témoignages signés ne sont pas les mots du candidat.
-  for (const g of grouped.values())
+  for (const [key, g] of grouped) {
     g.passages = withoutTestimonies(g.passages, (p) => p.quote);
+    if (isTestimonyChapter(g.heading, g.passages[0]?.quote ?? ''))
+      grouped.delete(key);
+  }
 
   // Les corrections de l'équipe : chaque chapitre ou bloc rangé à la main,
   // avec son texte et sa raison. Le modèle voit les plus proches de chaque

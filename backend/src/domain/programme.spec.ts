@@ -7,6 +7,7 @@ import {
   topicsOf,
   isSiteSidebar,
   isTestimony,
+  isTestimonyChapter,
   withoutTestimonies,
 } from './programme';
 
@@ -320,5 +321,30 @@ describe('withoutTestimonies', () => {
     expect(withoutTestimonies(passages, (p) => p)).toEqual([
       'Les travailleurs doivent contrôler l’économie.',
     ]);
+  });
+});
+
+describe('isTestimonyChapter', () => {
+  it('reconnaît un chapitre de témoignage', () => {
+    expect(
+      isTestimonyChapter(
+        'Gaëlle – Artisane d’art, Indre',
+        'Je suis artisane d’art.',
+      ),
+    ).toBe(true);
+    expect(
+      isTestimonyChapter(
+        'Loin des puissants – Caroline, assistante maternelle (Ille-et-Vilaine)',
+        'J’ai été assistante maternelle pendant 17 ans.',
+      ),
+    ).toBe(true);
+  });
+  it('garde un chapitre du candidat', () => {
+    expect(
+      isTestimonyChapter(
+        'Héritage – la France se trouve dans une situation budgétaire dramatique',
+        'Déficit public (2026) : -4,7 %',
+      ),
+    ).toBe(false);
   });
 });

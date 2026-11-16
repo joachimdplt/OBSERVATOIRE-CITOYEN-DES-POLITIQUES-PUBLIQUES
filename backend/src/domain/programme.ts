@@ -601,6 +601,18 @@ export function withoutTestimonies<T>(
 }
 
 /**
+ * Un chapitre de témoignage : titré du prénom d'une personne et de son
+ * métier (« Gaëlle – Artisane d'art, Indre », « … – Caroline, assistante
+ * maternelle »), et qui commence à la première personne.
+ */
+export function isTestimonyChapter(heading: string, firstQuote: string) {
+  return (
+    /(^|– )\p{Lu}\p{Ll}[\p{Ll}-]* ?(–|,) /u.test(heading.trim()) &&
+    /^(je |j['’]|mon |ma |mes |moi)/i.test(firstQuote.trim())
+  );
+}
+
+/**
  * Les encadrés qu'un site affiche autour de chaque page (liens vers les
  * autres mesures, dernières actualités) : ce ne sont pas les mots du
  * chapitre, et ils se répètent sur toutes les pages.

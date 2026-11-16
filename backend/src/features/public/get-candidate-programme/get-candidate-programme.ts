@@ -9,6 +9,7 @@ import {
 import {
   currentCaptures,
   isSiteSidebar,
+  isTestimonyChapter,
   withoutTestimonies,
 } from '../../../domain/programme';
 import { readingChapters } from '../../../domain/programme-reading';
@@ -246,7 +247,7 @@ export class GetCandidateProgrammeController {
     // rang de chaque passage dans son document.
     const docRank = new Map(own.map((d, i) => [d.id, i]));
     // Les lignes d'un sommaire lu comme du texte ne sont pas du programme.
-    const mine = withoutTestimonies(
+    const ordered = withoutTestimonies(
       measures
         .filter((m) => ownIds.has(m.documentId))
         .filter(
@@ -261,6 +262,19 @@ export class GetCandidateProgrammeController {
             (a.position ?? 0) - (b.position ?? 0),
         ),
       (m) => m.quote,
+    );
+    // Les chapitres de témoignage : les mots d'autres personnes.
+    const firstOf = new Map<string, string>();
+    for (const m of ordered) {
+      const key = `${m.documentId}\n${m.article}`;
+      if (!firstOf.has(key)) firstOf.set(key, m.quote);
+    }
+    const mine = ordered.filter(
+      (m) =>
+        !isTestimonyChapter(
+          m.article,
+          firstOf.get(`${m.documentId}\n${m.article}`) ?? '',
+        ),
     );
 
     const docOf = new Map(own.map((d) => [d.id, d]));
