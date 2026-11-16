@@ -3,7 +3,9 @@ import {
   fetchCandidateChecks,
   fetchGridTopics,
   fetchNextCheck,
+  fetchNextReclass,
   sendCheck,
+  sendReclass,
 } from '../../api/checks.api'
 import type { Verdict } from '../../types/checks'
 import { queryKeys } from '../queryKeys'
@@ -43,5 +45,26 @@ export function useGridTopics() {
     queryKey: queryKeys.gridTopics,
     queryFn: fetchGridTopics,
     staleTime: 5 * 60 * 1000,
+  })
+}
+
+export function useNextReclass(candidateId: string) {
+  return useQuery({
+    queryKey: queryKeys.nextReclass(candidateId),
+    queryFn: () => fetchNextReclass(candidateId),
+  })
+}
+
+/** Un reclassement fait passer au refus suivant. */
+export function useSendReclass(candidateId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ labelId, code }: { labelId: string; code: string | null }) =>
+      sendReclass(labelId, code),
+    onSuccess: () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: queryKeys.nextReclass(candidateId) }),
+        qc.invalidateQueries({ queryKey: queryKeys.checks }),
+      ]),
   })
 }

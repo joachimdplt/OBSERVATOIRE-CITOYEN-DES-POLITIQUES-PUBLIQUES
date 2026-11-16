@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Check, X } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Notice } from '../../components/atoms/Notice'
 import { CheckCard } from '../../components/organisms/checks/CheckCard'
 import { TopicDock } from '../../components/organisms/checks/TopicDock'
@@ -28,7 +28,13 @@ function CheckScreen() {
   const next = useNextCheck(candidateId)
   const send = useSendCheck(candidateId)
   const topics = useGridTopics()
-  const card = next.data?.card ?? null
+  const progress = next.data?.progress
+  const reached = progress ? progress.checked >= progress.target : false
+  // L'échantillon atteint, les cartes s'arrêtent ; continuer est un choix.
+  const [goOn, setGoOn] = useState(false)
+  const paused = reached && !goOn
+  const card = paused ? null : (next.data?.card ?? null)
+  const hasMore = (next.data?.card ?? null) !== null
   const busy = send.isPending || next.isFetching
 
   const decide = (verdict: Verdict) => {
@@ -45,9 +51,6 @@ function CheckScreen() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   })
-
-  const progress = next.data?.progress
-  const reached = progress ? progress.checked >= progress.target : false
 
   return (
     <div className="fixed inset-0 z-20 flex flex-col bg-white">
@@ -78,15 +81,15 @@ function CheckScreen() {
 
       <main className="flex-1 overflow-y-auto px-6 py-10">
         <Notice reasons={send.error ? reasonsOf(send.error) : []} />
-        {progress && (reached || !card) ? (
-          <Done progress={progress} hasMore={card !== null} />
+        {progress && !card ? (
+          <Done
+            progress={progress}
+            candidateId={candidateId}
+            hasMore={hasMore}
+            onContinue={() => setGoOn(true)}
+          />
         ) : null}
-        {card && (!reached || !progress) && <CheckCard card={card} />}
-        {card && reached && (
-          <div className="mt-10 border-t border-slate-100 pt-10">
-            <CheckCard card={card} />
-          </div>
-        )}
+        {card && <CheckCard card={card} />}
       </main>
 
       {card && (
@@ -136,13 +139,17 @@ function CheckScreen() {
 
 function Done({
   progress,
+  candidateId,
   hasMore,
+  onContinue,
 }: {
   progress: NonNullable<ReturnType<typeof useNextCheck>['data']>['progress']
+  candidateId: string
   hasMore: boolean
+  onContinue: () => void
 }) {
   return (
-    <section className="mx-auto max-w-2xl space-y-3 text-center">
+    <section className="mx-auto max-w-2xl space-y-3 pt-16 text-center">
       <p className="text-sm text-slate-400">
         {hasMore
           ? 'Échantillon atteint : la mesure tient à ± 10 points.'
@@ -152,10 +159,35 @@ function Done({
         {formatRate(progress.rate)}
       </p>
       <p className="text-sm text-slate-500">
-        {progress.refused} refusé{progress.refused > 1 ? 's' : ''}, à ranger
-        ailleurs ensuite.
-        {hasMore && ' Vous pouvez continuer ci-dessous pour affiner.'}
+        {progress.refused} refusé{progress.refused > 1 ? 's' : ''}
+        {progress.toReclass > 0 && `, dont ${progress.toReclass} à reclasser`}.
       </p>
+      <div className="flex justify-center gap-3 pt-6">
+        {progress.toReclass > 0 && (
+          <Link
+            to="/reclasser/$candidateId"
+            params={{ candidateId }}
+            className="flex h-12 items-center rounded-xl bg-slate-900 px-6 font-medium text-white hover:bg-slate-800"
+          >
+            Reclasser
+          </Link>
+        )}
+        <Link
+          to="/verification"
+          className="flex h-12 items-center rounded-xl border border-slate-300 px-6 font-medium text-slate-700 hover:bg-slate-100"
+        >
+          Candidat suivant
+        </Link>
+        {hasMore && (
+          <button
+            type="button"
+            onClick={onContinue}
+            className="flex h-12 items-center rounded-xl border border-slate-300 px-6 font-medium text-slate-700 hover:bg-slate-100"
+          >
+            Continuer quand même
+          </button>
+        )}
+      </div>
     </section>
   )
 }

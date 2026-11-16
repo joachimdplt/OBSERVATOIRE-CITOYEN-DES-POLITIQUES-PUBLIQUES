@@ -17,6 +17,8 @@ export type CheckProgress = {
   checked: number
   accepted: number
   refused: number
+  /** Les refus pas encore rangés ailleurs ni écartés. */
+  toReclass: number
   rate: Rate
 }
 
@@ -38,6 +40,13 @@ export type NextCheck = {
 }
 
 export type Verdict = 'accepted' | 'refused'
+
+/** Le prochain refus à reclasser. */
+export type NextReclass = {
+  candidate: { id: string; name: string }
+  left: number
+  card: CheckCard | null
+}
 
 /** Un grand sujet de la grille et ses sous-sujets. */
 export type GridTopic = {

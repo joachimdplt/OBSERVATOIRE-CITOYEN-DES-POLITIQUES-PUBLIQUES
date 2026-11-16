@@ -82,8 +82,10 @@ catégories.
 
 En base : table `cap_topics`, 21 grands sujets et 213 sous-sujets. Chaque
 sous-sujet a un intitulé officiel et une définition officielle, en anglais.
-L'équipe a traduit les intitulés en français ; les définitions ne sont pas
-encore traduites.
+L'équipe a traduit les intitulés en français. Les 213 définitions ont été
+traduites par un assistant le 16 novembre 2026, sans relecture humaine
+(`domain/cap-definitions.ts`, champ `descriptionFrBy` à `assistant`) ; la
+définition officielle en anglais s'affiche toujours à côté et fait foi.
 
 Les numéros 11 et 22 n'existent pas : ils ont été retirés de la grille
 officielle.
@@ -401,8 +403,10 @@ pour une correction ou un retrait, sa raison.
   sur un type de passage serait invisible au test.
 - **La précision de Qwen est flatteuse** dans ce test : les chapitres relus
   qu'il avait bien rangés y sont majoritaires.
-- **Les définitions de la grille sont en anglais** : le lecteur du site ne
-  sait pas encore où finit un sujet et où commence le suivant.
+- **Les définitions françaises ne sont pas relues** : traduites par un
+  assistant, elles s'affichent dans l'admin, pas encore sur le site ; le
+  lecteur du site ne sait pas encore où finit un sujet et où commence le
+  suivant.
 
 ## 10. Le rapprochement de données (data matching)
 

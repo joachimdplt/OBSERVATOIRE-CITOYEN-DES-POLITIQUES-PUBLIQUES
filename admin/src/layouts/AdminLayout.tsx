@@ -51,6 +51,13 @@ export function AdminLayout({ member, onSignOut }: Props) {
             >
               Vérification
             </Link>
+            <Link
+              to="/mesure"
+              className="text-slate-600 hover:text-slate-900"
+              activeProps={{ className: 'font-medium text-slate-900' }}
+            >
+              Mesure
+            </Link>
             {can(member.role, 'review') && (
               <Link
                 to="/reviews"

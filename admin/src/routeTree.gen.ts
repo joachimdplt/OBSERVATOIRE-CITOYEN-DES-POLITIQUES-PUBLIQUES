@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as AdminIndexRouteImport } from './routes/_admin/index'
+import { Route as AdminMesureRouteImport } from './routes/_admin/mesure'
 import { Route as AdminReviewsRouteImport } from './routes/_admin/reviews'
 import { Route as AdminSubjectsRouteImport } from './routes/_admin/subjects'
 import { Route as AdminDatasetsDatasetIdRouteImport } from './routes/_admin/datasets.$datasetId'
@@ -21,6 +22,7 @@ import { Route as AdminIndicatorsNewRouteImport } from './routes/_admin/indicato
 import { Route as AdminProvidersNewRouteImport } from './routes/_admin/providers.new'
 import { Route as AdminPublicationsIndexRouteImport } from './routes/_admin/publications.index'
 import { Route as AdminPublicationsSlugRouteImport } from './routes/_admin/publications.$slug'
+import { Route as AdminReclasserCandidateIdRouteImport } from './routes/_admin/reclasser.$candidateId'
 import { Route as AdminVerificationIndexRouteImport } from './routes/_admin/verification.index'
 import { Route as AdminVerificationCandidateIdRouteImport } from './routes/_admin/verification.$candidateId'
 
@@ -36,6 +38,11 @@ const SigninRoute = SigninRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMesureRoute = AdminMesureRouteImport.update({
+  id: '/mesure',
+  path: '/mesure',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminReviewsRoute = AdminReviewsRouteImport.update({
@@ -83,6 +90,12 @@ const AdminPublicationsSlugRoute = AdminPublicationsSlugRouteImport.update({
   path: '/publications/$slug',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminReclasserCandidateIdRoute =
+  AdminReclasserCandidateIdRouteImport.update({
+    id: '/reclasser/$candidateId',
+    path: '/reclasser/$candidateId',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminVerificationIndexRoute = AdminVerificationIndexRouteImport.update({
   id: '/verification/',
   path: '/verification/',
@@ -98,6 +111,7 @@ const AdminVerificationCandidateIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AdminIndexRoute
   '/signin': typeof SigninRoute
+  '/mesure': typeof AdminMesureRoute
   '/reviews': typeof AdminReviewsRoute
   '/subjects': typeof AdminSubjectsRoute
   '/datasets/$datasetId': typeof AdminDatasetsDatasetIdRoute
@@ -106,12 +120,14 @@ export interface FileRoutesByFullPath {
   '/indicators/new': typeof AdminIndicatorsNewRoute
   '/providers/new': typeof AdminProvidersNewRoute
   '/publications/$slug': typeof AdminPublicationsSlugRoute
+  '/reclasser/$candidateId': typeof AdminReclasserCandidateIdRoute
   '/verification/$candidateId': typeof AdminVerificationCandidateIdRoute
   '/publications/': typeof AdminPublicationsIndexRoute
   '/verification/': typeof AdminVerificationIndexRoute
 }
 export interface FileRoutesByTo {
   '/signin': typeof SigninRoute
+  '/mesure': typeof AdminMesureRoute
   '/reviews': typeof AdminReviewsRoute
   '/subjects': typeof AdminSubjectsRoute
   '/': typeof AdminIndexRoute
@@ -121,6 +137,7 @@ export interface FileRoutesByTo {
   '/indicators/new': typeof AdminIndicatorsNewRoute
   '/providers/new': typeof AdminProvidersNewRoute
   '/publications/$slug': typeof AdminPublicationsSlugRoute
+  '/reclasser/$candidateId': typeof AdminReclasserCandidateIdRoute
   '/verification/$candidateId': typeof AdminVerificationCandidateIdRoute
   '/publications': typeof AdminPublicationsIndexRoute
   '/verification': typeof AdminVerificationIndexRoute
@@ -129,6 +146,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_admin': typeof AdminRouteWithChildren
   '/signin': typeof SigninRoute
+  '/_admin/mesure': typeof AdminMesureRoute
   '/_admin/reviews': typeof AdminReviewsRoute
   '/_admin/subjects': typeof AdminSubjectsRoute
   '/_admin/': typeof AdminIndexRoute
@@ -138,6 +156,7 @@ export interface FileRoutesById {
   '/_admin/indicators/new': typeof AdminIndicatorsNewRoute
   '/_admin/providers/new': typeof AdminProvidersNewRoute
   '/_admin/publications/$slug': typeof AdminPublicationsSlugRoute
+  '/_admin/reclasser/$candidateId': typeof AdminReclasserCandidateIdRoute
   '/_admin/verification/$candidateId': typeof AdminVerificationCandidateIdRoute
   '/_admin/publications/': typeof AdminPublicationsIndexRoute
   '/_admin/verification/': typeof AdminVerificationIndexRoute
@@ -147,6 +166,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/signin'
+    | '/mesure'
     | '/reviews'
     | '/subjects'
     | '/datasets/$datasetId'
@@ -155,12 +175,14 @@ export interface FileRouteTypes {
     | '/indicators/new'
     | '/providers/new'
     | '/publications/$slug'
+    | '/reclasser/$candidateId'
     | '/verification/$candidateId'
     | '/publications/'
     | '/verification/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/signin'
+    | '/mesure'
     | '/reviews'
     | '/subjects'
     | '/'
@@ -170,6 +192,7 @@ export interface FileRouteTypes {
     | '/indicators/new'
     | '/providers/new'
     | '/publications/$slug'
+    | '/reclasser/$candidateId'
     | '/verification/$candidateId'
     | '/publications'
     | '/verification'
@@ -177,6 +200,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_admin'
     | '/signin'
+    | '/_admin/mesure'
     | '/_admin/reviews'
     | '/_admin/subjects'
     | '/_admin/'
@@ -186,6 +210,7 @@ export interface FileRouteTypes {
     | '/_admin/indicators/new'
     | '/_admin/providers/new'
     | '/_admin/publications/$slug'
+    | '/_admin/reclasser/$candidateId'
     | '/_admin/verification/$candidateId'
     | '/_admin/publications/'
     | '/_admin/verification/'
@@ -217,6 +242,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/mesure': {
+      id: '/_admin/mesure'
+      path: '/mesure'
+      fullPath: '/mesure'
+      preLoaderRoute: typeof AdminMesureRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_admin/reviews': {
@@ -282,6 +314,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPublicationsSlugRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/reclasser/$candidateId': {
+      id: '/_admin/reclasser/$candidateId'
+      path: '/reclasser/$candidateId'
+      fullPath: '/reclasser/$candidateId'
+      preLoaderRoute: typeof AdminReclasserCandidateIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_admin/verification/': {
       id: '/_admin/verification/'
       path: '/verification'
@@ -300,6 +339,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminMesureRoute: typeof AdminMesureRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
   AdminSubjectsRoute: typeof AdminSubjectsRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -309,12 +349,14 @@ interface AdminRouteChildren {
   AdminIndicatorsNewRoute: typeof AdminIndicatorsNewRoute
   AdminProvidersNewRoute: typeof AdminProvidersNewRoute
   AdminPublicationsSlugRoute: typeof AdminPublicationsSlugRoute
+  AdminReclasserCandidateIdRoute: typeof AdminReclasserCandidateIdRoute
   AdminVerificationCandidateIdRoute: typeof AdminVerificationCandidateIdRoute
   AdminPublicationsIndexRoute: typeof AdminPublicationsIndexRoute
   AdminVerificationIndexRoute: typeof AdminVerificationIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminMesureRoute: AdminMesureRoute,
   AdminReviewsRoute: AdminReviewsRoute,
   AdminSubjectsRoute: AdminSubjectsRoute,
   AdminIndexRoute: AdminIndexRoute,
@@ -324,6 +366,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminIndicatorsNewRoute: AdminIndicatorsNewRoute,
   AdminProvidersNewRoute: AdminProvidersNewRoute,
   AdminPublicationsSlugRoute: AdminPublicationsSlugRoute,
+  AdminReclasserCandidateIdRoute: AdminReclasserCandidateIdRoute,
   AdminVerificationCandidateIdRoute: AdminVerificationCandidateIdRoute,
   AdminPublicationsIndexRoute: AdminPublicationsIndexRoute,
   AdminVerificationIndexRoute: AdminVerificationIndexRoute,

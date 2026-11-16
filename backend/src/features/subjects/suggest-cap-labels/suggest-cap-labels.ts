@@ -5,6 +5,7 @@ import { isVagueHeading } from '../../../domain/cap';
 import type { Correction } from '../../../domain/corrections';
 import { documentName } from '../../../domain/programme-reading';
 import { trainSoftmax } from '../../../domain/softmax';
+import { DEFAULT_SURE, trainingSource } from '../../../domain/calibration';
 import {
   cosine,
   nearestTopic,
@@ -16,7 +17,7 @@ import {
   embedMissingPassages,
   embedTexts,
   loadVoteContext,
-} from '../vote-cap-labels/vote-cap-labels';
+} from '../../../common/subject-vectors';
 import {
   currentCaptures,
   isSiteSidebar,
@@ -40,7 +41,6 @@ const CHAPTER_TEXT = 1500;
 /** Ce que lit le modèle quand les voix ne s'accordent pas : moins, plus vite. */
 const FAST_EXAMPLES = 3;
 /** La confiance au-delà de laquelle le classeur range seul. */
-const SURE = 0.7;
 const FAST_TEXT = 800;
 /** Un chapitre d'au moins tant de passages parle de plusieurs sujets. */
 const LONG_CHAPTER = 15;
@@ -329,12 +329,41 @@ export async function suggestCapLabels(
   });
   report.review = 0;
 
-  // Le classeur appris sur les vecteurs, réentraîné à chaque rangement sur
-  // tout ce qui est affiché (rangé par le vote, ou décidé par l'équipe) : il
-  // apprend directement des relectures.
-  const shownLabels = await prisma.capLabel.findMany({
-    where: { status: { in: [LabelStatus.proposed, LabelStatus.validated] } },
+  // Le classeur appris sur les vecteurs, réentraîné à chaque rangement. Il
+  // apprend sur les seuls verdicts de personnes quand il y en a assez, sur
+  // assez de candidats ; sinon sur tout ce qui est affiché.
+  const personWhere = {
+    decisionMode: DecisionMode.person,
+    status: LabelStatus.validated,
+  };
+  const persons = await prisma.capLabel.findMany({
+    where: personWhere,
+    select: { candidateId: true },
   });
+  const source = trainingSource(
+    persons.length,
+    new Set(persons.map((p) => p.candidateId)).size,
+  );
+  const shownLabels = await prisma.capLabel.findMany({
+    where:
+      source === 'person'
+        ? personWhere
+        : { status: { in: [LabelStatus.proposed, LabelStatus.validated] } },
+  });
+  // Le seuil du classeur sûr de lui : la dernière mesure sur des verdicts
+  // de personnes ; sans mesure, le seuil par défaut. Une mesure sans seuil
+  // assez juste veut dire : le classeur ne range jamais seul.
+  const calibration = await prisma.classifierCalibration.findFirst({
+    orderBy: { measuredAt: 'desc' },
+  });
+  const sureAt = calibration
+    ? (calibration.threshold ?? Infinity)
+    : DEFAULT_SURE;
+  log(
+    calibration
+      ? `Seuil du classeur : ${sureAt === Infinity ? 'aucun (ne range jamais seul)' : sureAt}, mesuré le ${calibration.measuredAt.toISOString().slice(0, 10)} sur ${calibration.chapters} chapitres vérifiés.`
+      : `Seuil du classeur : ${DEFAULT_SURE}, par défaut (pas encore mesuré sur des verdicts de personnes).`,
+  );
   const classCodes = grid.map((t) => t.code);
   const classOf = new Map(classCodes.map((code, i) => [code, i]));
   const examples = shownLabels.flatMap((l) => {
@@ -342,7 +371,9 @@ export async function suggestCapLabels(
     const y = classOf.get(l.capCode);
     return x && y !== undefined ? [{ x, y }] : [];
   });
-  log(`Apprentissage du classeur sur ${examples.length} blocs affichés…`);
+  log(
+    `Apprentissage du classeur sur ${examples.length} blocs ${source === 'person' ? 'vérifiés par une personne' : 'affichés'}…`,
+  );
   const classify = trainSoftmax(examples, classCodes.length);
 
   for (let i = 0; i < todo.length; i += 1) {
@@ -369,7 +400,7 @@ export async function suggestCapLabels(
     // - ou la grille, le classeur et le classement du candidat d'accord.
     // Le modèle n'est interrogé que sinon.
     const [grille, classeur, titre, rubrique] = voices.map((p) => p.code);
-    const sure = guess !== null && guess.p >= SURE;
+    const sure = guess !== null && guess.p >= sureAt;
     const quick =
       sure ||
       (grille !== null &&

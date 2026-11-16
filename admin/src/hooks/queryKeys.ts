@@ -9,7 +9,10 @@ export const queryKeys = {
   subjectReview: ['subject-review'] as const,
   checks: ['checks'] as const,
   gridTopics: ['grid-topics'] as const,
+  measure: ['measure'] as const,
   nextCheck: (candidateId: string) => ['checks', candidateId] as const,
+  nextReclass: (candidateId: string) =>
+    ['checks', candidateId, 'reclass'] as const,
   publications: ['publications'] as const,
   history: (versionId: string) => ['versions', versionId, 'history'] as const,
 }

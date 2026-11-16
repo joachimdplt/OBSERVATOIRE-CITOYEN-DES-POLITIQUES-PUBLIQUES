@@ -14,7 +14,7 @@ import 'dotenv/config';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { loadVoteContext } from '../features/subjects/vote-cap-labels/vote-cap-labels';
+import { loadVoteContext } from '../common/subject-vectors';
 import { PrismaClient } from '../generated/prisma/client';
 import { DecisionMode, LabelStatus } from '../generated/prisma/enums';
 import type { PrismaService } from '../prisma/prisma.service';
@@ -50,6 +50,8 @@ async function main() {
         verdict:
           l.checks[0]?.verdict ??
           (l.status === LabelStatus.validated ? 'accepted' : 'refused'),
+        // Le bon sujet donné par la personne après un refus.
+        correctedCode: l.checks[0]?.correctedCode ?? null,
         proposals: l.proposals ?? [],
         vector: v ? Array.from(v, (x) => Math.round(x * 1e5) / 1e5) : null,
       },

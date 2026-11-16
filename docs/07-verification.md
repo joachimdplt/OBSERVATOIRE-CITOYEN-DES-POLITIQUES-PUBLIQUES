@@ -17,7 +17,8 @@ réellement humaine, candidat par candidat et couche par couche.
 | Lot 0 : `decisionMode` en base, 2 035 décisions requalifiées `assistant` | fait (migration `label_checks`) |
 | Lot 0 : exemples de Qwen et référence du test limités aux décisions `person` | fait ; le test refuse de tourner sous 50 blocs |
 | Lot 0 : le classeur garde sa confiance dans les voix (`proposals`, champ `p`) | fait, pour les rangements faits désormais |
-| Lot 0 : l'apprentissage du classeur sur ce qui est affiché | **pas changé** : il apprend encore sur les rangements de l'assistant |
+| Lot 0 : l'apprentissage du classeur | bascule seul sur les verdicts de personnes à partir de 300, sur au moins 4 candidats (`domain/calibration.ts`) |
+| Lot 0 : le seuil du classeur sûr de lui | mesuré par `test-vector-classifier.ts` sur les verdicts de personnes, enregistré dans `classifier_calibrations` ; 0,7 par défaut tant qu'aucune mesure n'existe |
 | Lot 1 : textes du 06 et page Sources | à faire |
 | Lot 2 : cartes plein écran, valider ou refuser | fait : admin, menu « Vérification » |
 | Lot 2 : ranger ailleurs un chapitre refusé | seconde couche, à faire |
@@ -53,6 +54,19 @@ calibration du classeur, et l'entropie croisée d'un classeur réentraîné sur
 les seuls verdicts, en validation croisée par chapitre. `--demo` à l'export
 prend les décisions de l'assistant pour essayer l'outil : la mesure est
 alors circulaire.
+
+### Le seuil mesuré
+
+`npx tsx src/scripts/test-vector-classifier.ts` teste le classeur en
+validation croisée sur les chapitres vérifiés par une personne, puis
+enregistre le plus petit seuil (0,5 à 0,95) où il est juste au moins 90 fois
+sur 100 en bas de sa marge, sur au moins 30 chapitres. Sans seuil assez
+juste, le classeur ne range plus jamais seul. La mesure n'est enregistrée
+qu'à partir de 4 candidats vérifiés. `--dry` affiche sans enregistrer.
+
+Premier essai, 16 novembre 2026, 57 chapitres de Mélenchon : 26 justes sur
+26 au-dessus de 0,6, marge basse 88 %, donc aucun seuil retenu, et mesure
+non enregistrée (un seul candidat).
 
 ### Limite connue
 

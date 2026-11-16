@@ -21,6 +21,7 @@ import {
   CheckVerdict,
   DecisionMode,
   DocumentKind,
+  LabelOrigin,
   LabelStatus,
 } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -60,7 +61,16 @@ export class CheckCapLabelsController {
       where: {
         ...(candidateId ? { candidateId } : {}),
         OR: [
-          { status: { in: [LabelStatus.proposed, LabelStatus.validated] } },
+          {
+            status: { in: [LabelStatus.proposed, LabelStatus.validated] },
+            // Un rangement créé par une personne en reclassant n'est pas un
+            // rangement de la machine : il n'entre pas dans la mesure.
+            NOT: {
+              origin: LabelOrigin.person,
+              decisionMode: DecisionMode.person,
+              checks: { none: {} },
+            },
+          },
           { checks: { some: {} } },
         ],
       },
@@ -94,6 +104,9 @@ export class CheckCapLabelsController {
       checked: checked.length,
       accepted,
       refused: checked.length - accepted,
+      // Les refus pas encore rangés ailleurs ni écartés.
+      toReclass: checked.filter((l) => l.verdict === CheckVerdict.refused)
+        .length,
       rate: rateOf(accepted, checked.length, labels.length),
     };
   }
@@ -234,6 +247,91 @@ export class CheckCapLabelsController {
         subtopics: subtopics.map((t) => t.labelFr),
       },
     };
+  }
+
+  /** Le prochain refus à reclasser pour un candidat. */
+  @Get(':candidateId/reclass/next')
+  async nextReclass(@Param('candidateId') candidateId: string) {
+    const candidate = await this.prisma.candidate.findUnique({
+      where: { id: candidateId },
+      select: { id: true, name: true },
+    });
+    if (!candidate) throw new NotFoundException('Candidat inconnu');
+    const refused = (await this.population(candidateId))
+      .filter((l) => l.verdict === CheckVerdict.refused)
+      .map((l) => ({ id: l.id, key: drawOrder(l.id) }))
+      .sort((a, b) => a.key.localeCompare(b.key));
+    for (const { id } of refused) {
+      const card = await this.card(id);
+      if (card) return { candidate, left: refused.length, card };
+    }
+    return { candidate, left: refused.length, card: null };
+  }
+
+  /**
+   * Après un refus, la personne range le chapitre dans le bon sujet, ou dit
+   * que le texte n'est pas une position du candidat. Le rangement refusé
+   * reste retiré ; le bon sujet devient un rangement de personne, affiché.
+   */
+  @Post('reclass')
+  @HttpCode(200)
+  async reclass(
+    @Body() body: { labelId?: string; code?: string | null },
+    @CurrentUser() user: TeamMember,
+  ) {
+    const label = await this.prisma.capLabel.findUnique({
+      where: { id: body.labelId ?? '' },
+      include: { checks: { orderBy: { checkedAt: 'desc' }, take: 1 } },
+    });
+    if (!label) throw new NotFoundException('Rangement inconnu');
+    if (label.checks[0]?.verdict !== CheckVerdict.refused)
+      throw new BadRequestException(
+        'Ce rangement n’attend pas de reclassement.',
+      );
+    const code = body.code ?? null;
+    if (code === label.capCode)
+      throw new BadRequestException(
+        'C’est le sujet refusé : choisissez-en un autre.',
+      );
+    if (
+      code &&
+      !(await this.prisma.capTopic.findFirst({ where: { code, level: 1 } }))
+    )
+      throw new BadRequestException('Sujet inconnu');
+    const signed = {
+      status: LabelStatus.validated,
+      decisionMode: DecisionMode.person,
+      decidedById: user.id,
+      decidedAt: new Date(),
+    };
+    await this.prisma.$transaction(async (tx) => {
+      await tx.labelCheck.create({
+        data: {
+          labelId: label.id,
+          verdict: code ? CheckVerdict.corrected : CheckVerdict.dismissed,
+          correctedCode: code,
+          checkedById: user.id,
+        },
+      });
+      if (!code) return;
+      const key = {
+        candidateId: label.candidateId,
+        documentUrl: label.documentUrl,
+        heading: label.heading,
+        capCode: code,
+      };
+      await tx.capLabel.upsert({
+        where: { candidateId_documentUrl_heading_capCode: key },
+        create: {
+          ...key,
+          fromPosition: label.fromPosition,
+          origin: LabelOrigin.person,
+          ...signed,
+        },
+        update: signed,
+      });
+    });
+    return { id: label.id, code };
   }
 
   @Post()

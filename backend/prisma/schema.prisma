@@ -1144,6 +1144,10 @@ enum CheckVerdict {
   accepted
   /// Le sujet est faux, ou le texte n'est pas une position du candidat.
   refused
+  /// Après un refus : rangé par la personne dans le bon sujet.
+  corrected
+  /// Après un refus : le texte n'est pas une position du candidat.
+  dismissed
 }
 
 enum LabelOrigin {
@@ -1212,6 +1216,8 @@ model LabelCheck {
   id          String       @id @default(uuid())
   labelId     String
   verdict     CheckVerdict
+  /// Le bon sujet, pour un verdict `corrected`.
+  correctedCode String?
   checkedById String
   checkedAt   DateTime     @default(now())
   label       CapLabel     @relation(fields: [labelId], references: [id])
@@ -1256,4 +1262,26 @@ model FiledUnit {
   filedAt DateTime @default(now())
 
   @@map("filed_units")
+}
+
+/// Une mesure du classeur sur des verdicts de personnes : le seuil de
+/// confiance au-dessus duquel il range seul. Le rangement prend la plus
+/// récente ; sans mesure, le seuil par défaut (domain/calibration.ts).
+/// Une mesure ne se modifie pas : on en ajoute une.
+model ClassifierCalibration {
+  id         String   @id @default(uuid())
+  measuredAt DateTime @default(now())
+  /// Sur quoi le classeur a appris : `person` ou `displayed`.
+  source     String
+  /// Les chapitres vérifiés par une personne qui ont servi au test.
+  chapters   Int
+  candidates Int
+  /// Vide : aucun seuil n'est assez juste, le classeur ne range pas seul.
+  threshold  Float?
+  right      Int?
+  total      Int?
+  /// Le bas de la marge à 95 % de la justesse au-dessus du seuil.
+  low        Float?
+
+  @@map("classifier_calibrations")
 }

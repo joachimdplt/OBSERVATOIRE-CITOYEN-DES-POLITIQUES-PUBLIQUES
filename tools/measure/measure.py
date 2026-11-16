@@ -187,17 +187,20 @@ def retrained(rows: list[dict]) -> dict | None:
     from sklearn.linear_model import LogisticRegression
     from sklearn.model_selection import GroupKFold
 
-    known = [r for r in rows if r["verdict"] == "accepted" and r["vector"]]
+    # Le bon sujet est connu quand la personne a validé, ou a reclassé.
+    for r in rows:
+        r["truth"] = r["code"] if r["verdict"] == "accepted" else r.get("correctedCode")
+    known = [r for r in rows if r["truth"] and r["vector"]]
     if len(known) < MIN_ROWS:
         print(
-            f"  Non mesuré : {len(known)} rangements validés avec un vecteur, "
+            f"  Non mesuré : {len(known)} rangements au sujet connu avec un vecteur, "
             f"il en faut au moins {MIN_ROWS}."
         )
         return None
     x = np.array([r["vector"] for r in known], dtype=np.float32)
-    codes = sorted({r["code"] for r in known}, key=int)
+    codes = sorted({r["truth"] for r in known}, key=int)
     index = {c: i for i, c in enumerate(codes)}
-    y = np.array([index[r["code"]] for r in known])
+    y = np.array([index[r["truth"]] for r in known])
     groups = np.array([r["chapter"] for r in known])
 
     # Validation croisée en 5 parts, coupée par chapitre : deux blocs d'un
@@ -227,9 +230,7 @@ def retrained(rows: list[dict]) -> dict | None:
     print()
     table, ece = bins(conf, right)
     print(
-        "\n  Limite : seuls les rangements validés ont un bon sujet connu ; "
-        "les refusés\n  n'entrent ici qu'après avoir été rangés ailleurs "
-        "(seconde couche)."
+        "\n  Limite : un refus n'entre ici qu'une fois reclassé dans le bon sujet."
     )
     return {
         "n": len(known),

@@ -24,11 +24,11 @@ function VerificationPage() {
           {checks.data.map((c) => {
             const done = c.checked >= c.target
             return (
-              <li key={c.id}>
+              <li key={c.id} className="flex items-center hover:bg-slate-50">
                 <Link
                   to="/verification/$candidateId"
                   params={{ candidateId: c.id }}
-                  className="flex items-center gap-6 px-5 py-4 hover:bg-slate-50"
+                  className="flex flex-1 items-center gap-6 px-5 py-4"
                 >
                   <span className="w-48 shrink-0 font-medium text-slate-900">
                     {c.name}
@@ -52,6 +52,17 @@ function VerificationPage() {
                     {formatRate(c.rate)}
                   </span>
                 </Link>
+                <span className="w-32 shrink-0 pr-5 text-right text-sm">
+                  {c.toReclass > 0 && (
+                    <Link
+                      to="/reclasser/$candidateId"
+                      params={{ candidateId: c.id }}
+                      className="font-medium text-slate-900 underline-offset-4 hover:underline"
+                    >
+                      {c.toReclass} à reclasser
+                    </Link>
+                  )}
+                </span>
               </li>
             )
           })}

@@ -19,10 +19,11 @@ import {
   TrainFront,
   TrendingUp,
   Wheat,
+  X,
   Zap,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { GridSubtopic, GridTopic } from '../../../types/checks'
 
 /** Une icône par grand sujet de la grille CAP. */
@@ -52,25 +53,43 @@ const ICONS: Record<string, LucideIcon> = {
 
 /** La taille d'une case au repos, au plus près de la souris, et la portée
  * du grossissement, en pixels. */
-const BASE = 40
-const MAX = 68
+const BASE = 34
+const MAX = 60
 const REACH = 110
 
-type Props = { topics: GridTopic[]; current: string }
+type Props = {
+  topics: GridTopic[]
+  /** Le sujet donné par la machine : marqué d'un point. */
+  current: string
+  /** Pour reclasser : le sujet choisi (en noir) et le choix d'un sujet. */
+  selected?: string | null
+  onPick?: (code: string) => void
+}
 
 /**
  * Les 21 sujets de la grille, en panneau, comme le Dock de macOS : la case
- * sous la souris grossit, ses voisines un peu moins, et une bulle déroule
- * le sujet et ses sous-sujets. Le sujet donné par la machine est en noir,
- * marqué d'un point.
+ * sous la souris grossit et dit son nom. Un clic ouvre la fiche du sujet sur
+ * le même écran : tous ses sous-sujets, chacun avec sa définition. Pour
+ * reclasser, la fiche permet de choisir ce sujet. Échap ferme la fiche.
  */
-export function TopicDock({ topics, current }: Props) {
+export function TopicDock({ topics, current, selected, onPick }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const [mouse, setMouse] = useState<number | null>(null)
   const [hovered, setHovered] = useState<string | null>(null)
-  // La souris dans la bulle : le panneau se fige, pour que la bulle ne
-  // bouge pas pendant la lecture.
-  const [reading, setReading] = useState(false)
+  const [open, setOpen] = useState<string | null>(null)
+  const openTopic = topics.find((t) => t.code === open)
+
+  // Échap ferme la fiche avant de quitter l'écran.
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      e.stopImmediatePropagation()
+      setOpen(null)
+    }
+    window.addEventListener('keydown', onKey, { capture: true })
+    return () => window.removeEventListener('keydown', onKey, { capture: true })
+  }, [open])
 
   const sizeOf = (index: number) => {
     const el = ref.current?.children[index] as HTMLElement | undefined
@@ -81,53 +100,66 @@ export function TopicDock({ topics, current }: Props) {
   }
 
   return (
-    <div className="flex justify-center">
+    <div className="relative flex justify-center">
+      {openTopic && (
+        <Sheet
+          topic={openTopic}
+          current={openTopic.code === current}
+          onClose={() => setOpen(null)}
+          onPick={
+            onPick && openTopic.code !== current
+              ? () => {
+                  onPick(openTopic.code)
+                  setOpen(null)
+                }
+              : undefined
+          }
+        />
+      )}
       <div
         ref={ref}
         onMouseMove={(e) => {
-          if (reading) return
           const box = ref.current?.getBoundingClientRect()
           if (box) setMouse(e.clientX - box.left)
         }}
         onMouseLeave={() => {
           setMouse(null)
           setHovered(null)
-          setReading(false)
         }}
-        className="relative flex h-[84px] items-end gap-1.5 rounded-2xl border border-slate-200 bg-white/80 px-3 pb-2.5 shadow-sm backdrop-blur"
+        className="relative flex h-[76px] items-end gap-1 rounded-2xl border border-slate-200 bg-white/80 px-3 pb-2.5 shadow-sm backdrop-blur"
       >
         {topics.map((t, i) => {
           const Icon = ICONS[t.code] ?? Landmark
           const size = sizeOf(i)
           const isCurrent = t.code === current
+          const isDark =
+            selected === undefined ? isCurrent : t.code === selected
+          const isOpen = t.code === open
           return (
             <div
               key={t.code}
-              onMouseEnter={() => !reading && setHovered(t.code)}
+              onMouseEnter={() => setHovered(t.code)}
               className="relative flex flex-col items-center"
             >
-              {hovered === t.code && (
-                <Bubble
-                  key={t.code}
-                  topic={t}
-                  current={isCurrent}
-                  onReading={setReading}
-                  align={
-                    i < 3 ? 'start' : i >= topics.length - 3 ? 'end' : 'center'
-                  }
-                />
+              {hovered === t.code && !openTopic && (
+                <span className="pointer-events-none absolute bottom-full mb-2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-xs text-white shadow">
+                  {t.label}
+                </span>
               )}
-              <div
+              <button
+                type="button"
                 aria-label={t.label}
+                aria-expanded={isOpen}
+                onClick={() => setOpen(isOpen ? null : t.code)}
                 style={{ width: size, height: size }}
                 className={`flex items-center justify-center rounded-xl transition-[width,height] duration-75 ease-out ${
-                  isCurrent
+                  isDark
                     ? 'bg-slate-900 text-white'
-                    : 'bg-slate-100 text-slate-600'
-                }`}
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                } ${isOpen ? 'ring-2 ring-slate-900 ring-offset-2' : ''}`}
               >
                 <Icon size={Math.round(size * 0.45)} strokeWidth={1.8} />
-              </div>
+              </button>
               <span
                 className={`mt-1 h-1 w-1 rounded-full ${isCurrent ? 'bg-slate-900' : 'bg-transparent'}`}
               />
@@ -140,96 +172,83 @@ export function TopicDock({ topics, current }: Props) {
 }
 
 /**
- * La bulle : le sujet et ses sous-sujets. La souris sur un sous-sujet
- * déroule sa définition en français, puis l'officielle en anglais, qui
- * fait foi.
+ * La fiche d'un sujet, ouverte au-dessus du panneau : chaque sous-sujet
+ * avec sa définition en français, l'officielle en anglais et son code.
  */
-function Bubble({
+function Sheet({
   topic,
   current,
-  align,
-  onReading,
+  onClose,
+  onPick,
 }: {
   topic: GridTopic
   current: boolean
-  align: 'start' | 'center' | 'end'
-  onReading: (reading: boolean) => void
+  onClose: () => void
+  onPick?: () => void
 }) {
-  const [open, setOpen] = useState<string | null>(null)
-  // Aux bords du panneau, la bulle s'aligne sur la case pour ne pas sortir
-  // de l'écran.
-  const place = {
-    start: 'left-0',
-    center: 'left-1/2 -translate-x-1/2',
-    end: 'right-0',
-  }[align]
+  const single = topic.subtopics.length === 1
   return (
-    // Le pied transparent relie la case à la bulle : la souris y monte sans
-    // quitter le panneau.
-    <div
-      onMouseEnter={() => onReading(true)}
-      onMouseLeave={() => onReading(false)}
-      className={`absolute bottom-full z-30 pb-3 ${place}`}
-    >
-      <div className="max-h-[60vh] w-80 overflow-y-auto rounded-xl bg-slate-900 px-4 py-3 text-left text-white shadow-lg">
-        <p className="text-sm font-semibold">{topic.label}</p>
-        {current && (
-          <p className="text-[11px] text-slate-400">
-            Le sujet donné par la machine
+    <section className="absolute bottom-full z-30 mb-3 flex max-h-[62vh] w-[min(760px,92vw)] flex-col rounded-2xl bg-slate-900 text-white shadow-2xl">
+      <header className="flex items-start gap-4 border-b border-white/10 px-6 py-4">
+        <div className="flex-1">
+          <p className="text-lg font-semibold">{topic.label}</p>
+          <p className="text-xs text-slate-400">
+            {current
+              ? 'Le sujet donné par la machine'
+              : `${topic.subtopics.length} sous-sujet${topic.subtopics.length > 1 ? 's' : ''}`}
           </p>
+        </div>
+        {onPick && (
+          <button
+            type="button"
+            onClick={onPick}
+            className="h-9 rounded-lg bg-white px-4 text-sm font-medium text-slate-900 hover:bg-slate-200"
+          >
+            Choisir ce sujet
+          </button>
         )}
-        <ul className="mt-2 space-y-0.5">
-          {topic.subtopics.map((s) => (
-            <Subtopic
-              key={s.code}
-              subtopic={s}
-              open={open === s.code}
-              onOpen={() => setOpen(s.code)}
-            />
-          ))}
-        </ul>
-      </div>
-    </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Fermer"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white"
+        >
+          <X size={18} />
+        </button>
+      </header>
+      <ul
+        className={`grid gap-x-8 gap-y-5 overflow-y-auto px-6 py-5 ${single ? '' : 'md:grid-cols-2'}`}
+      >
+        {topic.subtopics.map((s) => (
+          <li key={s.code} className="text-sm">
+            {!single && <p className="font-medium text-white">{s.label}</p>}
+            <Definition subtopic={s} />
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
-function Subtopic({
-  subtopic,
-  open,
-  onOpen,
-}: {
-  subtopic: GridSubtopic
-  open: boolean
-  onOpen: () => void
-}) {
+/** La définition française, l'officielle en anglais, et leur origine. */
+function Definition({ subtopic }: { subtopic: GridSubtopic }) {
   return (
-    <li
-      onMouseEnter={onOpen}
-      className={`rounded-md px-2 py-1 text-xs transition-colors ${
-        open ? 'bg-white/10 text-white' : 'text-slate-300'
-      }`}
-    >
-      <span>{subtopic.label}</span>
-      {open && (
-        <div className="mt-1 space-y-1.5 pb-1">
-          {subtopic.definition ? (
-            <p className="leading-snug text-slate-200">{subtopic.definition}</p>
-          ) : (
-            <p className="text-slate-400">Pas encore traduite.</p>
-          )}
-          {subtopic.official && (
-            <p className="leading-snug text-slate-400 italic">
-              {subtopic.official}
-            </p>
-          )}
-          <p className="text-[10px] text-slate-500">
-            Code {subtopic.code}, définition officielle du Comparative Agendas
-            Project.
-            {subtopic.translatedBy === 'assistant' &&
-              ' Traduction d’un assistant, non relue.'}
-          </p>
-        </div>
+    <div className="mt-1 space-y-1 text-xs">
+      {subtopic.definition ? (
+        <p className="leading-snug text-slate-200">{subtopic.definition}</p>
+      ) : (
+        <p className="text-slate-400">Pas encore traduite.</p>
       )}
-    </li>
+      {subtopic.official && (
+        <p className="leading-snug text-slate-400 italic">
+          {subtopic.official}
+        </p>
+      )}
+      <p className="text-[10px] text-slate-500">
+        Code {subtopic.code}
+        {subtopic.translatedBy === 'assistant' &&
+          ', traduction d’un assistant, non relue'}
+      </p>
+    </div>
   )
 }
