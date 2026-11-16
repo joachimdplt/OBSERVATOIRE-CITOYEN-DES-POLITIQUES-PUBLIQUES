@@ -5,7 +5,8 @@
  *   npm run collect:parliament
  *
  * Elle agit au nom du premier compte d'administration, inscrit comme auteur
- * de la collecte. Relancée, elle n'ajoute que les nouveaux dépôts.
+ * de la collecte. Relancée, elle n'ajoute que les nouveaux dépôts, et
+ * remplace dans le bandeau du site une collecte de 6 h en échec.
  */
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -25,11 +26,29 @@ async function main() {
       orderBy: { createdAt: 'asc' },
     });
     if (!admin) throw new Error('Aucun compte d’administration actif.');
+    // Notée comme celle de 6 h : le bandeau du site montre son résultat.
+    const run = await prisma.collectionRun.create({
+      data: { kind: 'parliament' },
+    });
     const report = await collectParliamentTexts(
       prisma as unknown as PrismaService,
       new AssembleeOpenData(),
       admin.id,
-    );
+    ).catch(async (e: unknown) => {
+      await prisma.collectionRun.update({
+        where: { id: run.id },
+        data: {
+          finishedAt: new Date(),
+          ok: false,
+          summary: { error: String(e) },
+        },
+      });
+      throw e;
+    });
+    await prisma.collectionRun.update({
+      where: { id: run.id },
+      data: { finishedAt: new Date(), ok: true, summary: report },
+    });
     console.log(
       `${report.examined} textes lus, ${report.matched} retenus, ${report.collected} nouveaux, ${report.articles} articles cités.`,
     );
